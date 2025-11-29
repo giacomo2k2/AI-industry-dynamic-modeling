@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from dynamics import DoublePendulum
 from simulation import Simulator
+from physics import kinetic_energy, potential_energy
+from preprocessing import energy_plot
 
 
 def main():
@@ -9,7 +11,7 @@ def main():
     doublePendulum = DoublePendulum()
     simulator = Simulator()
 
-    initial_state = np.array([np.pi/2, 0.0, np.pi/4, 0.0])
+    doublePendulum.random_init()
     
     steps = 1000
     states = np.zeros((steps, 4))
@@ -22,6 +24,10 @@ def main():
         states[i+1,:] = simulator.solver(states[i,:], doublePendulum.dynamics(states=states[i,:]), dt)
     
     simulator.draw_simulation(doublePendulum, states)
+    energy_plot(states, 
+                (doublePendulum.m1, doublePendulum.m2),
+                (doublePendulum.l1, doublePendulum.l2),
+                dt)
         
 
 if __name__ == '__main__': 
