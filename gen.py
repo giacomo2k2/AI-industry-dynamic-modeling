@@ -19,12 +19,13 @@ def main():
 
     # random seed
     np.random.seed(42)
+    pendulum = dyn.DoublePendulum()
+    pendulum.random_params()
     
     for i in range(n_pendulums):
 
         print("Pendulum ", i)
 
-        pendulum = dyn.DoublePendulum()
         pendulum.random_init()
         
         simulator = Simulator()
@@ -36,7 +37,10 @@ def main():
 
         for step in range(0, steps):
             #print(f"\t step {step+1}")
-            states[step+1,:]=simulator.solver(states[step,:], pendulum.dynamics(states=states[step,:]), dt)
+            states[step+1,:]=simulator.solver(states[step,:], 
+                                              pendulum, 
+                                              dt,
+                                              method='rk')
             
             df = pd.concat([df, pd.DataFrame([{
                     'id_pendulum': i,
@@ -57,10 +61,11 @@ def main():
             }])], ignore_index=True)
         
     # save dataframe to csv
-    df.to_csv('double_pendulum_data.csv', index=False)
+    df.to_csv('data/double_pendulum_fixed.csv', index=False)
 
 
 if __name__ == '__main__':
+
     main()
     
 
