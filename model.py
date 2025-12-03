@@ -41,7 +41,7 @@ class DoublePendulum:
 
         self.initial_state = np.array([o1_init, o1_dot_init, o2_init, o2_dot_init])
 
-    def dynamics(self, states: np.ndarray, u: np.ndarray = None):
+    def dynamics(self, states: np.ndarray, u: np.ndarray = None) -> np.ndarray:
         
         """Compute state derivatives given current state.
 
