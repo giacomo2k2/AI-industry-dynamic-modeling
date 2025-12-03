@@ -54,9 +54,61 @@ def cut_dataset(df:pd.DataFrame, threshold:float):
 
 
 
+def kullback_leibler(p, q, eps=1e-10):
+    """
+    Compute the Kullback-Leibler divergence D_KL(P || Q) between two probability distributions.
+    
+    ---
+    Args:
+        p (np.ndarray): First probability distribution.
+        q (np.ndarray): Second probability distribution.
+        eps (float): Small value to avoid log(0).
+    """
+    p = p + eps
+    q = q + eps
+    return np.sum(p * np.log(p / q))
 
+def optimize_threshold(df:pd.DataFrame ):
+    """
+    Optimize the threshold based on Kullback-Leibler divergence between the 
+    distribution of binned angles and a uniform distribution.
+    
+    ---
+    Args:
+        distr_bins (np.ndarray): Histogram bins of the angle distributions.
+        uniform_bins (np.ndarray): Histogram bins of a uniform distribution.
+    """
+    best_threshold = None
+    best_kl_divergence = float('inf')
+    kl_divergences = []
+    thresholds_vec = np.linspace(0.0, 10.0, 1000)
 
+    for threshold in thresholds_vec:
+        df_temp = cut_dataset (df, threshold=threshold)
+        
+        # produce bins
+        states = df_temp[['o1', 'o1_dot', 'o2', 'o2_dot']].to_numpy()
+        distr_bins, _ = np.histogram(states[:, 3], bins=50, range=(-np.pi, np.pi), density=True)
+        uniform_bins = np.ones_like(distr_bins) / distr_bins.size
 
+        kl_divergence = kullback_leibler(distr_bins, uniform_bins)
+        
+        kl_divergences.append(kl_divergence)
+
+        if kl_divergence < best_kl_divergence:
+            best_kl_divergence = kl_divergence
+            best_threshold = threshold
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(thresholds_vec, kl_divergences)
+    plt.title('Kullback-Leibler Divergence vs. Threshold')
+    plt.xlabel('Threshold')
+    plt.ylabel('Kullback-Leibler Divergence')
+    plt.grid()
+    plt.tight_layout()
+    plt.show()
+
+    return best_threshold
 
 # ========================================================
 # ================== MAIN PROCESSING =====================
@@ -82,13 +134,16 @@ def process_data(path:str, threshold, plot: bool = PLOT):
 
         show_energy_stats(processed_df, filename=sim_type)
 
+    threshold = optimize_threshold(processed_df)
+    print(f"Optimal threshold for {sim_type}: {threshold}")
     processed_df = cut_dataset(processed_df, threshold=threshold)
+
 
     if PLOT:
         show_bins(processed_df, id=-1, save=False)
 
     # Save processed dataframe to csv
-    processed_df.to_csv(f'data/processed/{path}', index=False)
+    #processed_df.to_csv(f'data/processed/{path}', index=False)
 
     # Print process terminated and number of pendulums kept
     n_total = df['id_pendulum'].nunique()
@@ -111,8 +166,8 @@ def main():
     ]
 
     df_nof = process_data('double_pendulum_nofrict.csv', threshold = thresholds[0])
-    #df_lowf = process_data('double_pendulum_lowfrict.csv', threshold = thresholds[1])
-    #df_highf = process_data('double_pendulum_highfrict.csv', threshold = thresholds[2])
+    df_lowf = process_data('double_pendulum_lowfrict.csv', threshold = thresholds[1])
+    df_highf = process_data('double_pendulum_highfrict.csv', threshold = thresholds[2])
 
 if __name__ == '__main__':
     main()
