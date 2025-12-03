@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 
 class Simulator: 
     """
@@ -11,11 +12,11 @@ class Simulator:
     and 'animation' (visualization logic).
     """
 
-    def __init__(self):
+    def __init__(self, dt: float):
         """Initializes the Simulator instance devoted for the numerical integration and visualization of dynamical system."""
-        pass
+        self.dt = dt
 
-    def solver(self, states: np.ndarray, model: object, dt: float,  method: str = 'fe') -> np.ndarray:
+    def solver(self, states: np.ndarray, model: object,  method: str = 'fe') -> np.ndarray:
         """
         Advances the system state by a single time step using numerical integration.
 
@@ -36,18 +37,18 @@ class Simulator:
         """
         if method == 'rk':
             k1 = model.dynamics(states=states)
-            k2= model.dynamics(states=states + dt * k1 / 2)
-            k3= model.dynamics(states=states + dt * k2 / 2)
-            k4= model.dynamics(states=states + dt * k3)
+            k2= model.dynamics(states=states + self.dt * k1 / 2)
+            k3= model.dynamics(states=states + self.dt * k2 / 2)
+            k4= model.dynamics(states=states + self.dt * k3)
 
-            new_states = states + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+            new_states = states + self.dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
         elif method == 'fe':
-            new_states = states + dt * model.dynamics(states=states)
+            new_states = states + self.dt * model.dynamics(states=states)
         else:
             raise ValueError("Choose a valid method: 'fe' or 'rk'")
         return new_states
     
-    def draw_simulation(self, model: object, states: np.ndarray):
+    def draw_simulation1(self, model: object, states: np.ndarray):
         """
         Draw an animation of the system's trajectory.
         
@@ -60,6 +61,7 @@ class Simulator:
         fig, ax = plt.subplots()
         plt.ion()       # Turn on interactive mode
         plt.show()
+        
 
         # Stop animation flag
         stop_animation = False  
@@ -89,3 +91,68 @@ class Simulator:
             plt.pause(0.001)
 
         plt.close(fig)
+
+
+       
+    def draw_simulation(self, model: object, states: np.ndarray, target_fps: int = 30):
+        """
+        Draw an animation of the system's trajectory.
+        
+        ---
+        Args:
+            model (object): The physical model instance.
+            states (np.ndarray): A time-series array of state vectors 
+                                 (shape: [num_steps, state_dim]).
+            target_fps (int): Set a target FPS rate
+        """
+        fig, ax = plt.subplots()
+        plt.ion()
+        plt.show()
+
+        # Calculate time per frame
+        render_interval = 1.0 / target_fps
+        last_render_time = -render_interval  # Ensure we draw the first frame
+
+        start_time = time.time()
+        
+        for k, state in enumerate(states):
+            # The exact time this specific state represents
+            current_sim_time = k * self.dt
+            
+            # --- SYNCHRONIZATION ---
+            # Check actual wall-clock time elapsed
+            real_time_elapsed = time.time() - start_time
+            
+            # How long we need to wait to match real-time
+            time_to_wait = current_sim_time - real_time_elapsed
+            
+            if time_to_wait > 0:
+                # We are ahead of schedule (computer is fast). Sleep to sync.
+                time.sleep(time_to_wait)
+            
+            # --- RENDERING (Frame Skipping Logic) ---
+            # Only draw if enough time has passed since the last draw to match target_fps.
+            # AND do not draw if we are significantly lagging behind (time_to_wait < -0.1)
+            now = time.time()
+            if now - last_render_time >= render_interval:
+                
+                # If we are lagging significantly (drawing is too slow), 
+                # we skip the draw to let the loop catch up to real-time.
+                if time_to_wait > -0.05: 
+                    ax.clear()
+                    model.animation(state, ax)
+                    
+                    # Add timestamp
+                    ax.text(
+                        0.02, 0.95,
+                        f"t = {current_sim_time:.2f} s",
+                        transform=ax.transAxes,
+                        fontsize=12,
+                        verticalalignment='top'
+                    )
+                    
+                    # Update plot
+                    plt.draw()
+                    plt.pause(0.001)
+                    
+                    last_render_time = time.time()
