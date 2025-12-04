@@ -1,10 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from dynamics import DoublePendulum
+from model import DoublePendulum
 from simulation import Simulator
-from physics import kinetic_energy, potential_energy
+from model import kinetic_energy, potential_energy
 from preprocessing import energy_plot
 
+# Set global plot style
+plt.rc('font', family='serif')
 
 def main():
 

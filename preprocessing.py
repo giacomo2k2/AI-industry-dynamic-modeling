@@ -3,7 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from data_inspection import show_bins, show_status_stats, show_energy_stats
 
+# Set global plot style
 plt.rc('font', family='serif')
+
+# Global plotting flag
 PLOT = True
 
 # ========================================================
@@ -13,16 +16,37 @@ PLOT = True
 
 def round_to_pi(df: pd.DataFrame):
     """
-    Wrap angles to the interval [-pi, pi]
+    Wrap angles to the interval [-pi, pi].
+
+    ---
+    Args:
+        df (pd.DataFrame): Input dataframe containing angle data.
+
+    ---
+    Returns:
+        pd.DataFrame: Dataframe with angles wrapped to [-pi, pi].
     """
     # ATTENTION: watchout the module, in NN it may not work.
-    o = df[['o1', 'o2']].to_numpy() + np.pi
-    o = np.mod(o, 2*np.pi) - np.pi
-    df['o1'], df['o2'] = o[:,0], o[:,1]
+    q = df[['q1', 'q2']].to_numpy() + np.pi
+    q = np.mod(q, 2*np.pi) - np.pi
+    df['q1'], df['q2'] = q[:,0], q[:,1]
 
     return df
 
 def energy_check(df, tol=1e-2):
+    """
+    Keep only energy-conservative pendulums.
+
+    ---
+    Args:
+        df (pd.DataFrame): Input dataframe containing energy data.
+        tol (float, optional): Tolerance threshold for energy difference.
+    
+    ---
+    Returns:
+        pd.DataFrame: Filtered dataframe with only energy-conservative pendulums.
+        list: List of discarded pendulum IDs.
+    """
     # Compute energy differences per pendulum in one shot
     df = df.sort_values(['id_pendulum']).copy()
 
@@ -45,9 +69,18 @@ def energy_check(df, tol=1e-2):
     
     return valid_df.drop(columns='dE'), list(bad)
 
-def cut_dataset(df:pd.DataFrame, threshold:float):
+def cut_dataset(df:pd.DataFrame, threshold:float) -> pd.DataFrame:
     """
-    Keep onlty the time steps lower than a time threshold
+    Keep onlty the time steps lower than a time threshold.
+
+    ---
+    Args:
+        df (pd.DataFrame): Input dataframe containing time steps.
+        threshold (float): Time threshold to cut the dataset.
+    
+    ---
+    Returns:
+        pd.DataFrame: Dataframe filtered by the time threshold.
     """
     
     return df[df['time_step'] < threshold]
@@ -62,14 +95,20 @@ def kullback_leibler(p, q, eps=1e-10, lambda_val=1.0, threshold_penalty = 0):
     Args:
         p (np.ndarray): real probability distribution.
         q (np.ndarray): approximated probability distribution.
-        eps (float): Small value to avoid log(0).
+        eps (float, optional): Small value to avoid log(0).
+        lambda_val (float, optional): Weight for the threshold penalty term.
+        threshold_penalty (float, optional): Penalty term based on the threshold.
+
+    ---
+    Returns:
+        float: Kullback-Leibler divergence with penalty term.
     """
     p = p + eps
     q = q + eps
 
     return np.sum(p * np.log(p / q)) + lambda_val * threshold_penalty**2
 
-def optimize_threshold(df:pd.DataFrame ):
+def optimize_threshold(df:pd.DataFrame) -> float:
     """
     Optimize the threshold based on Kullback-Leibler divergence between the 
     distribution of binned angles and a uniform distribution.
@@ -78,6 +117,10 @@ def optimize_threshold(df:pd.DataFrame ):
     Args:
         distr_bins (np.ndarray): Histogram bins of the angle distributions.
         uniform_bins (np.ndarray): Histogram bins of a uniform distribution.
+    
+    ---
+    Returns:
+        float: Optimal threshold value that minimizes the KL divergence.
     """
     best_threshold = None
     best_kl_divergence = float('inf')
@@ -95,7 +138,7 @@ def optimize_threshold(df:pd.DataFrame ):
         df_temp = cut_dataset(df, threshold=threshold)
 
         # produce bins
-        states = df_temp[['o1', 'o2']].to_numpy()
+        states = df_temp[['q1', 'q2']].to_numpy()
         kl_divergence = 0
 
         for i in range(states.shape[1]):
@@ -124,7 +167,7 @@ def optimize_threshold(df:pd.DataFrame ):
 
     return best_threshold
 
-def add_white_noise(df: pd.DataFrame, std: float = 0.01):
+def add_white_noise(df: pd.DataFrame, std: float = 0.01) -> pd.DataFrame:
     """
     Add white Gaussian noise to the state variables of the dataframe.
     
@@ -132,9 +175,13 @@ def add_white_noise(df: pd.DataFrame, std: float = 0.01):
     Args:
         df (pd.DataFrame): The input dataframe containing state variables.
         std (float): Standard deviation of the Gaussian noise to be added.
+
+    ---
+    Returns:
+        pd.DataFrame: Dataframe with added noise to state variables.
     """
     noisy_df = df.copy()
-    state_columns = ['o1', 'o2', 'o1_dot', 'o2_dot']
+    state_columns = ['q1', 'q2', 'q1_dot', 'q2_dot']
     
     for col in state_columns:
         noise = np.random.normal(0, std, size=noisy_df.shape[0])
@@ -160,13 +207,13 @@ def process_data(path:str, plot: bool = PLOT):
     processed_df = round_to_pi(processed_df)
 
 
-    status_cols = ['o1', 'o1_dot', 'o1_dot_dot', 'o2', 'o2_dot', 'o2_dot_dot']
-    status_names = [r'$o_1$', r'$\dot{o}_1$', r'$\ddot{o}_1$', r'$o_2$', r'$\dot{o}_2$',  r'$\ddot{o}_2$']
-    vmax = processed_df[status_cols].abs().max().to_numpy()
+    status_cols = ['q1', 'q1_dot', 'q1_dot_dot', 'q2', 'q2_dot', 'q2_dot_dot']
+    status_names = [r'$q_1$', r'$\dot{q}_1$', r'$\ddot{q}_1$', r'$q_2$', r'$\dot{q}_2$',  r'$\ddot{q}_2$']
+    vlim = processed_df[status_cols].abs().max().to_numpy()
 
 
     if plot:
-        show_bins(processed_df, cols=status_cols, names=status_names, vmax=vmax, save=True, filename=sim_type)
+        show_bins(processed_df, cols=status_cols, names=status_names, vlim=vlim, save=True, filename=sim_type)
 
         show_status_stats(processed_df, cols=status_cols, names=status_names, filename=sim_type)   
 
@@ -179,7 +226,7 @@ def process_data(path:str, plot: bool = PLOT):
 
 
     if plot:
-        show_bins(processed_df, cols=status_cols, names=status_names, vmax=vmax, save=False)
+        show_bins(processed_df, cols=status_cols, names=status_names, vlim=vlim, save=False)
 
     # Save processed dataframe to csv
     processed_df.to_csv(f'data/processed/{path}', index=False)

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Set global plot style
 plt.rc('font', family='serif')
 
 class DoublePendulum:
@@ -14,8 +15,8 @@ class DoublePendulum:
 
     State Vector Convention:
         The state vector is ordered as: [theta1, theta1_dot, theta2, theta2_dot]
-        - theta1 (o1): Angle of the first link relative to the vertical.
-        - theta2 (o2): Relative angle of the second link with respect to the first link.
+        - theta1 (q1): Angle of the first link relative to the vertical.
+        - theta2 (q2): Relative angle of the second link with respect to the first link.
     """
 
     def __init__(self,
@@ -32,7 +33,7 @@ class DoublePendulum:
         Initializes the Double Pendulum parameters.
 
         Args:
-            initial_state (np.ndarray): Initial state vector [o1, o1_dot, o2, o2_dot].
+            initial_state (np.ndarray): Initial state vector [q1, q1_dot, q2, q2_dot].
             m1 (float): Mass of the first link (kg).
             m2 (float): Mass of the second link (kg).
             l1 (float): Length of the first link (m).
@@ -73,12 +74,12 @@ class DoublePendulum:
 
         Updates self.initial_state.
         """
-        o1_init = np.random.uniform(-np.pi, np.pi)
-        o1_dot_init = np.random.uniform(-2, 2)
-        o2_init = np.random.uniform(-np.pi, np.pi)
-        o2_dot_init = np.random.uniform(-2, 2)
+        q1_init = np.random.uniform(-np.pi, np.pi)
+        q1_dot_init = np.random.uniform(-2, 2)
+        q2_init = np.random.uniform(-np.pi, np.pi)
+        q2_dot_init = np.random.uniform(-2, 2)
 
-        self.initial_state = np.array([o1_init, o1_dot_init, o2_init, o2_dot_init])
+        self.initial_state = np.array([q1_init, q1_dot_init, q2_init, q2_dot_init])
 
     def dynamics(self, states: np.ndarray, u: np.ndarray = None) -> np.ndarray:
         """
@@ -96,7 +97,7 @@ class DoublePendulum:
 
         ---
         Returns:
-            states_dot (np.ndarray): The state derivatives [o1_dot, o1_ddot, o2_dot, o2_ddot] vector of shape (4,).
+            states_dot (np.ndarray): The state derivatives [q1_dot, q1_ddot, q2_dot, q2_ddot] vector of shape (4,).
         """
         
         # Select zero input
@@ -104,10 +105,10 @@ class DoublePendulum:
             u = np.zeros((2, 1))
 
         # Unpack state variables
-        o1 = states[0]
-        o1_dot = states[1]
-        o2 = states[2]
-        o2_dot = states[3]
+        q1 = states[0]
+        q1_dot = states[1]
+        q2 = states[2]
+        q2_dot = states[3]
 
         # Unpack physical parameters for readability
         m1, m2 = self.m1, self.m2
@@ -118,15 +119,15 @@ class DoublePendulum:
         # === 1. Inertia Matrix M(q) ===
         # Describes how mass is distributed. Symmetric and positive definite
         M = np.array([
-            [(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * np.cos(o2), m2 * l2**2 + m2 * l1 * l2 * np.cos(o2)],
-            [m2 * l2**2 + m2 *l1 *l2 * np.cos(o2), m2 * l2**2]
+            [(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * np.cos(q2), m2 * l2**2 + m2 * l1 * l2 * np.cos(q2)],
+            [m2 * l2**2 + m2 *l1 *l2 * np.cos(q2), m2 * l2**2]
         ])
         
-        # === 2. Coriolis and Centrifugal Forces Vector -> c(o, o_dot) = C(o, o_dot)*o_dot ===
+        # === 2. Coriolis and Centrifugal Forces Vector -> c(q, q_dot) = C(o, q_dot)*q_dot ===
         # Represents fictitious forces arising from rotation. Strongly non linear.
         c = np.array([
-            [-m2 *l1*l2*np.sin(o2) * (2*o1_dot + o2_dot) * o2_dot],
-            [m2 * l1*l2*np.sin(o2) * o1_dot**2]
+            [-m2 *l1*l2*np.sin(q2) * (2*q1_dot + q2_dot) * q2_dot],
+            [m2 * l1*l2*np.sin(q2) * q1_dot**2]
         ])
 
         # === 3. Viscous damping matrix D ===
@@ -139,20 +140,20 @@ class DoublePendulum:
         # === 4. Gravity term vector === 
         # Represents potential energy forces.
         G = np.array([
-            [(m1+m2)*g*l1*np.sin(o1) +  m2*g*l2*np.sin(o1 + o2)], 
-            [m2*g*l2*np.sin(o1 + o2)]
+            [(m1+m2)*g*l1*np.sin(q1) +  m2*g*l2*np.sin(q1 + q2)], 
+            [m2*g*l2*np.sin(q1 + q2)]
         ])
 
         # States derivatives
-        o_dot = np.array([
-            [o1_dot], 
-            [o2_dot]
+        q_dot = np.array([
+            [q1_dot], 
+            [q2_dot]
             ])
 
         # Model's dynamic
-        b = u - c - D @ o_dot - G 
-        o_dot_dot = np.linalg.solve(M, b)
-        # o_dot_dot = - np.linalg.pinv(M) @ (c + D @ o_dot + G - u)
+        b = u - c - D @ q_dot - G 
+        q_dot_dot = np.linalg.solve(M, b)
+        # q_dot_dot = - np.linalg.pinv(M) @ (c + D @ q_dot + G - u)
 
         
 
@@ -162,13 +163,13 @@ class DoublePendulum:
         #print("===== Mass matrix determinant ====")
         #print(det)
 
-        assert o_dot_dot.shape == (2, 1)
+        assert q_dot_dot.shape == (2, 1)
 
-        o1_dot_dot = float(o_dot_dot[0, 0])
-        o2_dot_dot = float(o_dot_dot[1, 0])
+        q1_dot_dot = float(q_dot_dot[0, 0])
+        q2_dot_dot = float(q_dot_dot[1, 0])
 
         # Pack the derivative of the full state
-        states_dot = np.array([o1_dot, o1_dot_dot, o2_dot, o2_dot_dot])
+        states_dot = np.array([q1_dot, q1_dot_dot, q2_dot, q2_dot_dot])
         assert states_dot.shape == (4,)
 
         return states_dot
@@ -181,28 +182,28 @@ class DoublePendulum:
 
         ---
         Args:
-            q (tuple): Joint angles (o1, o2).
-            q_dot (tuple): Joint velocities (o1_dot, o2_dot).
+            q (tuple): Joint angles (q1, q2).
+            q_dot (tuple): Joint velocities (q1_dot, q2_dot).
 
         --- 
         Returns:
             T (float): Total kinetic energy in Joules.
         """
         
-        o1 = states[0]
-        o1_dot = states[1]  
-        o2 = states[2]
-        o2_dot = states[3]
+        q1 = states[0]
+        q1_dot = states[1]  
+        q2 = states[2]
+        q2_dot = states[3]
 
 
         # Term associated with link 1 and coupling
-        T = 0.5 * (self.m1 * self.l1**2 + self.m2 * self.l1**2 + self.m2 * self.l2**2 + 2 * self.m2 * self.l1 * self.l2 * np.cos(o2)) * o1_dot**2
+        T = 0.5 * (self.m1 * self.l1**2 + self.m2 * self.l1**2 + self.m2 * self.l2**2 + 2 * self.m2 * self.l1 * self.l2 * np.cos(q2)) * q1_dot**2
         
         # Term associated with link 2 independent motion
-        T += 0.5 * self.m2 * self.l2**2 * o2_dot**2
+        T += 0.5 * self.m2 * self.l2**2 * q2_dot**2
 
         # Term associated with coupling velocities
-        T += 0.5 * (2 * self.m2 * self.l2**2 + 2 * self.m2 * self.l1 * self.l2 * np.cos(o2)) * o1_dot * o2_dot
+        T += 0.5 * (2 * self.m2 * self.l2**2 + 2 * self.m2 * self.l1 * self.l2 * np.cos(q2)) * q1_dot * q2_dot
         
         return T
     
@@ -212,20 +213,20 @@ class DoublePendulum:
 
         ---
         Args:
-            q (tuple): Joint angles (o1, o2).
+            q (tuple): Joint angles (q1, q2).
             q_dot (tuple): Joint velocities (unused here, kept for API consistency).
 
         ---
         Returns:
             V (float): Total potential energy in Joules.
         """
-        o1 = states[0]
-        o2 = states[2]
+        q1 = states[0]
+        q2 = states[2]
         
         
-        V = self.m1 * self.g * self.l1 * (1-np.cos(o1)) + self.m2 * self.g * (self.l1 * (1-np.cos(o1)) + self.l2*(1- np.cos(o1 + o2))) 
+        V = self.m1 * self.g * self.l1 * (1-np.cos(q1)) + self.m2 * self.g * (self.l1 * (1-np.cos(q1)) + self.l2*(1- np.cos(q1 + q2))) 
 
-        #V = -m1 * g * l1 * np.cos(o1) - m2 * g * ( l1 * np.cos(o1) +l2* np.cos(o1 + o2)) 
+        #V = -m1 * g * l1 * np.cos(q1) - m2 * g * ( l1 * np.cos(q1) +l2* np.cos(q1 + q2)) 
         return V
 
     def energy(self, states: np.ndarray):
@@ -236,8 +237,8 @@ class DoublePendulum:
 
         ---
         Args:
-            q (tuple): (o1, o2)
-            q_dot (tuple): (o1_dot, o2_dot)
+            q (tuple): (q1, q2)
+            q_dot (tuple): (q1_dot, q2_dot)
 
         ---
         Returns:
@@ -258,12 +259,12 @@ class DoublePendulum:
             ax (matplotlib.axes.Axes): The plot axis to draw on.
         """
         # Extract joints position
-        o1 = states[0]
-        o2 = states[2]
+        q1 = states[0]
+        q2 = states[2]
         
         # Compute cartesians position (Forward Kinematics)
-        p1 = np.array([self.l1 * np.sin(o1), -self.l1 * np.cos(o1)])
-        p2 = np.array([self.l1 * np.sin(o1) + self.l2 * np.sin(o1 + o2), -self.l1 * np.cos(o1) - self.l2 * np.cos(o1 + o2)])
+        p1 = np.array([self.l1 * np.sin(q1), -self.l1 * np.cos(q1)])
+        p2 = np.array([self.l1 * np.sin(q1) + self.l2 * np.sin(q1 + q2), -self.l1 * np.cos(q1) - self.l2 * np.cos(q1 + q2)])
 
         # Limit for total pendolum length
         lim_size = (self.l1 + self.l2) * 1.5
@@ -306,10 +307,10 @@ class DoublePendulum:
         n_states = states.shape[0]
 
         for i in range(n_states):
-            o = (states[i,0], states[i,2])
-            o_dot = (states[i,1], states[i,3])
+            q = (states[i,0], states[i,2])
+            q_dot = (states[i,1], states[i,3])
 
-            T, V, E = self.energy(o, o_dot)
+            T, V, E = self.energy(q, q_dot)
          
             kinetics.append(T)
             potentials.append(V)

@@ -20,9 +20,16 @@ identify patterns, stability, or anomalies in the dataset.
 
 
 def show_status_stats(df: pd.DataFrame, cols: list, names:list, filename  : str = '', save: bool = False):
-
     """
-    Compute variance of each state across all pendulums for each time step
+    Compute variance of each state across all pendulums for each time step.
+
+    ---
+    Args:
+        df (pd.DataFrame): DataFrame containing the simulation data.
+        cols (list): List of column names representing the state variables.
+        names (list): List of human-readable names for the state variables.
+        filename (str, optional): Filename to save the plot. Defaults to ''.
+        save (bool, optional): Whether to save the plot. Defaults to False.
     """
     
     time_steps = df['time_step'].unique()
@@ -54,7 +61,13 @@ def show_status_stats(df: pd.DataFrame, cols: list, names:list, filename  : str 
 
 def show_energy_stats(df:pd.DataFrame, filename:str='', save:bool = False):
     """
-    Keep onlty the time steps lower than a threshold
+    Keep onlty the time steps lower than a threshold.
+
+    ----
+    Args:
+        df (pd.DataFrame): DataFrame containing the simulation data.
+        filename (str, optional): Filename to save the plot. Defaults to ''.
+        save (bool, optional): Whether to save the plot. Defaults to False.
     """
 
     # Compute for each time step the medium total energy
@@ -87,9 +100,8 @@ def show_energy_stats(df:pd.DataFrame, filename:str='', save:bool = False):
         fig.savefig('plots/energy_stats_' + filename + '.png')
     
 
-def show_bins(df: pd.DataFrame,  cols:list, names: list, vmax: np.ndarray, save: bool = False, filename: str = ''):
-
-    # Plot the histogram for o1, o2, o1_dot, o2_dot
+def show_bins(df: pd.DataFrame,  cols:list, names: list, vlim: np.ndarray, save: bool = False, filename: str = ''):
+    
 
 
     pendulum_data = df
@@ -98,24 +110,16 @@ def show_bins(df: pd.DataFrame,  cols:list, names: list, vmax: np.ndarray, save:
     states = pendulum_data[cols].to_numpy()
 
 
-    # bin1 : bin of angles for o1
     fig, axes = plt.subplots(2, 3, figsize=(12, 6))
 
-    # configs = [
-    #     (states[:, 0], (-np.pi, np.pi),    r"$o_1$",     r"$o_1 \ [rad]$"),
-    #     (states[:, 1], (-15, 15),          r"$\dot{o}_1$", r"$\dot{o}_1 \ [\frac{rad}{s}]$"),
-    #     (states[:, 2], (-100, 100),          r"$\ddot{o}_1$", r"$\ddot{o}_1 \ [\frac{rad}{s^2}]$"),
-    #     (states[:, 3], (-np.pi, np.pi),    r"$o_2$",     r"$o_2 \ [rad]$"),
-    #     (states[:, 4], (-15, 15),          r"$\dot{o}_2$", r"$\dot{o}_2 \ [\frac{rad}{s}]$"),
-    #     (states[:, 5], (-100, 100),          r"$\ddot{o}_2$", r"$\ddot{o}_2 \ [\frac{rad}{s^2}]$"),
-    # ]
+
     configs = [
-        (states[:, 0], (-vmax[0], vmax[0]),    names[0]),
-        (states[:, 1], (-vmax[1], vmax[1]),    names[1]),
-        (states[:, 2], (-vmax[2], vmax[2]),    names[2]),
-        (states[:, 3], (-vmax[3], vmax[3]),    names[3]),
-        (states[:, 4], (-vmax[4], vmax[4]),    names[4]),
-        (states[:, 5], (-vmax[5], vmax[5]),    names[5]),
+        (states[:, 0], (-vlim[0], vlim[0]),    names[0]),
+        (states[:, 1], (-vlim[1], vlim[1]),    names[1]),
+        (states[:, 2], (-vlim[2], vlim[2]),    names[2]),
+        (states[:, 3], (-vlim[3], vlim[3]),    names[3]),
+        (states[:, 4], (-vlim[4], vlim[4]),    names[4]),
+        (states[:, 5], (-vlim[5], vlim[5]),    names[5]),
     ]
 
 
@@ -134,7 +138,7 @@ def show_bins(df: pd.DataFrame,  cols:list, names: list, vmax: np.ndarray, save:
 
 
 
-def show_heatmap(df, cols: list, vmax: np.ndarray, pendulum_id: str ='id_pendulum', time: str ='time_step',
+def show_heatmap(df, cols: list, names : list, vlim: np.ndarray, pendulum_id: str ='id_pendulum', time: str ='time_step',
                       figsize: tuple =(12,6), file_name:str = None) -> None:
     """
     Generates a 2x2 grid of heatmaps visualizing the evolution of state variables over time.
@@ -153,10 +157,7 @@ def show_heatmap(df, cols: list, vmax: np.ndarray, pendulum_id: str ='id_pendulu
         pendulum_id (str, optional): The column name identifying unique pendulum 
                                      simulations/trajectories. Defaults to 'id_pendulum'.
         time (str, optional): The column name representing the time step. 
-        vmin_q (float, optional): Minimum value for colormap anchoring w.r.t. angular position
-        vmax_q (float, optional): Maximum value for colormap anchoring w.r.t. angular position
-        vmin_q_dot (float, optional): Minimum value for colormap anchoring w.r.t. angular velocity
-        vmax_q_dot (float, optional): Maximum value for colormap anchoring w.r.t. angular velocity
+        vlim (np.ndarray): Limit for position, velocity and acceleration.
         figsize (tuple, optional): The dimensions of the generated figure (width, height). 
         file_name (str, optional): Name necessary to save the subplot image.
 
@@ -166,10 +167,11 @@ def show_heatmap(df, cols: list, vmax: np.ndarray, pendulum_id: str ='id_pendulu
     """
     # Initialize a 2x2 subplot grid
     fig, axes = plt.subplots(2, 3, figsize=figsize, squeeze=False)
+    fig.suptitle('State Variables Heatmaps Over Time', fontsize=16)
     
     # Zip flattens the 2D axes array to iterate linearly along with the input variables
-    for ax, col, abs_vmax in zip(axes.flatten(), cols, vmax):
-        # Determine vmin and vmax for color scaling
+    for ax, col, name, abs_vlim in zip(axes.flatten(), cols, names, vlim):
+        # Determine vmin and vlim for color scaling
         
             
         # Pivot table: Rows = Simulation ID, Cols = Time, Values = State Variable
@@ -177,10 +179,10 @@ def show_heatmap(df, cols: list, vmax: np.ndarray, pendulum_id: str ='id_pendulu
 
         # Plot heatmap
         # aspect='auto' ensures the pixels fill the plot area regardless of data shape
-        im = ax.imshow(pivot, aspect='auto', cmap='RdBu', vmin=-abs_vmax, vmax=abs_vmax)
+        im = ax.imshow(pivot, aspect='auto', cmap='RdBu', vmin=-abs_vlim, vmax=abs_vlim)
 
         # Decoration
-        ax.set_title(col)
+        ax.set_title(name)
         ax.set_xlabel("Time")
         ax.set_ylabel("Pendulum ID")
         
@@ -230,13 +232,13 @@ def show_example(path:str, id:int = 0, animate: bool = False):
                 b2 = df['b2'].iloc[0],
         )
 
-        simulator.draw_simulation(pendulum, pendulum_data[['o1', 'o1_dot', 'o2', 'o2_dot']].to_numpy())
+        simulator.draw_simulation(pendulum, pendulum_data[['q1', 'q1_dot', 'q2', 'q2_dot']].to_numpy())
 
 def main():
     example_id = 55
     # Define the states
-    cols = ['o1', 'o1_dot','o1_dot_dot', 'o2', 'o2_dot', 'o2_dot_dot']
-
+    cols = ['q1', 'q1_dot','q1_dot_dot', 'q2', 'q2_dot', 'q2_dot_dot']
+    status_names = [r'$q_1$', r'$\dot{q}_1$', r'$\ddot{q}_1$', r'$q_2$', r'$\dot{q}_2$',  r'$\ddot{q}_2$']
 
     files = [
         'double_pendulum_nofrict.csv',
@@ -247,9 +249,9 @@ def main():
     for f in files:
         # Load processed data
         df = pd.read_csv('data/processed/'+f)
-        vmax = df[cols].abs().max().to_numpy()
+        vlim = df[cols].abs().max().to_numpy()
 
-        show_heatmap(df, cols, vmax=vmax, file_name=f'plots/{f.split(".")[0]}_heatmap')
+        show_heatmap(df, cols, names = status_names,  vlim=vlim, file_name=f'plots/{f.split(".")[0]}_heatmap')
     
     show_example('data/processed/double_pendulum_lowfrict.csv', id=example_id, animate=True)
 
