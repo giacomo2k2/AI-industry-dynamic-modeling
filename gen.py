@@ -15,7 +15,7 @@ def main():
 
     # Single pendulum instance reused; only init changes
     pendulum = DoublePendulum(
-        m1=2.2, m2=1.8, l1=1.2, l2=1.0, b1=0.0, b2=0.0
+        m1=2.2, m2=1.8, l1=1.2, l2=1.0, b1=3.0, b2=3.0
     )
 
     simulator = Simulator(dt)
@@ -49,8 +49,8 @@ def main():
                 'o2': states[step, 2],
                 'o1_dot': states[step, 1],
                 'o2_dot': states[step, 3],
-                'o1_dot_dot_new': q_dot[1],
-                'o2_dot_dot_new': q_dot[3],
+                'o1_dot_dot': q_dot[1],
+                'o2_dot_dot': q_dot[3],
                 'T': T,
                 'U': U,
                 'E': E
@@ -59,7 +59,7 @@ def main():
             
 
     df = pd.DataFrame(rows)
-    df.to_csv('data/raw/double_pendulum_nofrict.csv', index=False)
+    df.to_csv('data/raw/double_pendulum_highfrict.csv', index=False)
 
 if __name__ == '__main__':
     main()

@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
+plt.rc('font', family='serif')
+
 class Simulator: 
     """
     Physics engine responsible for numerical integration and visualization 
@@ -48,51 +50,6 @@ class Simulator:
             raise ValueError("Choose a valid method: 'fe' or 'rk'")
         return new_states
     
-    def draw_simulation1(self, model: object, states: np.ndarray):
-        """
-        Draw an animation of the system's trajectory.
-        
-        ---
-        Args:
-            model (object): The physical model instance.
-            states (np.ndarray): A time-series array of state vectors 
-                                 (shape: [num_steps, state_dim]).
-        """
-        fig, ax = plt.subplots()
-        plt.ion()       # Turn on interactive mode
-        plt.show()
-        
-
-        # Stop animation flag
-        stop_animation = False  
-
-        # Event handler to allow quitting the animation cleanly
-        def on_key(event):
-            nonlocal stop_animation
-            if event.key == 'q':
-                stop_animation = True
-                plt.close(fig)
-
-        # Connect the key press event to the figure
-        fig.canvas.mpl_connect('key_press_event', on_key)
-
-        # States shape
-        steps = states.shape[0]
-
-        # Draw animation
-        for i in range(steps):
-            if stop_animation:
-                break
-            
-            ax.clear()
-            model.animation(states, i, ax)
-
-            plt.draw()
-            plt.pause(0.001)
-
-        plt.close(fig)
-
-
        
     def draw_simulation(self, model: object, states: np.ndarray, target_fps: int = 30):
         """

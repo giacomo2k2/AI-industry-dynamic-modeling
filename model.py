@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rc('font', family='serif')
+
 class DoublePendulum:
     """
     A simulator for a Double Pendulum system.
@@ -253,7 +255,6 @@ class DoublePendulum:
         ---
         Args:
             states (np.ndarray): The full history of states.
-            iter (int): The specific time index to plot.
             ax (matplotlib.axes.Axes): The plot axis to draw on.
         """
         # Extract joints position
@@ -274,7 +275,7 @@ class DoublePendulum:
         ax.grid(True, alpha=0.3)
         ax.set_xlabel('x [m]')
         ax.set_ylabel('y [m]')
-        ax.set_title(f'Double Pendulum - Step {iter}')
+        ax.set_title(f'Double Pendulum')
 
         # === Draw Links and Joints ===
         # Link 1

@@ -5,6 +5,8 @@ import numpy as np
 from simulation import Simulator
 from model import DoublePendulum
 
+plt.rc('font', family='serif')
+
 """
 This module is responsible for visualizing the state-space evolution of 
 mechanical systems (specifically double pendulums) across multiple simulation 
@@ -17,29 +19,30 @@ identify patterns, stability, or anomalies in the dataset.
 # ========================================================
 
 
-def show_status_stats(df: pd.DataFrame, filename  : str = '', save: bool = False):
+def show_status_stats(df: pd.DataFrame, cols: list, names:list, filename  : str = '', save: bool = False):
 
     """
     Compute variance of each state across all pendulums for each time step
     """
     
     time_steps = df['time_step'].unique()
-    stds = np.zeros((time_steps.shape[0], 4))
-    means = np.zeros((time_steps.shape[0], 4))
+    stds = np.zeros((len(time_steps), len(cols)))
+    means = np.zeros((len(time_steps), len(cols)))
+    
     
     for i, t in enumerate(time_steps):
         step_data = df[df['time_step'] == t]
-        states = step_data[['o1', 'o1_dot', 'o2', 'o2_dot']].to_numpy()
+        states = step_data[cols].to_numpy()
         stds[i, :] = np.std(states, axis=0)
         means[i, :] = np.mean(states, axis=0)
        
-    names = ['o1', 'o1_dot', 'o2', 'o2_dot']
-    fig, ax = plt.subplots(2, 2, figsize=(10, 6))
+    
+    fig, ax = plt.subplots(2, 3, figsize=(10, 6))
     for (i, a) in enumerate(ax.flatten()):
         a.plot(stds[:, i])
         a.plot(means[:, i], color='orange')
         a.grid()
-        a.legend(['Std', 'Mean'])
+        a.legend([r'$\sigma$', r'$\mu$'])
         a.set_title(f'{names[i]}')
 
     plt.tight_layout()
@@ -49,7 +52,7 @@ def show_status_stats(df: pd.DataFrame, filename  : str = '', save: bool = False
         # save the plot as png
         fig.savefig('plots/variance_means_' + filename +'.png')
 
-def show_energy_stats(df:pd.DataFrame, threshold:float=None, filename:str='', save:bool = False):
+def show_energy_stats(df:pd.DataFrame, filename:str='', save:bool = False):
     """
     Keep onlty the time steps lower than a threshold
     """
@@ -75,7 +78,7 @@ def show_energy_stats(df:pd.DataFrame, threshold:float=None, filename:str='', sa
     plt.plot(mean_energies, color='orange')
     plt.title('Energies mean and std')
     plt.grid()
-    plt.legend(['std', 'mean'])
+    plt.legend([r'$\sigma$', r'$\mu$'])
     plt.tight_layout()
     plt.show()
 
@@ -84,35 +87,41 @@ def show_energy_stats(df:pd.DataFrame, threshold:float=None, filename:str='', sa
         fig.savefig('plots/energy_stats_' + filename + '.png')
     
 
-def show_bins(df: pd.DataFrame, id:int = -1, save: bool = False, filename: str = ''):
+def show_bins(df: pd.DataFrame,  cols:list, names: list, vmax: np.ndarray, save: bool = False, filename: str = ''):
 
     # Plot the histogram for o1, o2, o1_dot, o2_dot
 
-    if (id != -1):
-        #select a pendulum
-        pendulum_id = id
-        pendulum_data = df[df['id_pendulum'] == pendulum_id]
-    else:
-        pendulum_data = df
+
+    pendulum_data = df
 
     # extract states
-    states = pendulum_data[['o1', 'o1_dot', 'o2', 'o2_dot']].to_numpy()
+    states = pendulum_data[cols].to_numpy()
 
 
     # bin1 : bin of angles for o1
-    fig, axes = plt.subplots(2, 2, figsize=(12, 6))
+    fig, axes = plt.subplots(2, 3, figsize=(12, 6))
 
+    # configs = [
+    #     (states[:, 0], (-np.pi, np.pi),    r"$o_1$",     r"$o_1 \ [rad]$"),
+    #     (states[:, 1], (-15, 15),          r"$\dot{o}_1$", r"$\dot{o}_1 \ [\frac{rad}{s}]$"),
+    #     (states[:, 2], (-100, 100),          r"$\ddot{o}_1$", r"$\ddot{o}_1 \ [\frac{rad}{s^2}]$"),
+    #     (states[:, 3], (-np.pi, np.pi),    r"$o_2$",     r"$o_2 \ [rad]$"),
+    #     (states[:, 4], (-15, 15),          r"$\dot{o}_2$", r"$\dot{o}_2 \ [\frac{rad}{s}]$"),
+    #     (states[:, 5], (-100, 100),          r"$\ddot{o}_2$", r"$\ddot{o}_2 \ [\frac{rad}{s^2}]$"),
+    # ]
     configs = [
-        (states[:, 0], (-np.pi, np.pi),    "o1",     "o1 [rad]"),
-        (states[:, 1], (-15, 15),          "o1_dot", "o1_dot [rad/s]"),
-        (states[:, 2], (-np.pi, np.pi),    "o2",     "o2 [rad]"),
-        (states[:, 3], (-15, 15),          "o2_dot", "o2_dot [rad/s]")
+        (states[:, 0], (-vmax[0], vmax[0]),    names[0]),
+        (states[:, 1], (-vmax[1], vmax[1]),    names[1]),
+        (states[:, 2], (-vmax[2], vmax[2]),    names[2]),
+        (states[:, 3], (-vmax[3], vmax[3]),    names[3]),
+        (states[:, 4], (-vmax[4], vmax[4]),    names[4]),
+        (states[:, 5], (-vmax[5], vmax[5]),    names[5]),
     ]
 
-    for ax, (data, rng, title, xlabel) in zip(axes.ravel(), configs):
+
+    for ax, (data, rng, title) in zip(axes.ravel(), configs):
         ax.hist(data, bins=100, range=rng, density=True)
         ax.set_title(f"Histogram of {title}")
-        ax.set_xlabel(xlabel)
         ax.set_ylabel("Density")
 
     fig.tight_layout()
@@ -125,9 +134,8 @@ def show_bins(df: pd.DataFrame, id:int = -1, save: bool = False, filename: str =
 
 
 
-def show_heatmap(df, inputs: list, pendulum_id: str ='id_pendulum', time: str ='time_step',
-                        vmin_q: float =-np.pi, vmax_q: float =np.pi, vmin_q_dot: float =-10, 
-                        vmax_q_dot: float =10, figsize: tuple =(12,6), file_name:str = None) -> None:
+def show_heatmap(df, cols: list, vmax: np.ndarray, pendulum_id: str ='id_pendulum', time: str ='time_step',
+                      figsize: tuple =(12,6), file_name:str = None) -> None:
     """
     Generates a 2x2 grid of heatmaps visualizing the evolution of state variables over time.
 
@@ -157,25 +165,22 @@ def show_heatmap(df, inputs: list, pendulum_id: str ='id_pendulum', time: str ='
         None: Displays the plot window via plt.show().
     """
     # Initialize a 2x2 subplot grid
-    fig, axes = plt.subplots(2, 2, figsize=figsize, squeeze=False)
-
+    fig, axes = plt.subplots(2, 3, figsize=figsize, squeeze=False)
+    
     # Zip flattens the 2D axes array to iterate linearly along with the input variables
-    for ax, inp in zip(axes.flatten(), inputs):
-        # Determine vmin and vmax based on variable type
-        if 'dot' in inp: #TODO make this if better
-            vmin, vmax = vmin_q_dot, vmax_q_dot
-        else:
-            vmin, vmax = vmin_q, vmax_q
+    for ax, col, abs_vmax in zip(axes.flatten(), cols, vmax):
+        # Determine vmin and vmax for color scaling
+        
             
         # Pivot table: Rows = Simulation ID, Cols = Time, Values = State Variable
-        pivot = df.pivot(index=pendulum_id, columns=time, values=inp)
+        pivot = df.pivot(index=pendulum_id, columns=time, values=col)
 
         # Plot heatmap
         # aspect='auto' ensures the pixels fill the plot area regardless of data shape
-        im = ax.imshow(pivot, aspect='auto', cmap='RdBu', vmin=vmin, vmax=vmax)
+        im = ax.imshow(pivot, aspect='auto', cmap='RdBu', vmin=-abs_vmax, vmax=abs_vmax)
 
         # Decoration
-        ax.set_title(inp)
+        ax.set_title(col)
         ax.set_xlabel("Time")
         ax.set_ylabel("Pendulum ID")
         
@@ -184,7 +189,7 @@ def show_heatmap(df, inputs: list, pendulum_id: str ='id_pendulum', time: str ='
     
     # Save the image as a png file
     if not file_name:
-        file_name = 'subplots'+'_'.join(inputs)
+        file_name = 'subplots'+'_'.join(cols)
     fig.savefig(file_name+".png")
 
 def show_example(path:str, id:int = 0, animate: bool = False):
@@ -230,7 +235,8 @@ def show_example(path:str, id:int = 0, animate: bool = False):
 def main():
     example_id = 55
     # Define the states
-    cols = ['o1', 'o2', 'o1_dot', 'o2_dot']
+    cols = ['o1', 'o1_dot','o1_dot_dot', 'o2', 'o2_dot', 'o2_dot_dot']
+
 
     files = [
         'double_pendulum_nofrict.csv',
@@ -241,10 +247,11 @@ def main():
     for f in files:
         # Load processed data
         df = pd.read_csv('data/processed/'+f)
+        vmax = df[cols].abs().max().to_numpy()
 
-        show_heatmap(df, cols, file_name=f'plots/{f.split(".")[0]}_heatmap')
+        show_heatmap(df, cols, vmax=vmax, file_name=f'plots/{f.split(".")[0]}_heatmap')
     
-    show_example('data/raw/double_pendulum_nofrict.csv', id=example_id, animate=True)
+    show_example('data/processed/double_pendulum_lowfrict.csv', id=example_id, animate=True)
 
 if __name__ == '__main__':
     main()
