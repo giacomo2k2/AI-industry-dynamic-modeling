@@ -47,29 +47,40 @@ class EarlyStopping:
 
 class KNGLDataset(Dataset):
     def __init__(self, 
-                 inputs, 
-                 targets, 
+                 inputs, # (pendulums, evolution_length, 5)
+                 targets, # (pendulums, evolution_length, 4)
                  time_steps=32,
                  transform=None):
-        """
-        features: array/tensor NxD (N campioni, D feature)
-        targets: array/tensor NxC (C classi)
-        transform: funzione opzionale per preprocessing
-        """
+   
         self.inputs = torch.FloatTensor(inputs)  # Converti in tensor
         self.targets = torch.FloatTensor(targets)
+        
         self.transform = transform
         self.time_steps = time_steps
+        
+        self.evolution_length = self.inputs.shape[1]
+        self.n_pendulums = self.inputs.shape[0]
     
     def __len__(self): # il data loader con __len__ sa che può chiamare len-1 volte  
-        return len(self.inputs) - self.time_steps  # Numero totale di campioni (size 0)
+        return self.n_pendulums * (self.evolution_length - self.time_steps)  # Numero totale di campioni (size 0)
     
     def __getitem__(self, idx):
-        sample = self.inputs[idx:idx+self.time_steps]
-        target = self.targets[idx:idx+self.time_steps]
+
+        pendulum_idx = idx // (self.evolution_length - self.time_steps)
+        time_idx = idx % (self.evolution_length - self.time_steps)
+
+        sample = self.inputs[pendulum_idx, time_idx:time_idx+self.time_steps]
+        target = self.targets[pendulum_idx, time_idx:time_idx+self.time_steps]
         
         if self.transform:
             sample = self.transform(sample)
+
+        #print(f"Sample shape: {sample.shape}, Target shape: {target.shape}")
+
+        #print("\nSAMPLE")
+        #print(sample)
+        #print("\nTARGET")
+        #print(target)
         
         return sample, target  # Ritorna tupla (input, target)
 
@@ -93,8 +104,9 @@ def train_nn_model(
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    ds_train = KNGLDataset(X_train, y_train, time_steps=32)
-    ds_val = KNGLDataset(X_val, y_val, time_steps=32)
+    ds_train = KNGLDataset(X_train.astype(np.float32), y_train.astype(np.float32), time_steps=8)
+    ds_val = KNGLDataset(X_val.astype(np.float32), y_val.astype(np.float32), time_steps=8)
+
     early_stopping = early_stopper
     train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
     val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False)
@@ -108,11 +120,18 @@ def train_nn_model(
             running_loss = 0.0
             n_batches = 0
 
-            for xb, yb in train_loader:
+            for i, (xb, yb) in enumerate(train_loader):
                 xb, yb = xb.to(device), yb.to(device)
                 optimizer.zero_grad()
                 y_pred = model(xb)
+
+                if i == 0 and epoch % 10 == 0 and verbose:
+                    print(f"\EPOCH {epoch+1} - BATCH {i+1}")
+                    print("Difference between prediction and target (only first el of batch):")
+                    print(y_pred[0] - yb[0])
+
                 loss = loss_fn(y_pred, yb)
+
                 loss.backward()
                 optimizer.step()
                 running_loss += loss.item()
