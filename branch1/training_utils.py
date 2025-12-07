@@ -252,20 +252,3 @@ def physics_loss(y_pred, y_true, model = None):
     else:
         #print("executed")
         return base_loss
-
-def main():
-
-    files = [
-        'double_pendulum_lowfrict.csv',
-        'double_pendulum_nofrict.csv',
-        'double_pendulum_highfrict.csv']
-    
-    for f in files:
-        print(f"Splitting dataset for {f}...")
-        df = pd.read_csv('data/processed/' + f)
-        sim_type = f.split('_')[2].split('.')[0]
-        split_dataset(df, sim_type=sim_type, shuffle=False)
-    
-
-if __name__ == "__main__":
-    main()

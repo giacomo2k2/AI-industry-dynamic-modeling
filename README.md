@@ -16,3 +16,11 @@ The double pendulum consists of two masses $m_1$ and $m_2$ connected by rigid, m
   - $v_{1} = [l_1 \cos(\theta_1)\, \dot{\theta}_1,\ -l_1 \sin(\theta_1)\, \dot{\theta}_1]$  
   - $v_{2} = [l_1 \cos(\theta_1)\, \dot{\theta}_1 + l_2 \cos(\theta_1 + \theta_2)(\dot{\theta}_1 + \dot{\theta}_2),\ -l_1 \sin(\theta_1)\, \dot{\theta}_1 - l_2 \sin(\theta_1 + \theta_2)(\dot{\theta}_1 + \dot{\theta}_2)]$
 
+  ## Background 
+
+  - Measuring parameters of a complex physical system can be higly costly due to the use higl level strumentation
+  - However, for production these in unsustainable since every product cannot have internal sensors so expensive
+  - For this reason, having a model that is able to determine this dynamical parameters starting from the state can save a lot of money
+  
+   
+
