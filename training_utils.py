@@ -4,6 +4,10 @@ from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 import matplotlib.pyplot as plt
+import torch
+from torch.utils.data import Dataset
+import numpy as np
+from tqdm import tqdm
 
 def split_dataset(df: pd.DataFrame, train_ratio: float = 0.8, val_ratio: float = 0.2, shuffle: bool = False, sim_type: str = ''):
     
@@ -41,6 +45,34 @@ class EarlyStopping:
         if self.best_state is not None:
             model.load_state_dict(self.best_state)
 
+class KNGLDataset(Dataset):
+    def __init__(self, 
+                 inputs, 
+                 targets, 
+                 time_steps=32,
+                 transform=None):
+        """
+        features: array/tensor NxD (N campioni, D feature)
+        targets: array/tensor NxC (C classi)
+        transform: funzione opzionale per preprocessing
+        """
+        self.inputs = torch.FloatTensor(inputs)  # Converti in tensor
+        self.targets = torch.FloatTensor(targets)
+        self.transform = transform
+        self.time_steps = time_steps
+    
+    def __len__(self): # il data loader con __len__ sa che può chiamare len-1 volte  
+        return len(self.inputs) - self.time_steps  # Numero totale di campioni (size 0)
+    
+    def __getitem__(self, idx):
+        sample = self.inputs[idx:idx+self.time_steps]
+        target = self.targets[idx:idx+self.time_steps]
+        
+        if self.transform:
+            sample = self.transform(sample)
+        
+        return sample, target  # Ritorna tupla (input, target)
+
 def train_nn_model(
     model,
     X_train,
@@ -58,73 +90,76 @@ def train_nn_model(
     device="cpu",
     **fit_params,
 ):
-    """
-    X, y: torch.Tensor
-    loss_fn: callable (y_pred, y_true) -> loss
-    """
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    ds_train = TensorDataset(X_train, y_train)
-    ds_val = TensorDataset(X_val, y_val)
+    ds_train = KNGLDataset(X_train, y_train, time_steps=32)
+    ds_val = KNGLDataset(X_val, y_val, time_steps=32)
     early_stopping = early_stopper
-    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False) # loads an array of minibatches of said size
+    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
     val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False)
 
     history = {"loss": [], "val_loss": []}
 
-    for epoch in range(epochs):
-        model.train() # sets the model to training mode
-        running_loss = 0.0
-        n_batches = 0
+    # tqdm solo sulle EPOCHE
+    with tqdm(total=epochs, desc="Training", unit="epoch", disable=not verbose) as pbar:
+        for epoch in range(epochs):
+            model.train()
+            running_loss = 0.0
+            n_batches = 0
 
-        for xb, yb in train_loader: #it is iterating on minibatches not single input single output
-            xb, yb = xb.to(device), yb.to(device)
-            optimizer.zero_grad() # set gradients to zero
-            y_pred = model(xb) # forward pass
-            loss = loss_fn(y_pred, yb) 
-            loss.backward() # backward pass : does everything itself
-            optimizer.step() # it is to update the Adam optimizer, learning rate for instance
-            running_loss += loss.item() # accumulate loss given from this minibatch
-            n_batches += 1 #states that a minibatch has been processed
+            for xb, yb in train_loader:
+                xb, yb = xb.to(device), yb.to(device)
+                optimizer.zero_grad()
+                y_pred = model(xb)
+                loss = loss_fn(y_pred, yb)
+                loss.backward()
+                optimizer.step()
+                running_loss += loss.item()
+                n_batches += 1
 
-        epoch_loss = running_loss / max(n_batches, 1) # compute the average loss per epoch
-        history["loss"].append(epoch_loss)
+            epoch_loss = running_loss / max(n_batches, 1)
+            history["loss"].append(epoch_loss)
 
-        if verbose:
-            msg = f"Epoch {epoch+1}/{epochs} - loss: {epoch_loss:.4f}"
+            # Validazione
+            if val_loader is not None:
+                model.eval()
+                val_running_loss = 0.0
+                val_batches = 0
+                with torch.no_grad():
+                    for xb, yb in val_loader:
+                        xb, yb = xb.to(device), yb.to(device)
+                        y_pred = model(xb)
+                        vloss = loss_fn(y_pred, yb)
+                        val_running_loss += vloss.item()
+                        val_batches += 1
+                val_loss = val_running_loss / max(val_batches, 1)
+                history["val_loss"].append(val_loss)
 
-        # validazione + early stopping
-        if val_loader is not None:
-            model.eval() # sets the model to evaluation mode: inference
-            val_running_loss = 0.0
-            val_batches = 0
-            with torch.no_grad():
-                for xb, yb in val_loader:
-                    xb, yb = xb.to(device), yb.to(device)
-                    y_pred = model(xb)
-                    vloss = loss_fn(y_pred, yb)
-                    val_running_loss += vloss.item()
-                    val_batches += 1
-            val_loss = val_running_loss / max(val_batches, 1)
-            history["val_loss"].append(val_loss)
+                # Early stopping
+                stop = early_stopper.step(val_loss, model)
+                if stop:
+                    pbar.set_postfix({
+                        'status': 'Early Stopped',
+                        'loss': f'{epoch_loss:.4f}',
+                        'val_loss': f'{val_loss:.4f}'
+                    })
+                    early_stopper.restore_best_weights(model)
+                    break
 
-            if verbose:
-                msg += f" - val_loss: {val_loss:.4f}"
-                print(msg)
+                # Aggiorna tqdm con loss corrente
+                pbar.set_postfix({
+                    'loss': f'{epoch_loss:.4f}',
+                    'val_loss': f'{val_loss:.4f}'
+                })
+            else:
+                pbar.set_postfix({'loss': f'{epoch_loss:.4f}'})
 
-            # early stopping con restore_best_weights=True
-            stop = early_stopping.step(val_loss, model)
-            if stop:
-                if verbose:
-                    print(f"Early stopping at epoch {epoch+1}")
-                early_stopping.restore_best_weights(model)
-                break
-        else:
-            if verbose:
-                print(msg)
+            pbar.update(1)  # Avanza la barra
+            pbar.set_description(f"Epoch {epoch+1}/{epochs}")
 
     return history
+
 
 def plot_training_history(
         history=None,
