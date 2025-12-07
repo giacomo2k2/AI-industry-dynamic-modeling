@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from model import DoublePendulum
+from models import DoublePendulum
 from simulation import Simulator
-from model import kinetic_energy, potential_energy
+from models import kinetic_energy, potential_energy
 from preprocessing import energy_plot
 
 # Set global plot style

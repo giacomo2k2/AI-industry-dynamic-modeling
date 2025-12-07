@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from model import DoublePendulum
+from models import DoublePendulum
 from simulation import Simulator
 
 
@@ -15,7 +15,7 @@ def main():
 
     # Single pendulum instance reused; only init changes
     pendulum = DoublePendulum(
-        m1=2.2, m2=1.8, l1=1.2, l2=1.0, b1=0.0, b2=0.0
+        m1=2.2, m2=1.8, l1=1.2, l2=1.0, b1=3.0, b2=3.0
     )
 
     simulator = Simulator(dt)
@@ -45,6 +45,7 @@ def main():
                 'b2': pendulum.b2,
                 'g': pendulum.g,
                 'time_step': step * dt,
+                'step': step,
                 'q1': states[step, 0],
                 'q2': states[step, 2],
                 'q1_dot': states[step, 1],
@@ -58,7 +59,7 @@ def main():
 
 
     df = pd.DataFrame(rows)
-    df.to_csv('data/raw/double_pendulum_nofrict.csv', index=False)
+    df.to_csv('data/raw/double_pendulum_highfrict.csv', index=False)
 
 if __name__ == '__main__':
     main()

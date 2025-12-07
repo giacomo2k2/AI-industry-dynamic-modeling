@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 from simulation import Simulator
-from model import DoublePendulum
+from models import DoublePendulum
 
 plt.rc('font', family='serif')
 
