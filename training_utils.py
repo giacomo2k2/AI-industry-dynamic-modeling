@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import TensorDataset, DataLoader
+from torch.nn.utils import clip_grad_norm_
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import Dataset
@@ -98,13 +99,14 @@ def train_nn_model(
     batch_size=32,
     epochs=100,
     lr=1e-3,
+    weight_decay=0.0,
     shuffle=True,
     device="cpu",
     horizon = 8,
     **fit_params,
 ):
     model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay = weight_decay) #ADDED WEIGHT DECAY!!!
 
     ds_train = KNGLDataset(X_train.astype(np.float32), y_train.astype(np.float32), time_steps=horizon)
     ds_val = KNGLDataset(X_val.astype(np.float32), y_val.astype(np.float32), time_steps=horizon)
@@ -132,9 +134,11 @@ def train_nn_model(
                     print("Difference between prediction and target (only first el of batch):")
                     print(y_pred[0] - yb[0])
 
-                loss = loss_fn(y_pred, yb)
+                loss = loss_fn(y_pred, yb) #if you want add model here
 
                 loss.backward()
+                #CLIPPING, ATTENTION
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
                 optimizer.step()
                 running_loss += loss.item()
                 n_batches += 1
@@ -151,7 +155,7 @@ def train_nn_model(
                     for xb, yb in val_loader:
                         xb, yb = xb.to(device), yb.to(device)
                         y_pred = model(xb)
-                        vloss = loss_fn(y_pred, yb)
+                        vloss = loss_fn(y_pred, yb, model)
                         val_running_loss += vloss.item()
                         val_batches += 1
                 val_loss = val_running_loss / max(val_batches, 1)
@@ -209,7 +213,7 @@ def plot_training_history(
 
 
 
-def physics_loss(y_pred, y_true): 
+def physics_loss(y_pred, y_true, model = None): 
     
     #eliminate cosine jump
     q_pred = y_pred[:, :, [0, 2]]
@@ -220,13 +224,34 @@ def physics_loss(y_pred, y_true):
     
     v_pred = y_pred[:, :, [1, 3]]
     v_true = y_true[:, :, [1, 3]]
-    vel_loss = nn.MSELoss()(v_pred, v_true)
+
+    vel_loss = nn.SmoothL1Loss(beta=1.0)(v_pred, v_true)
     
     #Loss on angles and velocity weighted not to obscure 
-    total_loss = (cos_loss + sin_loss) + 1 * vel_loss
+    base_loss = (cos_loss + sin_loss) + 0.2 * vel_loss
+
+    if model != None:
+        #print("sono qui")
+        dyn = model.f 
+        
+        # Esempio: voglio bloccare forte l'attrito e la lunghezza
+        reg_friction = dyn.logb1**2 + dyn.logb2**2
+        reg_length   = dyn.logl1**2 + dyn.logl2**2
+        reg_masses   = dyn.logm1**2 + dyn.logl2**2
+
+        #print ( reg_masses, reg_friction, reg_length)
+        # Pesi della regolarizzazione (lambda)
+        lambda_frict = 0.1  
+        lambda_len   = 0.1 
+        lambda_masses = 0.01
+
+        total_loss = base_loss + lambda_frict * reg_friction + lambda_len * reg_length + lambda_masses * reg_masses
+        
+        return total_loss
     
-    #print("executed")
-    return total_loss
+    else:
+        #print("executed")
+        return base_loss
 
 def main():
 

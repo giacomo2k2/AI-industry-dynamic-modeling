@@ -617,8 +617,8 @@ def main():
     # --- Model ---
 
     dPend = Dyn_layer_batched(
-        m1_ref=2.0, l1_ref=2, b1_ref=0.3, 
-        m2_ref=2.0, l2_ref=2, b2_ref=0.3
+        m1_ref=1.0, l1_ref=1.0, b1_ref=0.1, 
+        m2_ref=1.0, l2_ref=1.0, b2_ref=0.1
         )
 
     integration = RK4NN_batched(dPend)
@@ -631,7 +631,7 @@ def main():
 
     curriculum_steps = [4, 8, 16, 32] 
     epochs_per_stage = [50, 50, 50, 50] # Aumenta le epoche quando diventa più difficile
-    lrs = [1e-2, 5e-3, 1e-3, 5e-4]       # Riduci il learning rate progressivamente
+    lrs = [1e-1, 5e-2, 1e-2, 5e-3]       # Riduci il learning rate progressivamente
 
     early_stopper = EarlyStopping(patience=10)
 
@@ -654,6 +654,7 @@ def main():
             early_stopper=early_stopper,
             epochs=eps,
             lr=lr,
+            weight_decay=1e-4,
             batch_size=1024, # Batch size alto per sfruttare la GPU
             device=my_device,
             verbose=True,
@@ -668,7 +669,7 @@ def main():
         # Stampa parametri imparati finora
         print(f"Params attuali: m1={dPend.get_m1().item():.3f}, l1={dPend.get_l1().item():.3f}, b1={dPend.get_b1().item():.3f}")
         print(f"\nParams attuali: m2={dPend.get_m2().item():.3f}, l2={dPend.get_l2().item():.3f}, b2={dPend.get_b2().item():.3f}")
-        
+
     print("Parameters learned: ")
     print(f"\n\tb1: {dPend.get_b1().item():.4f}, b2: {dPend.get_b2().item():.4f}")
     print(f"\tl1: {dPend.get_l1().item():.4f}, l2: {dPend.get_l2().item():.4f}")
@@ -693,8 +694,10 @@ if __name__ == "__main__":
 # 3. Architecture for the digital twin model
 
 # ideas for later: 
-# 1. Customized loss in order to give more importance to everything except q1 (not that important)
-# 2. tweak learning rates 
-# 3. Normalize?
+# 1. Check for the regularization in the custom loss function: might be better adding all parameters [!!!]
+# 2. Normalize?
+
 
 # N.B. time step seems ok for Runge - Kutta integration 
+# N.B. main problem in velocity estimation
+# N.B. check for initialization
