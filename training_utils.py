@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import Dataset
 import numpy as np
 from tqdm import tqdm
+from torch import nn
 
 def split_dataset(df: pd.DataFrame, train_ratio: float = 0.8, val_ratio: float = 0.2, shuffle: bool = False, sim_type: str = ''):
     
@@ -99,13 +100,14 @@ def train_nn_model(
     lr=1e-3,
     shuffle=True,
     device="cpu",
+    horizon = 8,
     **fit_params,
 ):
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    ds_train = KNGLDataset(X_train.astype(np.float32), y_train.astype(np.float32), time_steps=8)
-    ds_val = KNGLDataset(X_val.astype(np.float32), y_val.astype(np.float32), time_steps=8)
+    ds_train = KNGLDataset(X_train.astype(np.float32), y_train.astype(np.float32), time_steps=horizon)
+    ds_val = KNGLDataset(X_val.astype(np.float32), y_val.astype(np.float32), time_steps=horizon)
 
     early_stopping = early_stopper
     train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
@@ -205,6 +207,26 @@ def plot_training_history(
             s += f', {vll:.4f} (validation)'
         print(s)
 
+
+
+def physics_loss(y_pred, y_true): 
+    
+    #eliminate cosine jump
+    q_pred = y_pred[:, :, [0, 2]]
+    q_true = y_true[:, :, [0, 2]]
+    
+    cos_loss = nn.MSELoss()(torch.cos(q_pred), torch.cos(q_true))
+    sin_loss = nn.MSELoss()(torch.sin(q_pred), torch.sin(q_true))
+    
+    v_pred = y_pred[:, :, [1, 3]]
+    v_true = y_true[:, :, [1, 3]]
+    vel_loss = nn.MSELoss()(v_pred, v_true)
+    
+    #Loss on angles and velocity weighted not to obscure 
+    total_loss = (cos_loss + sin_loss) + 1 * vel_loss
+    
+    #print("executed")
+    return total_loss
 
 def main():
 

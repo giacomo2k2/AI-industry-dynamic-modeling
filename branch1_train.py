@@ -4,7 +4,7 @@ import numpy as np
 from torch import nn
 from torchdiffeq import odeint
 import math
-from training_utils import train_nn_model, plot_training_history, EarlyStopping
+from training_utils import train_nn_model, plot_training_history, EarlyStopping, physics_loss
 
 # 1. Architecture for the estimation of constant parameters
 
@@ -101,11 +101,9 @@ class Dyn_layer(nn.Module):
         
         assert inputs.shape == (4,), f"Expected [4], got {inputs.shape}"
         
-        # Unpack tensors: these still track gradients
         q1, q1_dot, q2, q2_dot = inputs  
         
-        # Parametri scalari (Assuming these are also tensors, e.g., self.m1)
-        # If they are not tensors, convert them once during initialization
+        
         m1, m2 = self.get_m1(), self.get_m2()
         l1, l2 = self.get_l1(), self.get_l2()
         g = 9.81 
@@ -123,7 +121,6 @@ class Dyn_layer(nn.Module):
         M21 = M12  # Simmetrica
         M22 = (m2 * l2**2).squeeze()
         
-        # 🌟 FIX 1: Use torch.stack to build the matrix while preserving the graph
         M = torch.stack([
             torch.stack([M11, M12]), 
             torch.stack([M21, M22])]) # Shape [2, 2]
@@ -134,7 +131,6 @@ class Dyn_layer(nn.Module):
         c1 = (-m2 * l1 * l2 * s2 * (2 * q1_dot + q2_dot) * q2_dot).squeeze()
         c2_elem = (m2 * l1 * l2 * s2 * q1_dot**2).squeeze()
         
-        # 🌟 FIX 2: Use torch.stack and unsqueeze to build the column vector
         c = torch.stack([c1, c2_elem]).unsqueeze(-1) # Shape [2, 1]
 
         assert c.shape == (2, 1), f"c shape is {c.shape}, expected (2, 1)"
@@ -155,7 +151,6 @@ class Dyn_layer(nn.Module):
         G1 = ((m1 + m2) * g * l1 * s1 + m2 * g * l2 * s12).squeeze()
         G2 = (m2 * g * l2 * s12).squeeze()
         
-        # 🌟 FIX 3: Use torch.stack and unsqueeze to build the column vector
         G = torch.stack([G1, G2]).unsqueeze(-1) # Shape [2, 1]
 
         assert G.shape == (2, 1), f"G shape is {G.shape}, expected (2, 1)"
@@ -168,8 +163,6 @@ class Dyn_layer(nn.Module):
         # === Solve M @ q_ddot = rhs ===
         rhs = -c - (D @ q_dot_vec) - G  # [2, 1]
         
-        # 🌟 FIX 4: Add batch dimension for linalg.solve, then remove it
-        # This prevents the linalg.solve dimension error from the previous traceback.
         M_batched = M.unsqueeze(0)        # Shape [1, 2, 2]
         rhs_batched = rhs.unsqueeze(0)    # Shape [1, 2, 1]
         
@@ -283,7 +276,7 @@ class Dyn_layer_batched(nn.Module):
         # Helper function per inizializzare i log-parametri
         def init_param(fixed_val, ref_val):
             if fixed_val is None:
-                return nn.Parameter(torch.randn(1))
+                return nn.Parameter(torch.zeros(1) + torch.randn(1) * 0.0001)
             else:
                 val = math.log(fixed_val / ref_val)
                 return torch.tensor([val], dtype=torch.float32)
@@ -372,8 +365,16 @@ class Dyn_layer_batched(nn.Module):
         # rhs shape: [Batch, 2, 1]
         rhs = -c - torch.bmm(D, q_dot_vec) - G  
         
+        det_M = M[:, 0, 0] * M[:, 1, 1] - M[:, 0, 1] * M[:, 1, 0]
+        det_M = det_M.view(-1, 1, 1) # Reshape per broadcasting [Batch, 1, 1]
+
+        inv_M = torch.stack([
+            torch.stack([ M[:, 1, 1], -M[:, 0, 1]], dim=1),
+            torch.stack([-M[:, 1, 0],  M[:, 0, 0]], dim=1)
+        ], dim=1) / (det_M + 1e-6) # 1e-6 per evitare divisioni per zero
+
         # Risolvi sistema lineare per tutto il batch in parallelo
-        q_ddot_batched = torch.linalg.solve(M, rhs) # [Batch, 2, 1]
+        q_ddot_batched = torch.matmul(inv_M, rhs)
         
         # Remove last dim -> [Batch, 2]
         q_ddot = q_ddot_batched.squeeze(-1) 
@@ -615,30 +616,59 @@ def main():
     
     # --- Model ---
 
-    dPend = Dyn_layer_batched()
+    dPend = Dyn_layer_batched(
+        m1_ref=2.0, l1_ref=2, b1_ref=0.3, 
+        m2_ref=2.0, l2_ref=2, b2_ref=0.3
+        )
 
-    euler = EulerNN_batched(dPend)
+    integration = RK4NN_batched(dPend)
 
     # --- Loss function ---
 
-    loss_fn = nn.MSELoss()
+    loss_fn = physics_loss 
 
     # --- Training ---
 
+    curriculum_steps = [4, 8, 16, 32] 
+    epochs_per_stage = [50, 50, 50, 50] # Aumenta le epoche quando diventa più difficile
+    lrs = [1e-2, 5e-3, 1e-3, 5e-4]       # Riduci il learning rate progressivamente
+
     early_stopper = EarlyStopping(patience=10)
 
-    history = train_nn_model(model = euler, 
-                             X_train = X_train, 
-                             y_train = y_train,
-                             X_val = X_val,
-                             y_val = y_val, 
-                             loss_fn = loss_fn, 
-                             early_stopper = early_stopper,
-                             epochs = 3000, 
-                             verbose = True,
-                             device = my_device,
-                             batch_size = 1024,) 
+    print("Inizio Curriculum Learning...")
     
+    history_full = {"loss": [], "val_loss": []}
+
+    for stage, (steps, eps, lr) in enumerate(zip(curriculum_steps, epochs_per_stage, lrs)):
+        print(f"\n--- STAGE {stage+1}: Horizon {steps} steps, LR {lr} ---")
+        
+        # Reset Early Stopping per ogni stage per non fermarsi troppo presto
+        early_stopper = EarlyStopping(patience=15)
+        
+        # Chiamata al training (Nota il nuovo parametro 'horizon')
+        hist = train_nn_model(
+            model=integration,
+            X_train=X_train, y_train=y_train,
+            X_val=X_val, y_val=y_val,
+            loss_fn=loss_fn,
+            early_stopper=early_stopper,
+            epochs=eps,
+            lr=lr,
+            batch_size=1024, # Batch size alto per sfruttare la GPU
+            device=my_device,
+            verbose=True,
+            horizon=steps # <--- Parametro che passeremo al Dataset
+        )
+        
+        # Concatena la storia per il plot finale
+        if "loss" in hist:
+            history_full["loss"].extend(hist["loss"])
+            history_full["val_loss"].extend(hist["val_loss"])
+
+        # Stampa parametri imparati finora
+        print(f"Params attuali: m1={dPend.get_m1().item():.3f}, l1={dPend.get_l1().item():.3f}, b1={dPend.get_b1().item():.3f}")
+        print(f"\nParams attuali: m2={dPend.get_m2().item():.3f}, l2={dPend.get_l2().item():.3f}, b2={dPend.get_b2().item():.3f}")
+        
     print("Parameters learned: ")
     print(f"\n\tb1: {dPend.get_b1().item():.4f}, b2: {dPend.get_b2().item():.4f}")
     print(f"\tl1: {dPend.get_l1().item():.4f}, l2: {dPend.get_l2().item():.4f}")
@@ -652,7 +682,7 @@ def main():
     
     # --- Plot training history ---
     
-    plot_training_history(history = history, figsize=(6,10))
+    plot_training_history(history = history_full, figsize=(6,10))
 
 if __name__ == "__main__":
     main()
@@ -662,3 +692,9 @@ if __name__ == "__main__":
 
 # 3. Architecture for the digital twin model
 
+# ideas for later: 
+# 1. Customized loss in order to give more importance to everything except q1 (not that important)
+# 2. tweak learning rates 
+# 3. Normalize?
+
+# N.B. time step seems ok for Runge - Kutta integration 
