@@ -92,8 +92,9 @@ def train_nn_model(
     y_train,
     X_val,
     y_val,
-    loss_fn,
     early_stopper, 
+    loss_fn,
+    custom_loss = None,
     verbose=False,
     patience=10,
     batch_size=32,
@@ -106,7 +107,7 @@ def train_nn_model(
     **fit_params,
 ):
     model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay = weight_decay) #ADDED WEIGHT DECAY!!!
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay = weight_decay)
 
     ds_train = KNGLDataset(X_train.astype(np.float32), y_train.astype(np.float32), time_steps=horizon)
     ds_val = KNGLDataset(X_val.astype(np.float32), y_val.astype(np.float32), time_steps=horizon)
@@ -128,14 +129,7 @@ def train_nn_model(
                 xb, yb = xb.to(device), yb.to(device)
                 optimizer.zero_grad()
                 y_pred = model(xb)
-
-                if i == 0 and epoch % 10 == 0 and verbose:
-                    print(f"\EPOCH {epoch+1} - BATCH {i+1}")
-                    print("Difference between prediction and target (only first el of batch):")
-                    print(y_pred[0] - yb[0])
-
-                loss = loss_fn(y_pred, yb) #if you want add model here
-
+                loss = loss_fn(y_pred, yb, model)
                 loss.backward()
                 #CLIPPING, ATTENTION
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
