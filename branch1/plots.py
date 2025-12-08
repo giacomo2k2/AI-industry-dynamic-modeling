@@ -226,84 +226,143 @@ def plot_comparison(true_derivs, pred_derivs, states):
     plt.tight_layout()
     plt.show()
 
-def plot_results_PINA(t, y_true, y_pred):
-    """Genera i grafici di confronto"""
-    plt.figure(figsize=(15, 10))
-
-    # Grafico 1: Posizioni (q1, q2)
-    plt.subplot(2, 2, 1)
-    plt.plot(t, y_true[:, 0], 'k--', label='GT $\\theta_1$', alpha=0.6)
-    plt.plot(t, y_pred[:, 0], 'r', label='PINN $\\theta_1$')
-    plt.plot(t, y_true[:, 1], 'b--', label='GT $\\theta_2$', alpha=0.6)
-    plt.plot(t, y_pred[:, 1], 'g', label='PINN $\\theta_2$')
-    plt.title('Posizioni Angolari')
-    plt.xlabel('Tempo (s)')
-    plt.ylabel('Radianti')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-
-    # Grafico 2: Velocità (w1, w2)
-    plt.subplot(2, 2, 2)
-    plt.plot(t, y_true[:, 2], 'k--', label='GT $\\omega_1$', alpha=0.6)
-    plt.plot(t, y_pred[:, 2], 'r', label='PINN $\\omega_1$')
-    plt.plot(t, y_true[:, 3], 'b--', label='GT $\\omega_2$', alpha=0.6)
-    plt.plot(t, y_pred[:, 3], 'g', label='PINN $\\omega_2$')
-    plt.title('Velocità Angolari')
-    plt.xlabel('Tempo (s)')
-    plt.ylabel('Rad/s')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-
-    # Grafico 3: Errore Assoluto puntuale
-    plt.subplot(2, 2, 3)
-    error = np.abs(y_true - y_pred)
-    plt.plot(t, error[:, 0], label='Err $\\theta_1$')
-    plt.plot(t, error[:, 1], label='Err $\\theta_2$')
-    plt.title('Errore Assoluto per Posizione')
-    plt.xlabel('Tempo (s)')
-    plt.yscale('log') # Scala logaritmica per vedere meglio errori piccoli
-    plt.legend()
-    plt.grid(True, alpha=0.3)
+def analyze_pendulum_dynamics(model, 
+                              X_test, 
+                              y_test,
+                              X_scale, # Array delle scale input
+                              y_scale, # Array delle scale output
+                              dt, 
+                              device='cpu'):
     
-    # Grafico 4: Spazio delle Fasi (Phase Portrait)
-    # Mostra la qualità dinamica della predizione
-    plt.subplot(2, 2, 4)
-    plt.plot(y_true[:, 0], y_true[:, 2], 'k--', label='GT Link 1')
-    plt.plot(y_pred[:, 0], y_pred[:, 2], 'r', label='PINN Link 1')
-    plt.title('Spazio delle Fasi ($\theta_1$ vs $\omega_1$)')
-    plt.xlabel('Posizione')
-    plt.ylabel('Velocità')
+    if hasattr(model, 'f'):
+        core_net = model.f
+    else:
+        core_net = model
+
+    core_net.eval()
+    core_net.to(device)
+    
+    # --- PREPARAZIONE SCALE TENSORS ---
+    # X_scale dal main ha 5 elementi (c'è il tempo), ma la rete ne vuole 4.
+    # Prendiamo solo i primi 4 elementi (q1, q1_dot, q2, q2_dot)
+    if len(X_scale) > 4:
+        X_scale_4 = X_scale[:4]
+    else:
+        X_scale_4 = X_scale
+
+    t_X_scale = torch.tensor(X_scale_4, dtype=torch.float32).to(device)
+    t_y_scale = torch.tensor(y_scale, dtype=torch.float32).to(device)
+
+    # --- 1. PREPARAZIONE DATI ---
+    traj_idx = 0 
+    
+    # GT States (FISICI)
+    gt_states_full = X_test[traj_idx] 
+    gt_states = gt_states_full[:, :4] 
+    
+    # GT Derivs (FISICI)
+    gt_derivs = y_test[traj_idx]
+
+    time_steps = gt_states.shape[0]
+    t_axis = np.arange(time_steps) * dt
+    
+    # --- 2. ROLLOUT ---
+    pred_states = np.zeros_like(gt_states)
+    
+    # Stato iniziale (FISICO)
+    current_state = torch.tensor(gt_states[0], dtype=torch.float32).to(device)
+    pred_states[0] = current_state.cpu().detach().numpy()
+    
+    print(f"Eseguendo rollout su {time_steps} steps con dt={dt:.4f}...")
+    
+    with torch.no_grad():
+        for i in range(1, time_steps):
+            
+            def get_derivs(state_tensor_phys):
+                # state_tensor_phys contiene valori fisici (es. 3.14)
+                
+                if state_tensor_phys.dim() == 1: 
+                    state_tensor_phys = state_tensor_phys.unsqueeze(0)
+                
+                input_norm = state_tensor_phys / t_X_scale
+                
+                # La rete predice derivate normalizzate
+                derivs_norm = core_net(input_norm).squeeze()
+                
+                derivs_phys = derivs_norm * t_y_scale
+                
+                return derivs_phys
+
+            # Step RK4 (Tutto avviene nel dominio FISICO grazie a get_derivs che gestisce la scala)
+            k1 = get_derivs(current_state)
+            k2 = get_derivs(current_state + 0.5 * dt * k1)
+            k3 = get_derivs(current_state + 0.5 * dt * k2)
+            k4 = get_derivs(current_state + dt * k3)
+            
+            current_state = current_state + (dt / 6.0) * (k1 + 2*k2 + 2*k3 + k4)
+            pred_states[i] = current_state.cpu().numpy()
+
+    # --- 3. PLOTTING ---
+    plt.figure(figsize=(18, 12))
+    
+    # A & B (Posizioni e Velocità) rimangono uguali...
+    plt.subplot(2, 3, 1)
+    plt.plot(t_axis, gt_states[:, 0], 'k--', label='GT $q_1$')
+    plt.plot(t_axis, pred_states[:, 0], 'r', label='Pred $q_1$')
+    plt.plot(t_axis, gt_states[:, 2], 'b--', label='GT $q_2$')
+    plt.plot(t_axis, pred_states[:, 2], 'g', label='Pred $q_2$')
+    plt.title('Positions')
     plt.legend()
     plt.grid(True, alpha=0.3)
+
+    plt.subplot(2, 3, 2)
+    plt.plot(t_axis, gt_states[:, 1], 'k--', label='GT $\dot{q}_1$')
+    plt.plot(t_axis, pred_states[:, 1], 'r', label='Pred $\dot{q}_1$')
+    plt.plot(t_axis, gt_states[:, 3], 'b--', label='GT $\dot{q}_2$')
+    plt.plot(t_axis, pred_states[:, 3], 'g', label='Pred $\dot{q}_2$')
+    plt.title('Velocities')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+
+    # C. Accelerazione Istantanea
+    
+    inputs_phys = torch.tensor(gt_states, dtype=torch.float32).to(device)
+    inputs_norm = inputs_phys / t_X_scale # <--- Normalizza Input
+    
+    with torch.no_grad():
+        all_derivs_pred_norm = core_net(inputs_norm).cpu().numpy()
+        
+    all_derivs_pred = all_derivs_pred_norm * np.array(y_scale) # <--- Denormalizza Output
+
+    acc_pred = all_derivs_pred[:, 2:] 
+    acc_true = gt_derivs[:, 2:]
+
+    plt.subplot(2, 3, 3)
+    plt.scatter(acc_true[:, 0], acc_pred[:, 0], s=5, alpha=0.5, c='red')
+    plt.scatter(acc_true[:, 1], acc_pred[:, 1], s=5, alpha=0.5, c='blue')
+    min_val = min(acc_true.min(), acc_pred.min())
+    max_val = max(acc_true.max(), acc_pred.max())
+    plt.plot([min_val, max_val], [min_val, max_val], 'k--', lw=2)
+    plt.title('Instant Acceleration')
+    plt.grid(True, alpha=0.3)
+
+    # ... Resto dei plot (D, E, F) uguale a prima ...
+    plt.subplot(2, 3, 4)
+    plt.plot(gt_states[:, 0], gt_states[:, 1], 'k--')
+    plt.plot(pred_states[:, 0], pred_states[:, 1], 'r')
+    plt.title('Phase Link 1')
+    
+    plt.subplot(2, 3, 5)
+    plt.plot(gt_states[:, 2], gt_states[:, 3], 'k--')
+    plt.plot(pred_states[:, 2], pred_states[:, 3], 'g')
+    plt.title('Phase Link 2')
+
+    plt.subplot(2, 3, 6)
+    error = np.abs(gt_states - pred_states)
+    plt.plot(t_axis, np.mean(error, axis=1), 'k')
+    plt.title('Rollout MAE')
+    plt.yscale('log')
+    plt.grid(True)
 
     plt.tight_layout()
     plt.show()
-
-def check_physics_PINA(problem, model, input_tensor, preds_with_graph):
-    """
-    Verifica i residui della fisica usando output con grafo autograd attivo.
-    NON usa numpy. NON ricostruisce tensori. NON rompe la computational graph.
-    """
-
-    # preds_with_graph è un tensore con shape (N,4)
-    # lo convertiamo in LabelTensor SENZA ricostruire da numpy
-    preds_labeled = LabelTensor(
-        preds_with_graph,
-        labels=['q1', 'q2', 'q1_dot', 'q2_dot']
-    )
-
-    # Calcolo residui fisici
-    residuals = problem.ode_system(input_tensor, preds_labeled)
-
-    residuals = residuals.detach().cpu().numpy()
-
-    import matplotlib.pyplot as plt
-
-    plt.figure(figsize=(10,4))
-    plt.plot(residuals, label="Physics residuals")
-    plt.title("Physics Residuals over Time")
-    plt.legend()
-    plt.grid()
-    plt.show()
-
-    return residuals

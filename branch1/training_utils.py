@@ -11,6 +11,7 @@ import numpy as np
 from tqdm import tqdm
 from torch import nn
 from models import DoublePendulum
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 # ===============================================
 # ============= Dataset ========================
@@ -142,13 +143,14 @@ def train_nn_model(
     **fit_params,
 ):
     model.to(device)
+    
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay = weight_decay)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10, verbose=True, min_lr=1e-6)
 
     early_stopping = early_stopper
     train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
     val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False)
 
-    exit()
     history = {"loss": [], "val_loss": []}
 
     # tqdm solo sulle EPOCHE
@@ -206,6 +208,128 @@ def train_nn_model(
                         xb, yb = xb.to(device), yb.to(device)
                         y_pred = model(xb)
                         vloss = loss_fn(y_pred, yb)
+                        val_running_loss += vloss.item()
+                        val_batches += 1
+                val_loss = val_running_loss / max(val_batches, 1)
+                history["val_loss"].append(val_loss)
+
+                scheduler.step(val_loss)
+
+                # Early stopping
+                stop = early_stopper.step(val_loss, model)
+                if stop:
+                    pbar.set_postfix({
+                        'status': 'Early Stopped',
+                        'loss': f'{epoch_loss:.4f}',
+                        'val_loss': f'{val_loss:.4f}'
+                    })
+                    early_stopper.restore_best_weights(model)
+                    break
+
+                # Aggiorna tqdm con loss corrente
+                pbar.set_postfix({
+                    'loss': f'{epoch_loss:.4f}',
+                    'val_loss': f'{val_loss:.4f}'
+                })
+            else:
+                pbar.set_postfix({'loss': f'{epoch_loss:.4f}'})
+
+            pbar.update(1)  # Avanza la barra
+            pbar.set_description(f"Epoch {epoch+1}/{epochs}")
+
+    return history
+
+def train_lagrangian_nn_model(
+    model,
+    ds_train,
+    ds_val,
+    early_stopper, 
+    loss_fn,
+    verbose=False,
+    batch_size=32,
+    epochs=100,
+    lr=1e-3,
+    weight_decay=0.0,
+    device="cpu",
+    show_grad = False,
+    show_lrs = False,
+    lagrangian_loss = None,
+    lambda_c = 0.0,
+    **fit_params,
+):
+    model.to(device)
+    if lagrangian_loss is not None:
+        lagrangian_loss.to(device)
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay = weight_decay)
+
+    early_stopping = early_stopper
+    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
+    val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False)
+    
+    history = {"loss": [], "val_loss": []}
+
+    # tqdm solo sulle EPOCHE
+    with tqdm(total=epochs, desc="Training", unit="epoch", disable=not verbose) as pbar:
+        for epoch in range(epochs):
+            model.train()
+            running_loss = 0.0
+            n_batches = 0
+
+            for i, (xb, yb) in enumerate(train_loader):
+                
+                xb, yb = xb.to(device), yb.to(device)
+                optimizer.zero_grad()
+                #print(xb.shape)
+                #print(yb.shape)
+                y_pred, x_pred = model(xb)
+                
+                loss = loss_fn(y_pred, yb)
+                if lagrangian_loss is not None:
+                    loss += lambda_c * lagrangian_loss(xb, x_pred[:, :, 2:])
+
+                loss.backward()
+                # print the gradients and lr of the model parameters
+                if show_grad:
+                    if i == 0:
+                        print("Gradients for batch 0:")
+                        for name, param in model.named_parameters():
+                            if param.grad is not None:
+                                print(f"{name}: {param.grad.norm().item()}")
+                            else:
+                                print(f"{name}: None")
+                if show_lrs:
+                    if i == 0:
+                        print("Effective Learing Rates for batch 0:")
+                        for name, param in model.named_parameters():
+                            eff_lr = get_adam_effective_lr(optimizer, param)
+                            if eff_lr is not None:
+                                print(f"{name}: {eff_lr.mean()}")
+                            else:
+                                print(f"{name}: None")
+                            
+                #CLIPPING, ATTENTION
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                
+                optimizer.step()
+                running_loss += loss.item()
+                n_batches += 1
+
+            epoch_loss = running_loss / max(n_batches, 1)
+            history["loss"].append(epoch_loss)
+
+            # Validazione
+            if val_loader is not None:
+                model.eval()
+                val_running_loss = 0.0
+                val_batches = 0
+                with torch.no_grad():
+                    for xb, yb in val_loader:
+                        xb, yb = xb.to(device), yb.to(device)
+                        y_pred, x_pred = model(xb)
+                        vloss = loss_fn(y_pred, yb)
+                        if lagrangian_loss is not None:
+                            vloss += lambda_c * lagrangian_loss(xb, x_pred[:,:, 2:])
                         val_running_loss += vloss.item()
                         val_batches += 1
                 val_loss = val_running_loss / max(val_batches, 1)
@@ -294,6 +418,34 @@ def evaluate_model(model,
 
     return avg_loss
 
+def evaluate_lagrangian_model(model, 
+                   ds_test, 
+                   loss_fn, 
+                   device="cpu", 
+                   batch_size=32):
+    
+    model.to(device)
+    model.eval()
+
+    test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=False)
+
+    total_loss = 0.0
+    n_batches = 0
+
+    
+    with torch.no_grad():
+        for xb, yb in test_loader:
+            xb, yb = xb.to(device), yb.to(device)
+            y_pred, _ = model(xb)
+            loss = loss_fn(y_pred, yb)
+            total_loss += loss.item()
+            n_batches += 1
+    
+    avg_loss = total_loss / max(n_batches, 1)
+    
+
+    return avg_loss
+
 def predict_model(model, 
                   X_test,
                   device="cpu"):
@@ -354,6 +506,104 @@ def physics_loss(y_pred, y_true, model = None):
     else:
         #print("executed")
         return base_loss
+
+
+class LagrangianLoss(nn.Module):
+    def __init__(self, m1, m2, l1, l2, b1, b2, X_scale, acc_scale, g=9.81):
+        super().__init__()
+        # Salviamo i parametri fisici
+        self.m1, self.m2 = m1, m2
+        self.l1, self.l2 = l1, l2
+        self.b1, self.b2 = b1, b2
+        self.g = g
+
+        self.register_buffer('X_scale', torch.tensor(X_scale, dtype=torch.float32))
+        self.register_buffer('acc_scale', torch.tensor(acc_scale, dtype=torch.float32))
+
+    def forward(self, inputs, predictions):
+        """
+        inputs:      Tensore (N, 4) -> [q1, q2, q1_dot, q2_dot] (STATO CORRENTE)
+        predictions: Tensore (N, 2) -> [q1_ddot, q2_ddot]       (ACCELERAZIONE PREDETTA)
+        
+        Nota: Se la tua rete predice anche q_dot, estrai solo le accelerazioni dalle predictions.
+        """
+        #print(f"input: {inputs.shape}")
+        #print(f"predictions: {predictions.shape}")
+
+        inputs_phys = inputs * self.X_scale
+        
+        # 1. ESTRAZIONE VARIABILI DAGLI INPUT (q e q_dot attuali)
+        # Queste servono per calcolare le matrici M, C, G
+        q1 = inputs_phys[:, :, 0]
+        q2 = inputs_phys[:, :, 1]
+        q1_dot = inputs_phys[:, :, 2]
+        q2_dot = inputs_phys[:, :, 3]
+
+        # 2. ESTRAZIONE VARIABILI DALLE PREDIZIONI (q_ddot futura)
+        # Queste sono le incognite che la rete sta cercando di indovinare
+        # Assumiamo che prediction sia [q1_ddot, q2_ddot]
+        # Se predici anche velocità, adatta gli indici (es. predictions[:, 2:])
+        q1_ddot_pred = predictions[:, :, 0]
+        q2_ddot_pred = predictions[:, :, 1]
+
+        q1_ddot_phys = q1_ddot_pred * self.acc_scale[0]
+        q2_ddot_phys = q2_ddot_pred * self.acc_scale[1]
+
+        # --- 3. COSTRUZIONE MATRICI FISICHE (uguale a prima) ---
+        # Nota importante: Usiamo q1, q2, q1_dot DAGLI INPUT!
+        
+        # Parametri locali per brevità
+        m1, m2, l1, l2, g = self.m1, self.m2, self.l1, self.l2, self.g
+        
+        # Matrice Inerzia M(q_input)
+        M00 = (m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * torch.cos(q2)
+        M01 = m2 * l2**2 + m2 * l1 * l2 * torch.cos(q2)
+        M10 = M01
+        M11 = m2 * l2**2 
+
+        # Coriolis C(q_input, q_dot_input)
+        term_c = m2 * l1 * l2 * torch.sin(q2)
+        C0 = -term_c * (2 * q1_dot + q2_dot) * q2_dot
+        C1 = term_c * q1_dot**2
+
+        # Damping D(q_dot_input)
+        D0 = self.b1 * q1_dot
+        D1 = self.b2 * q2_dot
+
+        # Gravità G(q_input)
+        G0 = (m1 + m2) * g * l1 * torch.sin(q1) + m2 * g * l2 * torch.sin(q1 + q2)
+        G1 = m2 * g * l2 * torch.sin(q1 + q2)
+
+        # --- 4. CALCOLO RESIDUO LAGRANGIANO ---
+        # Equazione: M * q_ddot + C + D + G = 0 (assumendo torque u=0)
+        # Attenzione alle dimensioni: M è matrice, q_ddot è vettore.
+        
+        # Riga 1 del sistema
+        # M00*acc1 + M01*acc2 + C0 + D0 + G0 = 0 ?
+        res_1 = (M00 * q1_ddot_phys) + (M01 * q2_ddot_phys) + C0 + D0 + G0
+        
+        # Riga 2 del sistema
+        # M10*acc1 + M11*acc2 + C1 + D1 + G1 = 0 ?
+        res_2 = (M10 * q1_ddot_phys) + (M11 * q2_ddot_phys) + C1 + D1 + G1
+
+        # NOTA SUI SEGNI:
+        # La dinamica standard è M*q_ddot + C + G = u.
+        # Se u=0, allora M*q_ddot + C + G = 0.
+        # Controlla i segni di C, D, G nel tuo sistema. 
+        # Nel codice precedente calcolavamo b = u - C - D - G e poi acc = M_inv * b.
+        # Quindi M*acc = -C -D -G  =>  M*acc + C + D + G = 0. È corretto.
+
+        torque_scale = (self.m1 + self.m2) * self.g * self.l1 
+        # Aggiungiamo un epsilon per evitare divisioni per zero
+        torque_scale = torque_scale + 1e-6
+
+        # Normalizziamo i residui
+        res_1_norm = res_1 / torque_scale
+        res_2_norm = res_2 / torque_scale
+
+        loss_physics = torch.mean(res_1_norm**2) + torch.mean(res_2_norm**2)
+        
+        return loss_physics
     
 # ============================================================
 # ================ Loading and Saving Models =================
