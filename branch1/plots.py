@@ -1,8 +1,7 @@
 import numpy as np
 import torch
-
 import matplotlib.pyplot as plt 
-
+from pina import LabelTensor
 
 def plot_matrices_predictions(y_true, y_pred):
     
@@ -17,11 +16,6 @@ def plot_matrices_predictions(y_true, y_pred):
     plt.tight_layout()
     plt.show()
     
-
-import torch
-import numpy as np
-import matplotlib.pyplot as plt
-
 def compare_results(states, true_states_dot, model, u=None, device="cpu", dt=0.01):
     """
     states: (N, 4) -> [q1, q1_dot, q2, q2_dot]
@@ -231,3 +225,85 @@ def plot_comparison(true_derivs, pred_derivs, states):
 
     plt.tight_layout()
     plt.show()
+
+def plot_results_PINA(t, y_true, y_pred):
+    """Genera i grafici di confronto"""
+    plt.figure(figsize=(15, 10))
+
+    # Grafico 1: Posizioni (q1, q2)
+    plt.subplot(2, 2, 1)
+    plt.plot(t, y_true[:, 0], 'k--', label='GT $\\theta_1$', alpha=0.6)
+    plt.plot(t, y_pred[:, 0], 'r', label='PINN $\\theta_1$')
+    plt.plot(t, y_true[:, 1], 'b--', label='GT $\\theta_2$', alpha=0.6)
+    plt.plot(t, y_pred[:, 1], 'g', label='PINN $\\theta_2$')
+    plt.title('Posizioni Angolari')
+    plt.xlabel('Tempo (s)')
+    plt.ylabel('Radianti')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+
+    # Grafico 2: Velocità (w1, w2)
+    plt.subplot(2, 2, 2)
+    plt.plot(t, y_true[:, 2], 'k--', label='GT $\\omega_1$', alpha=0.6)
+    plt.plot(t, y_pred[:, 2], 'r', label='PINN $\\omega_1$')
+    plt.plot(t, y_true[:, 3], 'b--', label='GT $\\omega_2$', alpha=0.6)
+    plt.plot(t, y_pred[:, 3], 'g', label='PINN $\\omega_2$')
+    plt.title('Velocità Angolari')
+    plt.xlabel('Tempo (s)')
+    plt.ylabel('Rad/s')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+
+    # Grafico 3: Errore Assoluto puntuale
+    plt.subplot(2, 2, 3)
+    error = np.abs(y_true - y_pred)
+    plt.plot(t, error[:, 0], label='Err $\\theta_1$')
+    plt.plot(t, error[:, 1], label='Err $\\theta_2$')
+    plt.title('Errore Assoluto per Posizione')
+    plt.xlabel('Tempo (s)')
+    plt.yscale('log') # Scala logaritmica per vedere meglio errori piccoli
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    # Grafico 4: Spazio delle Fasi (Phase Portrait)
+    # Mostra la qualità dinamica della predizione
+    plt.subplot(2, 2, 4)
+    plt.plot(y_true[:, 0], y_true[:, 2], 'k--', label='GT Link 1')
+    plt.plot(y_pred[:, 0], y_pred[:, 2], 'r', label='PINN Link 1')
+    plt.title('Spazio delle Fasi ($\theta_1$ vs $\omega_1$)')
+    plt.xlabel('Posizione')
+    plt.ylabel('Velocità')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()
+
+def check_physics_PINA(problem, model, input_tensor, preds_with_graph):
+    """
+    Verifica i residui della fisica usando output con grafo autograd attivo.
+    NON usa numpy. NON ricostruisce tensori. NON rompe la computational graph.
+    """
+
+    # preds_with_graph è un tensore con shape (N,4)
+    # lo convertiamo in LabelTensor SENZA ricostruire da numpy
+    preds_labeled = LabelTensor(
+        preds_with_graph,
+        labels=['q1', 'q2', 'q1_dot', 'q2_dot']
+    )
+
+    # Calcolo residui fisici
+    residuals = problem.ode_system(input_tensor, preds_labeled)
+
+    residuals = residuals.detach().cpu().numpy()
+
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(10,4))
+    plt.plot(residuals, label="Physics residuals")
+    plt.title("Physics Residuals over Time")
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    return residuals

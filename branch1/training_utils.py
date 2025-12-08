@@ -10,6 +10,7 @@ from torch.utils.data import Dataset
 import numpy as np
 from tqdm import tqdm
 from torch import nn
+from models import DoublePendulum
 
 # ===============================================
 # ============= Dataset ========================
@@ -137,6 +138,7 @@ def train_nn_model(
     horizon = 1,
     show_grad = False,
     show_lrs = False,
+    lambda_c = 0.0,
     **fit_params,
 ):
     model.to(device)
@@ -146,6 +148,7 @@ def train_nn_model(
     train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
     val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False)
 
+    exit()
     history = {"loss": [], "val_loss": []}
 
     # tqdm solo sulle EPOCHE
@@ -156,8 +159,11 @@ def train_nn_model(
             n_batches = 0
 
             for i, (xb, yb) in enumerate(train_loader):
+                
                 xb, yb = xb.to(device), yb.to(device)
                 optimizer.zero_grad()
+                print(xb.shape)
+                print(yb.shape)
                 y_pred = model(xb)
                 loss = loss_fn(y_pred, yb)
                 loss.backward()
