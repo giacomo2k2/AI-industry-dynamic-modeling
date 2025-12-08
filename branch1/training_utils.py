@@ -11,6 +11,10 @@ import numpy as np
 from tqdm import tqdm
 from torch import nn
 
+# ===============================================
+# ============= Dataset ========================
+# ===============================================
+
 def split_dataset(df: pd.DataFrame, train_ratio: float = 0.8, val_ratio: float = 0.2, shuffle: bool = False, sim_type: str = ''):
     
     trainval_df, test_df = train_test_split(df, train_size = train_ratio, random_state=42, shuffle=shuffle)
@@ -22,30 +26,7 @@ def split_dataset(df: pd.DataFrame, train_ratio: float = 0.8, val_ratio: float =
 
     return train_df, val_df, test_df
 
-class EarlyStopping:
-    def __init__(self, patience=10):
-        self.patience = patience
-        self.best_loss = float("inf")
-        self.best_state = None
-        self.wait = 0
-        self.stopped_epoch = 0
 
-    def step(self, val_loss, model):
-        improved = val_loss < self.best_loss
-        if improved:
-            self.best_loss = val_loss
-            self.best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
-            self.wait = 0
-        else:
-            self.wait += 1
-        if self.wait >= self.patience:
-            self.stopped_epoch += 1
-            return True  # stop
-        return False
-
-    def restore_best_weights(self, model):
-        if self.best_state is not None:
-            model.load_state_dict(self.best_state)
 
 class KNGLDataset(Dataset):
     def __init__(self, 
@@ -85,6 +66,53 @@ class KNGLDataset(Dataset):
         #print(target)
         
         return sample, target  # Ritorna tupla (input, target)
+
+
+# ===============================================
+# ============= Training ========================
+# ===============================================
+
+class EarlyStopping:
+    def __init__(self, patience=10):
+        self.patience = patience
+        self.best_loss = float("inf")
+        self.best_state = None
+        self.wait = 0
+        self.stopped_epoch = 0
+
+    def step(self, val_loss, model):
+        improved = val_loss < self.best_loss
+        if improved:
+            self.best_loss = val_loss
+            self.best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+            self.wait = 0
+        else:
+            self.wait += 1
+        if self.wait >= self.patience:
+            self.stopped_epoch += 1
+            return True  # stop
+        return False
+
+    def restore_best_weights(self, model):
+        if self.best_state is not None:
+            model.load_state_dict(self.best_state)
+
+def get_adam_effective_lr(optimizer, param):
+    """Calcola il learning rate effettivo per un parametro in Adam"""
+    state = optimizer.state[param]
+    if len(state) == 0:
+        return None
+    
+    lr = optimizer.param_groups[0]['lr']
+    beta1, beta2 = optimizer.param_groups[0]['betas']
+    eps = optimizer.param_groups[0]['eps']
+    
+    step = state['step']
+    bias_correction1 = 1 - beta1 ** step
+    exp_avg_sq = state['exp_avg_sq']
+    
+    effective_lr = lr / bias_correction1 / (torch.sqrt(exp_avg_sq) + eps)
+    return effective_lr
 
 def train_nn_model(
     model,
@@ -129,10 +157,28 @@ def train_nn_model(
                 xb, yb = xb.to(device), yb.to(device)
                 optimizer.zero_grad()
                 y_pred = model(xb)
-                loss = loss_fn(y_pred, yb, model)
+                loss = loss_fn(y_pred, yb)
                 loss.backward()
+                # print the gradients and lr of the model parameters
+                if i == 0:
+                    print("Gradients:")
+                    for name, param in model.named_parameters():
+                        if param.grad is not None:
+                            print(f"{name}: {param.grad.norm().item()}")
+                        else:
+                            print(f"{name}: None")
+                    print("Effective Learing Rates:")
+                    for name, param in model.named_parameters():
+                        eff_lr = get_adam_effective_lr(optimizer, param)
+                        if eff_lr is not None:
+                            print(f"{name}: {eff_lr.mean()}")
+                        else:
+                            print(f"{name}: None")
+                        
+                
                 #CLIPPING, ATTENTION
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                
                 optimizer.step()
                 running_loss += loss.item()
                 n_batches += 1
@@ -149,7 +195,7 @@ def train_nn_model(
                     for xb, yb in val_loader:
                         xb, yb = xb.to(device), yb.to(device)
                         y_pred = model(xb)
-                        vloss = loss_fn(y_pred, yb, model)
+                        vloss = loss_fn(y_pred, yb)
                         val_running_loss += vloss.item()
                         val_batches += 1
                 val_loss = val_running_loss / max(val_batches, 1)
@@ -205,7 +251,9 @@ def plot_training_history(
             s += f', {vll:.4f} (validation)'
         print(s)
 
-
+# =============================================================
+# ===================== Losses ================================
+# =============================================================
 
 def physics_loss(y_pred, y_true, model = None): 
     
@@ -222,16 +270,16 @@ def physics_loss(y_pred, y_true, model = None):
     vel_loss = nn.SmoothL1Loss(beta=1.0)(v_pred, v_true)
     
     #Loss on angles and velocity weighted not to obscure 
-    base_loss = (cos_loss + sin_loss) + 0.2 * vel_loss
+    base_loss = 10 * (cos_loss + sin_loss) + 1 * vel_loss
 
     if model != None:
         #print("sono qui")
         dyn = model.f 
         
         # Esempio: voglio bloccare forte l'attrito e la lunghezza
-        reg_friction = dyn.logb1**2 + dyn.logb2**2
-        reg_length   = dyn.logl1**2 + dyn.logl2**2
-        reg_masses   = dyn.logm1**2 + dyn.logl2**2
+        reg_friction = 0#dyn.logb1**2 + dyn.logb2**2
+        reg_length   = 0#dyn.logl1**2 + dyn.logl2**2
+        reg_masses   = 0#dyn.logm1**2 + dyn.logl2**2
 
         #print ( reg_masses, reg_friction, reg_length)
         # Pesi della regolarizzazione (lambda)

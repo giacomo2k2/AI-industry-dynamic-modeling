@@ -2,6 +2,10 @@ import torch
 from torch import nn
 import math
 
+# =====================================================
+# ==========Recurrent Physics layer Network============
+# =====================================================
+
 class DynLayer(nn.Module):
     
     def __init__(self,
@@ -20,17 +24,30 @@ class DynLayer(nn.Module):
         
         def init_param(fixed_val, ref_val):
             if fixed_val is None:
-                return nn.Parameter(torch.zeros(1) + torch.randn(1) * 0.0001)
+                return nn.Parameter( torch.randn(1) )
             else:
                 val = math.log(fixed_val / ref_val)
                 return torch.tensor([val], dtype=torch.float32)
 
-        self.logb1 = init_param(fixed_b1, b1_ref) if fixed_b1 is None else self.register_buffer("logb1", init_param(fixed_b1, b1_ref))
-        self.logb2 = init_param(fixed_b2, b2_ref) if fixed_b2 is None else self.register_buffer("logb2", init_param(fixed_b2, b2_ref))
-        self.logl1 = init_param(fixed_l1, l1_ref) if fixed_l1 is None else self.register_buffer("logl1", init_param(fixed_l1, l1_ref))
-        self.logl2 = init_param(fixed_l2, l2_ref) if fixed_l2 is None else self.register_buffer("logl2", init_param(fixed_l2, l2_ref))
-        self.logm1 = init_param(fixed_m1, m1_ref) if fixed_m1 is None else self.register_buffer("logm1", init_param(fixed_m1, m1_ref))
-        self.logm2 = init_param(fixed_m2, m2_ref) if fixed_m2 is None else self.register_buffer("logm2", init_param(fixed_m2, m2_ref))
+        # Funzione helper per assegnare correttamente Parametri o Buffer
+        def setup_variable(name, fixed_val, ref_val):
+            val = init_param(fixed_val, ref_val)
+            if fixed_val is None:
+                # Se è None, è un nn.Parameter: lo assegnamo all'attributo
+                setattr(self, name, val)
+            else:
+                # Se è fisso, lo registriamo come buffer.
+                # NOTA: Non assegniamo il risultato a self.name! 
+                # PyTorch renderà il buffer accessibile via self.name automaticamente.
+                self.register_buffer(name, val)
+
+        # Ora inizializza le variabili usando l'helper
+        setup_variable("logb1", fixed_b1, b1_ref)
+        setup_variable("logb2", fixed_b2, b2_ref)
+        setup_variable("logl1", fixed_l1, l1_ref)
+        setup_variable("logl2", fixed_l2, l2_ref)
+        setup_variable("logm1", fixed_m1, m1_ref)
+        setup_variable("logm2", fixed_m2, m2_ref)
 
     # Helper getters
     def get_b1(self): return torch.exp(self.logb1) * self.b1_ref   
@@ -283,3 +300,9 @@ class RK4Model(nn.Module):
 
         res = self.integration(y0, T, aux)
         return res
+    
+# =====================================================
+# ==========            UDE                ============
+# =====================================================
+
+# inputs (q, qdot), ou
