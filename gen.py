@@ -15,7 +15,7 @@ def main():
 
     # Single pendulum instance reused; only init changes
     pendulum = DoublePendulum(
-        m1=2.2, m2=1.8, l1=1.2, l2=1.0, b1=0.0, b2=0.0
+        m1=2.2, m2=1.8, l1=1.2, l2=1.0, b1=0.3, b2=0.3
     )
 
     simulator = Simulator(dt)
@@ -34,6 +34,7 @@ def main():
             q_dot = pendulum.dynamics(states[step, :])
             T, U, E = pendulum.energy(states[step, :])
             states[step+1, :] = simulator.solver(states[step, :], pendulum, method="rk")
+            M, c, D, G = pendulum.get_matrices(states[step, :])
 
             rows.append({
                 'id_pendulum': i,
@@ -54,12 +55,23 @@ def main():
                 'q2_dot_dot': q_dot[3],
                 'T': T,
                 'U': U,
-                'E': E
+                'E': E,
+                'M11': M[0,0],
+                'M12': M[0,1],
+                'M21': M[1,0],
+                'M22': M[1,1],
+                'c1': c[0],
+                'c2': c[1],
+                'D11': D[0,0],
+                'D22': D[1,1],
+                'G1': G[0],
+                'G2': G[1]
             })
 
 
     df = pd.DataFrame(rows)
-    df.to_csv('branch1/data_enhanced/raw/double_pendulum_highfrict.csv', index=False)
+    #WARNING PAY ATTENTION TO THE DIRECTORY IT GOES TO: WE HAVE CHANGED IT TO OUR BRANCH
+    df.to_csv('branch1/data_enhanced/raw/double_pendulum_lowfrict.csv', index=False)
 
 if __name__ == '__main__':
     main()

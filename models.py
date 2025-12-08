@@ -328,4 +328,51 @@ class DoublePendulum:
         plt.grid(True, alpha=0.3)
         plt.legend()
         plt.show()  
+
+    def get_matrices(self, states):
+        """
+        Computes the system matrices: Inertia (M), Coriolis/Centrifugal (c), Damping (D), Gravity (G).
+        """
+
+        # Unpack state variables
+        q1 = states[0]
+        q1_dot = states[1]
+        q2 = states[2]
+        q2_dot = states[3]
+
+        # Unpack physical parameters for readability
+        m1, m2 = self.m1, self.m2
+        l1, l2 = self.l1, self.l2
+        g = self.g
+        b1, b2 = self.b1, self.b2
+        
+        # === 1. Inertia Matrix M(q) ===
+        # Describes how mass is distributed. Symmetric and positive definite
+        M = np.array([
+            [(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * np.cos(q2), m2 * l2**2 + m2 * l1 * l2 * np.cos(q2)],
+            [m2 * l2**2 + m2 *l1 *l2 * np.cos(q2), m2 * l2**2]
+        ])
+        
+        # === 2. Coriolis and Centrifugal Forces Vector -> c(q, q_dot) = C(o, q_dot)*q_dot ===
+        # Represents fictitious forces arising from rotation. Strongly non linear.
+        c = np.array([
+            [-m2 *l1*l2*np.sin(q2) * (2*q1_dot + q2_dot) * q2_dot],
+            [m2 * l1*l2*np.sin(q2) * q1_dot**2]
+        ])
+
+        # === 3. Viscous damping matrix D ===
+        # Represents viscous friction in the joints.
+        D = np.array([
+            [b1, 0],
+            [0, b2]
+        ])
+    
+        # === 4. Gravity term vector === 
+        # Represents potential energy forces.
+        G = np.array([
+            [(m1+m2)*g*l1*np.sin(q1) +  m2*g*l2*np.sin(q1 + q2)], 
+            [m2*g*l2*np.sin(q1 + q2)]
+        ])
+
+        return M, c.squeeze(), D, G.squeeze()
             

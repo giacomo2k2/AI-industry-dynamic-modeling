@@ -1,8 +1,8 @@
 import torch
 import pandas as pd
 import numpy as np
-from training_utils import train_nn_model, plot_training_history, EarlyStopping, physics_loss
-from architecture import DynLayer, EulerModel, RK4Model
+from branch1.training_utils import train_nn_model, plot_training_history, EarlyStopping, physics_loss, KNGLDataset
+from branch1.architecture import DynLayer, EulerModel, RK4Model
 from torch import nn
 import argparse
     
@@ -107,12 +107,16 @@ def main(train_path: str,
         
         # Reset Early Stopping 
         early_stopper = EarlyStopping(patience=15)
+
+        # Datasets
+        ds_train = KNGLDataset(X_train.astype(np.float32), y_train.astype(np.float32), time_steps=steps)
+        ds_val = KNGLDataset(X_val.astype(np.float32), y_val.astype(np.float32), time_steps=steps)
         
         # Training
         hist = train_nn_model(
             model=integration,
-            X_train=X_train, y_train=y_train,
-            X_val=X_val, y_val=y_val,
+            ds_train=ds_train,
+            ds_val=ds_val,
             loss_fn=loss_fn,
             early_stopper=early_stopper,
             epochs=eps,
@@ -153,6 +157,7 @@ if __name__ == "__main__":
     # Argomenti opzionali con flag
     parser.add_argument('--train_path', type=str, default='data/training/train_lowfrict.csv')
     parser.add_argument('--val_path', type=str, default= 'data/training/val_lowfrict.csv')
+    
     # parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')
     # parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     # parser.add_argument('--batch-size', type=int, default=32, help='Batch size')

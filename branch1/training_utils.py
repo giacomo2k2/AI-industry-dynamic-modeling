@@ -15,14 +15,19 @@ from torch import nn
 # ============= Dataset ========================
 # ===============================================
 
-def split_dataset(df: pd.DataFrame, train_ratio: float = 0.8, val_ratio: float = 0.2, shuffle: bool = False, sim_type: str = ''):
+def split_dataset(df: pd.DataFrame, 
+                  train_ratio: float = 0.8, 
+                  val_ratio: float = 0.2, 
+                  shuffle: bool = False, 
+                  sim_type: str = '',
+                  splits_path: str = 'data/training/') -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     
     trainval_df, test_df = train_test_split(df, train_size = train_ratio, random_state=42, shuffle=shuffle)
     train_df, val_df = train_test_split(trainval_df, test_size = val_ratio, random_state=42, shuffle=shuffle)
 
-    train_df.to_csv('data/training/train_' + sim_type + '.csv', index=False)
-    val_df.to_csv('data/training/val_' + sim_type + '.csv', index=False)
-    test_df.to_csv('data/training/test_' + sim_type + '.csv', index=False)
+    train_df.to_csv(f'{splits_path}train_' + sim_type + '.csv', index=False)
+    val_df.to_csv(f'{splits_path}val_' + sim_type + '.csv', index=False)
+    test_df.to_csv(f'{splits_path}test_' + sim_type + '.csv', index=False)
 
     return train_df, val_df, test_df
 
@@ -116,10 +121,8 @@ def get_adam_effective_lr(optimizer, param):
 
 def train_nn_model(
     model,
-    X_train,
-    y_train,
-    X_val,
-    y_val,
+    ds_train,
+    ds_val,
     early_stopper, 
     loss_fn,
     custom_loss = None,
@@ -131,14 +134,13 @@ def train_nn_model(
     weight_decay=0.0,
     shuffle=True,
     device="cpu",
-    horizon = 8,
+    horizon = 1,
+    show_grad = False,
+    show_lrs = False,
     **fit_params,
 ):
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay = weight_decay)
-
-    ds_train = KNGLDataset(X_train.astype(np.float32), y_train.astype(np.float32), time_steps=horizon)
-    ds_val = KNGLDataset(X_val.astype(np.float32), y_val.astype(np.float32), time_steps=horizon)
 
     early_stopping = early_stopper
     train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
@@ -160,22 +162,24 @@ def train_nn_model(
                 loss = loss_fn(y_pred, yb)
                 loss.backward()
                 # print the gradients and lr of the model parameters
-                if i == 0:
-                    print("Gradients:")
-                    for name, param in model.named_parameters():
-                        if param.grad is not None:
-                            print(f"{name}: {param.grad.norm().item()}")
-                        else:
-                            print(f"{name}: None")
-                    print("Effective Learing Rates:")
-                    for name, param in model.named_parameters():
-                        eff_lr = get_adam_effective_lr(optimizer, param)
-                        if eff_lr is not None:
-                            print(f"{name}: {eff_lr.mean()}")
-                        else:
-                            print(f"{name}: None")
-                        
-                
+                if show_grad:
+                    if i == 0:
+                        print("Gradients for batch 0:")
+                        for name, param in model.named_parameters():
+                            if param.grad is not None:
+                                print(f"{name}: {param.grad.norm().item()}")
+                            else:
+                                print(f"{name}: None")
+                if show_lrs:
+                    if i == 0:
+                        print("Effective Learing Rates for batch 0:")
+                        for name, param in model.named_parameters():
+                            eff_lr = get_adam_effective_lr(optimizer, param)
+                            if eff_lr is not None:
+                                print(f"{name}: {eff_lr.mean()}")
+                            else:
+                                print(f"{name}: None")
+                            
                 #CLIPPING, ATTENTION
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
                 
@@ -225,24 +229,25 @@ def train_nn_model(
 
     return history
 
-
-def plot_training_history(
-        history=None,
-        figsize=None, 
-        print_final_scores=True):
+def plot_training_history(history=None,
+                          figsize=None, 
+                          print_final_scores=True):
     
     plt.figure(figsize=figsize)
     
     for metric in history.keys():
         plt.plot(history[metric], label=metric)
+    
     # if 'val_loss' in history.history.keys():
     #     plt.plot(history.history['val_loss'], label='val. loss')
     if len(history.keys()) > 0:
         plt.legend()
+    
     plt.xlabel('epochs')
     plt.grid(linestyle=':')
     plt.tight_layout()
     plt.show()
+    
     if print_final_scores:
         trl = history["loss"][-1]
         s = f'Final loss: {trl:.4f} (training)'
@@ -250,6 +255,55 @@ def plot_training_history(
             vll = history["val_loss"][-1]
             s += f', {vll:.4f} (validation)'
         print(s)
+
+# ===============================================
+# ============= Evaluation ======================
+# ===============================================
+
+def evaluate_model(model, 
+                   ds_test, 
+                   loss_fn, 
+                   device="cpu", 
+                   batch_size=32):
+    
+    model.to(device)
+    model.eval()
+
+    test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=False)
+
+    total_loss = 0.0
+    n_batches = 0
+
+    
+    with torch.no_grad():
+        for xb, yb in test_loader:
+            xb, yb = xb.to(device), yb.to(device)
+            y_pred = model(xb)
+            loss = loss_fn(y_pred, yb)
+            total_loss += loss.item()
+            n_batches += 1
+    
+    avg_loss = total_loss / max(n_batches, 1)
+    
+
+    return avg_loss
+
+def predict_model(model, 
+                  X_test,
+                  device="cpu"):
+    
+    model.to(device)
+    model.eval()
+
+    test_loader = DataLoader(X_test, shuffle=False)
+    predictions = []
+    with torch.no_grad():
+        for xb in test_loader:
+            xb = xb.to(device)
+            y_pred = model(xb)
+            predictions.append(y_pred.cpu().numpy())
+    predictions = np.concatenate(predictions, axis=0)
+    return predictions
 
 # =============================================================
 # ===================== Losses ================================
@@ -294,3 +348,24 @@ def physics_loss(y_pred, y_true, model = None):
     else:
         #print("executed")
         return base_loss
+    
+# ============================================================
+# ================ Loading and Saving Models =================
+# ============================================================
+
+def save_model(model, history: dict, model_path: str):
+
+    torch.save(model.state_dict(), model_path)
+
+    np.save(model_path + '_history.npy', history)
+
+def load_model(model, model_path):
+    
+    model.load_state_dict(torch.load(model_path))
+
+    history = np.load(model_path + '_history.npy', allow_pickle='TRUE').item()
+    
+    return model, history
+
+
+            
