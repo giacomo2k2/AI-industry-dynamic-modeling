@@ -2,6 +2,26 @@ import torch
 from torch import nn
 import math
 
+
+# =====================================================
+# ==========       Device Setup          ==============
+# =====================================================
+
+def device_setup():
+    my_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    if my_device.type == 'cuda':
+        torch.cuda.empty_cache()
+        print(f"GPU memory: {torch.cuda.memory_reserved(my_device)/1e9} GB")
+    
+    return my_device
+
+# =====================================================
+# ==========Recurrent Physics layer Network============
+# =====================================================
+
+# Dynamical Layer representing the double pendulum dynamics
+
 class DynLayer(nn.Module):
     
     def __init__(self,
@@ -20,17 +40,30 @@ class DynLayer(nn.Module):
         
         def init_param(fixed_val, ref_val):
             if fixed_val is None:
-                return nn.Parameter(torch.zeros(1) + torch.randn(1) * 0.0001)
+                return nn.Parameter( torch.randn(1) )
             else:
                 val = math.log(fixed_val / ref_val)
                 return torch.tensor([val], dtype=torch.float32)
 
-        self.logb1 = init_param(fixed_b1, b1_ref) if fixed_b1 is None else self.register_buffer("logb1", init_param(fixed_b1, b1_ref))
-        self.logb2 = init_param(fixed_b2, b2_ref) if fixed_b2 is None else self.register_buffer("logb2", init_param(fixed_b2, b2_ref))
-        self.logl1 = init_param(fixed_l1, l1_ref) if fixed_l1 is None else self.register_buffer("logl1", init_param(fixed_l1, l1_ref))
-        self.logl2 = init_param(fixed_l2, l2_ref) if fixed_l2 is None else self.register_buffer("logl2", init_param(fixed_l2, l2_ref))
-        self.logm1 = init_param(fixed_m1, m1_ref) if fixed_m1 is None else self.register_buffer("logm1", init_param(fixed_m1, m1_ref))
-        self.logm2 = init_param(fixed_m2, m2_ref) if fixed_m2 is None else self.register_buffer("logm2", init_param(fixed_m2, m2_ref))
+        # Funzione helper per assegnare correttamente Parametri o Buffer
+        def setup_variable(name, fixed_val, ref_val):
+            val = init_param(fixed_val, ref_val)
+            if fixed_val is None:
+                # Se è None, è un nn.Parameter: lo assegnamo all'attributo
+                setattr(self, name, val)
+            else:
+                # Se è fisso, lo registriamo come buffer.
+                # NOTA: Non assegniamo il risultato a self.name! 
+                # PyTorch renderà il buffer accessibile via self.name automaticamente.
+                self.register_buffer(name, val)
+
+        # Ora inizializza le variabili usando l'helper
+        setup_variable("logb1", fixed_b1, b1_ref)
+        setup_variable("logb2", fixed_b2, b2_ref)
+        setup_variable("logl1", fixed_l1, l1_ref)
+        setup_variable("logl2", fixed_l2, l2_ref)
+        setup_variable("logm1", fixed_m1, m1_ref)
+        setup_variable("logm2", fixed_m2, m2_ref)
 
     # Helper getters
     def get_b1(self): return torch.exp(self.logb1) * self.b1_ref   
@@ -128,8 +161,25 @@ class DynLayer(nn.Module):
         next_states = torch.cat([q_dot_vec.squeeze(-1), q_ddot], dim=1)
         
         return next_states
-    
+
+# =====================================================
+# ==========       Numerical Integrators      =========
+# =====================================================
+
+# Simple Euler integrator
+
 class EulerModel(nn.Module):
+    '''
+    Docstring for EulerModel
+    Simple Euler integrator for ODEs.
+    Inputs:
+        f: function representing the system dynamics, should take input of shape (Batch, state_dim) and return (Batch, state_dim)
+        auxiliary_input: bool, if True, f will receive auxiliary inputs at each time step
+    
+    Outputs:
+        forward method returns the integrated states over time of shape (Batch, time_steps, state_dim
+    '''
+
     def __init__(self, f, auxiliary_input=False):
         super().__init__()
         self.f = f 
@@ -194,13 +244,27 @@ class EulerModel(nn.Module):
         res = self.integration(y0, T, aux)
 
         return res
-    
+
+# RK4 integrator
     
 class RK4Model(nn.Module):
-    def __init__(self, f, auxiliary_input=False):
+    '''
+    Docstring for RK4Model
+    Runge-Kutta 4th order integrator for ODEs.
+    Inputs:
+        f: function representing the system dynamics, should take input of shape (Batch, state_dim) and return (Batch, state_dim)
+        auxiliary_input: bool, if True, f will receive auxiliary inputs at each time step
+        additional_derivatives: bool, if True, forward returns also the derivatives at each time step
+    Outputs:
+        forward method returns the integrated states over time of shape (Batch, time_steps, state_dim)
+        if additional_derivatives is True, also returns derivatives of shape (Batch, time_steps, state_dim)
+    '''
+
+    def __init__(self, f, auxiliary_input=False, additional_derivatives=False):
         super().__init__()
         self.f = f 
         self.auxiliary_input = auxiliary_input
+        self.additional_derivatives = additional_derivatives
 
     def integration(self, y0, T, aux=None):
         # y0: (Batch, state_dim) -> (Batch, 4)
@@ -209,7 +273,8 @@ class RK4Model(nn.Module):
         device = y0.device
         
         # Lista per salvare gli step.
-        res = [y0] 
+        res = [y0]
+        der = [] 
         curr_y = y0 
 
         # Numero di step temporali
@@ -229,12 +294,14 @@ class RK4Model(nn.Module):
             # Qui usiamo l'aux allo step 'i' per semplicità, compatibile con dataset discreti.
             current_aux = aux[:, i, :] if self.auxiliary_input else None
             
+            #ydd = self.f(torch.cat([curr_y, current_aux], dim=1))
             # --- Passaggio RK4 ---
             
             # k1 = f(tn, yn)
             if self.auxiliary_input:
                 k1 = self.f(torch.cat([curr_y, current_aux], dim=1))
             else:
+                #print(f"curr y :{curr_y.shape}")
                 k1 = self.f(curr_y)
             
             # k2 = f(tn + h/2, yn + h*k1/2)
@@ -262,11 +329,15 @@ class RK4Model(nn.Module):
             # y_{n+1} = y_n + h/6 * (k1 + 2k2 + 2k3 + k4)
             curr_y = curr_y + (h / 6.0) * (k1 + 2*k2 + 2*k3 + k4)
             
+            der.append(k1)
             res.append(curr_y)
 
+        der.append(self.f(curr_y))
         # Stack lungo la dimensione temporale -> [Batch, Time, 4]
         res = torch.stack(res, dim=1)
-        return res
+        der = torch.stack(der, dim=1)
+        
+        return res, der
 
     def forward(self, inputs):
         # inputs: (Batch, time_steps, features)
@@ -278,8 +349,60 @@ class RK4Model(nn.Module):
             aux = inputs[:, :, 5:]
         else:
             y0 = inputs[:, 0, :4]      
-            T = inputs[:, :, 4:]       
+            T = inputs[:, :, 4:]     
             aux = None
 
-        res = self.integration(y0, T, aux)
-        return res
+        #print(f"y0: {y0.shape}")
+        #print(f"T: {T.shape}")
+
+        res, der = self.integration(y0, T, aux)
+
+        #print(f"res: {res.shape}")
+        #print(f"der: {der.shape}")
+        #exit()
+        
+        if self.additional_derivatives:
+            return res, der
+        else:
+            return res
+    
+# =====================================================
+# ==========            UDE                ============
+# =====================================================
+
+# Simple Deep Neural Network
+
+class DeepNN(nn.Module):
+    '''
+    Docstring for DeepNN
+    Simple Feedforward Deep Neural Network.
+    Inputs:
+        input_dim: int, dimension of input features
+        output_dim: int, dimension of output features
+        hidden_dims: list of int, dimensions of hidden layers
+    Outputs:
+        forward method returns output of shape (Batch, output_dim)
+    '''
+    def __init__(self, input_dim: int, 
+                 output_dim: int, 
+                 hidden_dims: list[int]):
+        super().__init__()
+        
+        layers = []
+        prev_dim = input_dim
+        
+        for hdim in hidden_dims:
+            layers.append(nn.Linear(prev_dim, hdim))
+            layers.append(nn.ReLU())
+            prev_dim = hdim
+        
+        layers.append(nn.Linear(prev_dim, output_dim))
+        
+        self.network = nn.Sequential(*layers)
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        
+        return self.network(x)
+    
+
+

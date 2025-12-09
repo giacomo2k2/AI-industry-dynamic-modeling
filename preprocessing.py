@@ -193,13 +193,16 @@ def add_white_noise(df: pd.DataFrame, std: float = 0.01) -> pd.DataFrame:
 # ================== MAIN PROCESSING =====================
 # ========================================================
 
-def process_data(path:str, plot: bool = PLOT):
+def process_data(path:str, 
+                 plot: bool = PLOT,
+                 raw_path: str = 'data/raw/',
+                 processed_path: str = 'data/processed/') -> pd.DataFrame:
     
     sim_type = path.split('_')[2].split('.')[0]
     print(f"Processing {sim_type} data...")
     
     # Read the csv in the data raw folder
-    df = pd.read_csv(f'data/raw/{path}')
+    df = pd.read_csv(f'{raw_path}{path}')
 
     
     processed_df, discarded = energy_check(df)
@@ -229,7 +232,7 @@ def process_data(path:str, plot: bool = PLOT):
         show_bins(processed_df, cols=status_cols, names=status_names, vlim=vlim, save=False)
 
     # Save processed dataframe to csv
-    processed_df.to_csv(f'data/processed/{path}', index=False)
+    processed_df.to_csv(f'{processed_path}{path}', index=False)
 
     # Print process terminated and number of pendulums kept
     n_total = df['id_pendulum'].nunique()
@@ -245,9 +248,15 @@ def process_data(path:str, plot: bool = PLOT):
 def main():
     
 
-    df_nof = process_data('double_pendulum_nofrict.csv')
-    df_lowf = process_data('double_pendulum_lowfrict.csv')
-    df_highf = process_data('double_pendulum_highfrict.csv')
+    df_nof = process_data(path = 'double_pendulum_nofrict.csv', 
+                          raw_path= 'branch1/data_enhanced/raw/',
+                          processed_path= 'branch1/data_enhanced/processed/')
+    df_lowf = process_data(path = 'double_pendulum_lowfrict.csv',
+                           raw_path= 'branch1/data_enhanced/raw/',
+                           processed_path= 'branch1/data_enhanced/processed/')
+    df_highf = process_data(path = 'double_pendulum_highfrict.csv',
+                            raw_path= 'branch1/data_enhanced/raw/',
+                            processed_path= 'branch1/data_enhanced/processed/')
 
 if __name__ == '__main__':
     main()
