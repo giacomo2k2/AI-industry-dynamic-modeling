@@ -2,10 +2,11 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt 
 from pina import LabelTensor
+import os
 
-def plot_matrices_predictions(y_true, y_pred):
+def plot_matrices_predictions(y_true, y_pred, save_path=None):
     
-    plt.figure(figsize=(12, 8))
+    fig = plt.figure(figsize=(12, 8))
     param_names = ['M11', 'M12', 'M21', 'M22', 'c1', 'c2', 'D11', 'D22', 'G1', 'G2']
     for i in range(10):
         plt.subplot(5, 2, i+1)
@@ -15,14 +16,28 @@ def plot_matrices_predictions(y_true, y_pred):
         plt.legend()
     plt.tight_layout()
     plt.show()
+
+    if save_path is not None:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        fig.savefig(save_path+'.png')
     
-def compare_results(states, true_states_dot, model, u=None, device="cpu", dt=0.01):
+def plot_dynamics_predictions(states,
+                              inputs, 
+                              true_states_dot, 
+                              model,
+                              save_path=None, 
+                              u=None, 
+                              device="cpu", 
+                              dt=0.01):
+    
     """
     states: (N, 4) -> [q1, q1_dot, q2, q2_dot]
+    inputs: what to feed the network (N, ?)
     true_states_dot: (N, 4) -> [q1_dot, q1_ddot, q2_dot, q2_ddot] (Ground Truth)
     model: Rete neurale che predice i parametri fisici
     u: (N, 2) o None -> Input di controllo (coppia)
     """
+    
     model.eval()
     
     pred_states_dot = []
@@ -32,7 +47,7 @@ def compare_results(states, true_states_dot, model, u=None, device="cpu", dt=0.0
     pred_list = []
 
     with torch.no_grad():
-        for i, state in enumerate(states):
+        for i, (state, input) in enumerate(zip(states, inputs)):
 
             #print(f"state shape: {state.shape}")
             # --- 1. Preparazione Input ---
@@ -42,7 +57,7 @@ def compare_results(states, true_states_dot, model, u=None, device="cpu", dt=0.0
                 u_curr = u[i].reshape(2, 1)
 
             # Tensore stato per il modello
-            xb = torch.tensor(state, dtype=torch.float32).unsqueeze(0).to(device)
+            xb = torch.tensor(input, dtype=torch.float32).unsqueeze(0).to(device)
             
             # --- 2. Predizione dei Parametri ---
             y_pred = model(xb).squeeze(0)
@@ -115,17 +130,18 @@ def compare_results(states, true_states_dot, model, u=None, device="cpu", dt=0.0
     # Conversione in numpy array per slicing
     true_arr = np.array(true_list)
     pred_arr = np.array(pred_list)
+
     base_states = np.array([[states[:,0], states[:,2]]])
     # --- 6. Plotting --
     #print(true_arr.shape)
     #print(pred_arr.shape)
-    plot_comparison(true_arr, pred_arr, base_states)
+    plot_comparison(true_arr, pred_arr, base_states, save_path=save_path)
 
     return np.array(pred_states_dot)
 
 
 
-def plot_comparison(true_derivs, pred_derivs, states):
+def plot_comparison(true_derivs, pred_derivs, states, save_path=None):
     """
     Plotta il confronto completo della dinamica su una griglia 2x3.
     
@@ -225,6 +241,10 @@ def plot_comparison(true_derivs, pred_derivs, states):
 
     plt.tight_layout()
     plt.show()
+
+    if save_path is not None:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        fig.savefig(save_path+'.png')
 
 def analyze_pendulum_dynamics(model, 
                               X_test, 

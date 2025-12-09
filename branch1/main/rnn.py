@@ -1,8 +1,8 @@
 import torch
 import pandas as pd
 import numpy as np
-from branch1.training_utils import train_nn_model, plot_training_history, EarlyStopping, physics_loss, KNGLDataset
-from branch1.architecture import DynLayer, EulerModel, RK4Model
+from branch1.utils.training import train_nn_model, plot_training_history, EarlyStopping, physics_loss, KNGLDataset, pull_data_by_ids
+from branch1.utils.architecture import DynLayer, EulerModel, RK4Model, device_setup
 from torch import nn
 import argparse
     
@@ -11,11 +11,7 @@ def main(train_path: str,
 
     # --- Device setup ---
 
-    my_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    if my_device.type == 'cuda':
-        torch.cuda.empty_cache()
-        print(f"GPU memory: {torch.cuda.memory_reserved(my_device)/1e9} GB")
+    my_device = device_setup()
 
     # --- Train Data ---
 
@@ -32,34 +28,17 @@ def main(train_path: str,
 
     # Build X_train and y_train
 
-    tr_ids = tr_data['id_pendulum'].unique().tolist()
-    tr_evolution_length = tr_data[tr_data['id_pendulum'] == tr_ids[0]].shape[0]
-
-    X_train = np.zeros((len(tr_ids), tr_evolution_length, 5)) # dim -> (n_pendulums, evolution_length, 5)
-
-    for i, pid in enumerate(tr_ids):
-        pend_data = tr_data[tr_data['id_pendulum'] == pid]
-        X_train[i, :, :] = pend_data[['q1', 'q1_dot', 'q2', 'q2_dot', 'time_step']].to_numpy()
-    
-    y_train = X_train[:, :, :4].copy() # dim -> (n_pendulums, evolution_length, 4)
+    X_train, Y_train =  pull_data_by_ids(data_path=train_path, 
+                                         data_splitter = 'id_pendulum',
+                                         xcols = ['q1', 'q1_dot', 'q2', 'q2_dot', 'time_step'],
+                                         ycols = ['q1', 'q1_dot', 'q2', 'q2_dot']) 
 
     # --- Val Data ---
     
-    # Load validation data
-    val_data = pd.read_csv(val_path)
-
-    # Build X_val and y_val
-
-    val_ids = val_data['id_pendulum'].unique().tolist()
-    val_evolution_length = val_data[val_data['id_pendulum'] == val_ids[0]].shape[0]
-
-    X_val = np.zeros((len(val_ids), val_evolution_length, 5))
-
-    for i, pid in enumerate(val_ids):
-        pend_data = val_data[val_data['id_pendulum'] == pid]
-        X_val[i, :, :] = pend_data[['q1', 'q1_dot', 'q2', 'q2_dot', 'time_step']].to_numpy()
-
-    y_val = X_val[:, :, :4].copy()
+    X_val, Y_val =  pull_data_by_ids(data_path=val_path, 
+                                         data_splitter = 'id_pendulum',
+                                         xcols = ['q1', 'q1_dot', 'q2', 'q2_dot', 'time_step'],
+                                         ycols = ['q1', 'q1_dot', 'q2', 'q2_dot']) 
     
     # --- Model ---
 
@@ -78,9 +57,8 @@ def main(train_path: str,
         m2_ref=1.0,
         fixed_m2=1.8 
         )
-
-    # Integration layer
-    integration = RK4Model(dPend)
+    
+    model = RK4Model(dPend)
 
     # --- Loss function ---
 
@@ -92,8 +70,6 @@ def main(train_path: str,
     curriculum_steps = [4, 8, 16, 32] # steps of horizon (dynamic during training)
     epochs_per_stage = [10, 10, 10, 10] 
     lrs = [1e-2, 1e-2, 1e-2, 1e-2]       
-
-    early_stopper = EarlyStopping(patience=10)
 
     history_full = {"loss": [], "val_loss": []}
 
@@ -109,12 +85,12 @@ def main(train_path: str,
         early_stopper = EarlyStopping(patience=15)
 
         # Datasets
-        ds_train = KNGLDataset(X_train.astype(np.float32), y_train.astype(np.float32), time_steps=steps)
-        ds_val = KNGLDataset(X_val.astype(np.float32), y_val.astype(np.float32), time_steps=steps)
+        ds_train = KNGLDataset(X_train.astype(np.float32), Y_train.astype(np.float32), horizon=steps)
+        ds_val = KNGLDataset(X_val.astype(np.float32), Y_val.astype(np.float32), horizon=steps)
         
         # Training
         hist = train_nn_model(
-            model=integration,
+            model=model,
             ds_train=ds_train,
             ds_val=ds_val,
             loss_fn=loss_fn,
@@ -158,11 +134,11 @@ if __name__ == "__main__":
     parser.add_argument('--train_path', type=str, default='data/training/train_lowfrict.csv')
     parser.add_argument('--val_path', type=str, default= 'data/training/val_lowfrict.csv')
     
-    # parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')
-    # parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
-    # parser.add_argument('--batch-size', type=int, default=32, help='Batch size')
-    # parser.add_argument('--device', type=str, default='cuda', help='Device')
-    # parser.add_argument('--verbose', action='store_true', help='Verbose output')
+    parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')
+    parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
+    parser.add_argument('--batch-size', type=int, default=32, help='Batch size')
+    parser.add_argument('--device', type=str, default='cuda', help='Device')
+    parser.add_argument('--verbose', action='store_true', help='Verbose output')
     
     args = parser.parse_args()
 

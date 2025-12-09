@@ -2,9 +2,25 @@ import torch
 from torch import nn
 import math
 
+
+# =====================================================
+# ==========       Device Setup          ==============
+# =====================================================
+
+def device_setup():
+    my_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    if my_device.type == 'cuda':
+        torch.cuda.empty_cache()
+        print(f"GPU memory: {torch.cuda.memory_reserved(my_device)/1e9} GB")
+    
+    return my_device
+
 # =====================================================
 # ==========Recurrent Physics layer Network============
 # =====================================================
+
+# Dynamical Layer representing the double pendulum dynamics
 
 class DynLayer(nn.Module):
     
@@ -145,8 +161,25 @@ class DynLayer(nn.Module):
         next_states = torch.cat([q_dot_vec.squeeze(-1), q_ddot], dim=1)
         
         return next_states
-    
+
+# =====================================================
+# ==========       Numerical Integrators      =========
+# =====================================================
+
+# Simple Euler integrator
+
 class EulerModel(nn.Module):
+    '''
+    Docstring for EulerModel
+    Simple Euler integrator for ODEs.
+    Inputs:
+        f: function representing the system dynamics, should take input of shape (Batch, state_dim) and return (Batch, state_dim)
+        auxiliary_input: bool, if True, f will receive auxiliary inputs at each time step
+    
+    Outputs:
+        forward method returns the integrated states over time of shape (Batch, time_steps, state_dim
+    '''
+
     def __init__(self, f, auxiliary_input=False):
         super().__init__()
         self.f = f 
@@ -211,9 +244,22 @@ class EulerModel(nn.Module):
         res = self.integration(y0, T, aux)
 
         return res
-    
+
+# RK4 integrator
     
 class RK4Model(nn.Module):
+    '''
+    Docstring for RK4Model
+    Runge-Kutta 4th order integrator for ODEs.
+    Inputs:
+        f: function representing the system dynamics, should take input of shape (Batch, state_dim) and return (Batch, state_dim)
+        auxiliary_input: bool, if True, f will receive auxiliary inputs at each time step
+        additional_derivatives: bool, if True, forward returns also the derivatives at each time step
+    Outputs:
+        forward method returns the integrated states over time of shape (Batch, time_steps, state_dim)
+        if additional_derivatives is True, also returns derivatives of shape (Batch, time_steps, state_dim)
+    '''
+
     def __init__(self, f, auxiliary_input=False, additional_derivatives=False):
         super().__init__()
         self.f = f 
@@ -324,10 +370,19 @@ class RK4Model(nn.Module):
 # ==========            UDE                ============
 # =====================================================
 
-# inputs (q, qdot), ou
+# Simple Deep Neural Network
 
 class DeepNN(nn.Module):
-
+    '''
+    Docstring for DeepNN
+    Simple Feedforward Deep Neural Network.
+    Inputs:
+        input_dim: int, dimension of input features
+        output_dim: int, dimension of output features
+        hidden_dims: list of int, dimensions of hidden layers
+    Outputs:
+        forward method returns output of shape (Batch, output_dim)
+    '''
     def __init__(self, input_dim: int, 
                  output_dim: int, 
                  hidden_dims: list[int]):

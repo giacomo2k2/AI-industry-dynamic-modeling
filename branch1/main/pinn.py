@@ -1,11 +1,12 @@
 import torch
 import pandas as pd
 import numpy as np
-from branch1.training_utils import (train_nn_model, plot_training_history, EarlyStopping, KNGLDataset, 
+from branch1.utils.training import (train_nn_model, plot_training_history, EarlyStopping, KNGLDataset, 
                                     save_model, load_model, evaluate_model, predict_model, LagrangianLoss,
                                     train_lagrangian_nn_model, evaluate_lagrangian_model)
-from branch1.architecture import DynLayer, EulerModel, RK4Model, DeepNN
-from branch1.plots import plot_matrices_predictions, compare_results, analyze_pendulum_dynamics
+from branch1.utils.architecture import DynLayer, EulerModel, RK4Model, DeepNN
+from branch1.utils.plots import plot_matrices_predictions, compare_results, analyze_pendulum_dynamics
+from branch1.utils.architecture import device_setup
 from torch import nn
 import argparse
 
@@ -25,11 +26,7 @@ def main(train_path: str,
     
     # --- Device setup ---
 
-    my_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    if my_device.type == 'cuda':
-        torch.cuda.empty_cache()
-        print(f"GPU memory: {torch.cuda.memory_reserved(my_device)/1e9} GB")
+    my_device = device_setup()
 
     # --- Train Data ---
 
