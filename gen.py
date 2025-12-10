@@ -71,7 +71,7 @@ def main():
 
     df = pd.DataFrame(rows)
     #WARNING PAY ATTENTION TO THE DIRECTORY IT GOES TO: WE HAVE CHANGED IT TO OUR BRANCH
-    df.to_csv('branch1/data_enhanced/raw/double_pendulum_lowfrict.csv', index=False)
+    df.to_csv('branch1/data_enhanced/raw/single_pendulum_lowfrict.csv', index=False)
 
 if __name__ == '__main__':
     main()

@@ -74,12 +74,12 @@ def main(train_path: str,
     else:
         input_dim = 5
 
-    hidden_dims = [32, 64, 64, 32, 16]
+    hidden_dims = [32, 64, 64, 32, 16] # TODO meno layer alta dimensionalita
     output_dim = 10
     
     deepNN = DeepNN(input_dim=input_dim, 
                     output_dim=10, 
-                    hidden_dims=hidden_dims)
+                    hidden_dims=hidden_dims) # TODO Softplus SILU
 
     # --- Loss function ---
 

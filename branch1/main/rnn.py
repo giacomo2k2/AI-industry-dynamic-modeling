@@ -4,7 +4,7 @@ import numpy as np
 from branch1.utils.training import (train_nn_model, plot_training_history, EarlyStopping, physics_loss, KNGLDataset, pull_data_by_ids,
                                     save_model, load_model, evaluate_model, predict_model, average_discrepancy_perc, avg_param_difference, 
                                     max_param_difference, log_recipe)
-from branch1.utils.architecture import DynLayer, EulerModel, RK4Model, device_setup
+from branch1.utils.architecture import DynLayer, EulerModel, RK4Model, device_setup, DynUDE
 from branch1.utils.plots import plot_evolutions_comparison
 from torch import nn
 import argparse
@@ -83,17 +83,19 @@ def main(train_path: str,
     
     )
     
-    model = RK4Model(dPend)
+    neurPend = DynUDE()
+
+    model = RK4Model(neurPend)
 
     # --- Loss function ---
 
-    loss_fn = physics_loss
+    loss_fn = nn.MSELoss()
 
     # --- Training ---
 
-    curriculum_steps = [4, 8, 16, 32] # steps of horizon (dynamic during training)
+    curriculum_steps = [8, 16, 32, 64] # steps of horizon (dynamic during training)
     epochs_per_stage = [epochs, epochs, epochs, epochs]  # epochs per each stage
-    lrs = [1e-2, 1e-2, 1e-2, 1e-2]  # learning rates per each stage
+    lrs = [1e-2, 5e-3, 1e-3, 1e-4]  # learning rates per each stage
 
     if training:
 
@@ -217,7 +219,7 @@ def main(train_path: str,
 
     simulator = Simulator(dt = 0.01)
 
-    for i in range(3):  # evaluate on 3 different sequences
+    for i in range(10):  # evaluate on 3 different sequences
 
         Y_test_i = Y_test[i,:,:]
         

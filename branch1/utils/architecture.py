@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 import math
+import torch.autograd as autograd
 
 
 # =====================================================
@@ -40,7 +41,7 @@ class DynLayer(nn.Module):
         
         def init_param(fixed_val, ref_val):
             if fixed_val is None:
-                return nn.Parameter( torch.randn(1) )
+                return nn.Parameter( torch.randn(1) * 0.1)
             else:
                 val = math.log(fixed_val / ref_val)
                 return torch.tensor([val], dtype=torch.float32)
@@ -161,7 +162,44 @@ class DynLayer(nn.Module):
         next_states = torch.cat([q_dot_vec.squeeze(-1), q_ddot], dim=1)
         
         return next_states
+    
+class DynUDE(nn.Module):
+    '''
+    same as DynLayer but for UDE but with NN instead of physical parameters
+    there are no physical parameters, but a NN that learns the dynamics
+    '''
+    def __init__(self, input_dim=4, hidden_dim=256, output_dim=4):
+        super().__init__()
+        
+        # --- LAYER & PROFONDITÀ ---
+        # 3 Layer Nascosti sono il "Sweet Spot" per la fisica.
+        # Hidden Dim: 256 o 512 è sufficiente.
+        
+        # --- ACTIVATION FUNCTION ---
+        # Usiamo Tanh o Softplus. 
+        # MAI usare ReLU per la fisica HNN.
+        # Motivo: ReLU ha derivata seconda zero ovunque (o indefinita). 
+        # La fisica richiede derivate seconde continue (liscie).
+        
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.Tanh(), 
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, output_dim)  # Output: Scalare (L'Hamiltoniana / Energia)
+        )
 
+    def forward(self, x):
+
+        # Importante: abilitiamo il gradiente sull'input per calcolare le derivate parziali
+        x = x.requires_grad_(True)
+        
+        # 1. La rete predice l'Energia Totale (H) in quello stato
+        outputs = self.net(x)
+        
+        return outputs
 # =====================================================
 # ==========       Numerical Integrators      =========
 # =====================================================
@@ -392,7 +430,7 @@ class DeepNN(nn.Module):
         prev_dim = input_dim
         
         for hdim in hidden_dims:
-            layers.append(nn.Linear(prev_dim, hdim))
+            layers.append(nn.Linear(prev_dim, hdim)) # TODO aggiungere skip connection
             layers.append(nn.ReLU())
             prev_dim = hdim
         

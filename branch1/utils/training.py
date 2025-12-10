@@ -401,6 +401,7 @@ def train_nn_model(
 
     history = {"loss": [], "val_loss": []}
 
+    print("Starting training...")
     # tqdm solo sulle EPOCHE
     with tqdm(total=epochs, desc="Training", unit="epoch", disable=not verbose) as pbar:
         for epoch in range(epochs):
@@ -437,7 +438,7 @@ def train_nn_model(
                                 print(f"{name}: None")
                             
                 #CLIPPING, ATTENTION
-                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=clipping_value)
+                #torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=clipping_value)
                 
                 optimizer.step()
 
@@ -488,125 +489,7 @@ def train_nn_model(
 
     return history
 
-def train_lagrangian_nn_model(
-    model,
-    ds_train,
-    ds_val,
-    early_stopper, 
-    loss_fn,
-    verbose=False,
-    batch_size=32,
-    epochs=100,
-    lr=1e-3,
-    weight_decay=0.0,
-    device="cpu",
-    show_grad = False,
-    show_lrs = False,
-    lagrangian_loss = None,
-    lambda_c = 0.0,
-    **fit_params,
-):
-    model.to(device)
-    if lagrangian_loss is not None:
-        lagrangian_loss.to(device)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay = weight_decay)
-
-    early_stopping = early_stopper
-    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
-    val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False)
-    
-    history = {"loss": [], "val_loss": []}
-
-    # tqdm solo sulle EPOCHE
-    with tqdm(total=epochs, desc="Training", unit="epoch", disable=not verbose) as pbar:
-        for epoch in range(epochs):
-            model.train()
-            running_loss = 0.0
-            n_batches = 0
-
-            for i, (xb, yb) in enumerate(train_loader):
-                
-                xb, yb = xb.to(device), yb.to(device)
-                optimizer.zero_grad()
-                #print(xb.shape)
-                #print(yb.shape)
-                y_pred, x_pred = model(xb)
-                
-                loss = loss_fn(y_pred, yb)
-                if lagrangian_loss is not None:
-                    loss += lambda_c * lagrangian_loss(xb, x_pred[:, :, 2:])
-
-                loss.backward()
-                # print the gradients and lr of the model parameters
-                if show_grad:
-                    if i == 0:
-                        print("Gradients for batch 0:")
-                        for name, param in model.named_parameters():
-                            if param.grad is not None:
-                                print(f"{name}: {param.grad.norm().item()}")
-                            else:
-                                print(f"{name}: None")
-                if show_lrs:
-                    if i == 0:
-                        print("Effective Learing Rates for batch 0:")
-                        for name, param in model.named_parameters():
-                            eff_lr = get_adam_effective_lr(optimizer, param)
-                            if eff_lr is not None:
-                                print(f"{name}: {eff_lr.mean()}")
-                            else:
-                                print(f"{name}: None")
-                            
-                #CLIPPING, ATTENTION
-                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-                
-                optimizer.step()
-                running_loss += loss.item()
-                n_batches += 1
-
-            epoch_loss = running_loss / max(n_batches, 1)
-            history["loss"].append(epoch_loss)
-
-            # Validazione
-            if val_loader is not None:
-                model.eval()
-                val_running_loss = 0.0
-                val_batches = 0
-                with torch.no_grad():
-                    for xb, yb in val_loader:
-                        xb, yb = xb.to(device), yb.to(device)
-                        y_pred, x_pred = model(xb)
-                        vloss = loss_fn(y_pred, yb)
-                        if lagrangian_loss is not None:
-                            vloss += lambda_c * lagrangian_loss(xb, x_pred[:,:, 2:])
-                        val_running_loss += vloss.item()
-                        val_batches += 1
-                val_loss = val_running_loss / max(val_batches, 1)
-                history["val_loss"].append(val_loss)
-
-                # Early stopping
-                stop = early_stopper.step(val_loss, model)
-                if stop:
-                    pbar.set_postfix({
-                        'status': 'Early Stopped',
-                        'loss': f'{epoch_loss:.4f}',
-                        'val_loss': f'{val_loss:.4f}'
-                    })
-                    early_stopper.restore_best_weights(model)
-                    break
-
-                # Aggiorna tqdm con loss corrente
-                pbar.set_postfix({
-                    'loss': f'{epoch_loss:.4f}',
-                    'val_loss': f'{val_loss:.4f}'
-                })
-            else:
-                pbar.set_postfix({'loss': f'{epoch_loss:.4f}'})
-
-            pbar.update(1)  # Avanza la barra
-            pbar.set_description(f"Epoch {epoch+1}/{epochs}")
-
-    return history
 
 def plot_training_history(history=None,
                           figsize=None, 
@@ -723,7 +606,7 @@ def predict_model(model,
 # ===================== Losses ================================
 # =============================================================
 
-def physics_loss(y_pred, y_true, model = None): 
+def physics_loss(y_pred, y_true, model = None, horizon = 1): 
     
     #eliminate cosine jump
     q_pred = y_pred[:, :, [0, 2]]
@@ -742,17 +625,21 @@ def physics_loss(y_pred, y_true, model = None):
 
     if model is not None:
         dyn = model.f 
-        print("I am here")
+        #print("I am here")
         # Regolarizzazione L2 sui parametri (corretto per tensori)
         reg_friction = torch.exp(dyn.logb1**2).mean() + torch.exp(dyn.logb2**2).mean()
         reg_length   = torch.exp(dyn.logl1**2).mean() + torch.exp(dyn.logl2**2).mean()
         reg_masses   = torch.exp(dyn.logm1**2).mean() + torch.exp(dyn.logm2**2).mean()
 
         # Pesi della regolarizzazione (lambda)
-        lambda_frict = 0.01  
-        lambda_len   = 0.1 
-        lambda_masses = 0.01
-
+        if horizon < 10:
+            lambda_frict = 1  
+            lambda_len   = 1
+            lambda_masses = 1
+        else:
+            lambda_frict = 0.01  
+            lambda_len   = 0.01 
+            lambda_masses = 0.01
         #print(f"Regularization terms: Friction: {reg_friction.item():.6f}, Length: {reg_length.item():.6f}, Masses: {reg_masses.item():.6f}")
         #print(f"Parameters: b1: {torch.exp(dyn.logb1).item():.4f}, b2: {torch.exp(dyn.logb2).item():.4f}, l1: {torch.exp(dyn.logl1).item():.4f}, l2: {torch.exp(dyn.logl2).item():.4f}, m1: {torch.exp(dyn.logm1).item():.4f}, m2: {torch.exp(dyn.logm2).item():.4f}")
 
