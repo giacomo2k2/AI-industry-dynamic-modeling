@@ -375,4 +375,20 @@ class DoublePendulum:
         ])
 
         return M, c.squeeze(), D, G.squeeze()
+    
+    def generate_trajectory(self, simulator, steps):
+        
+        trajectory = np.zeros((steps, 4))
+        trajectory[0, :] = self.initial_state
+
+        # Integration loop
+        for step in range(1,steps):
             
+            trajectory[step, :] = simulator.solver(
+                trajectory[step-1, :], 
+                self, 
+                method="rk"
+            )
+
+        return trajectory
+                

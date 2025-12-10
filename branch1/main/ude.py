@@ -126,7 +126,7 @@ def main(train_path: str,
             'epochs': epochs,
             'batch_size': batch_size,
             'lr': lr,
-            'weight_decay': wd,
+            'wd': wd,
             'patience': patience,
             'model_name': model_name
         }
