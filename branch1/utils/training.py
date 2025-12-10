@@ -415,7 +415,7 @@ def train_nn_model(
                 #print(xb.shape)
                 #print(yb.shape)
                 y_pred = model(xb)
-                loss = loss_fn(y_pred, yb)
+                loss = loss_fn(y_pred, yb) 
                 loss.backward()
                 # print the gradients and lr of the model parameters
                 if show_grad:
@@ -742,16 +742,19 @@ def physics_loss(y_pred, y_true, model = None):
 
     if model is not None:
         dyn = model.f 
-        
+        print("I am here")
         # Regolarizzazione L2 sui parametri (corretto per tensori)
-        reg_friction = (dyn.logb1**2).mean() + (dyn.logb2**2).mean()
-        reg_length   = (dyn.logl1**2).mean() + (dyn.logl2**2).mean()
-        reg_masses   = (dyn.logm1**2).mean() + (dyn.logm2**2).mean()
+        reg_friction = torch.exp(dyn.logb1**2).mean() + torch.exp(dyn.logb2**2).mean()
+        reg_length   = torch.exp(dyn.logl1**2).mean() + torch.exp(dyn.logl2**2).mean()
+        reg_masses   = torch.exp(dyn.logm1**2).mean() + torch.exp(dyn.logm2**2).mean()
 
         # Pesi della regolarizzazione (lambda)
-        lambda_frict = 0.1  
+        lambda_frict = 0.01  
         lambda_len   = 0.1 
         lambda_masses = 0.01
+
+        #print(f"Regularization terms: Friction: {reg_friction.item():.6f}, Length: {reg_length.item():.6f}, Masses: {reg_masses.item():.6f}")
+        #print(f"Parameters: b1: {torch.exp(dyn.logb1).item():.4f}, b2: {torch.exp(dyn.logb2).item():.4f}, l1: {torch.exp(dyn.logl1).item():.4f}, l2: {torch.exp(dyn.logl2).item():.4f}, m1: {torch.exp(dyn.logm1).item():.4f}, m2: {torch.exp(dyn.logm2).item():.4f}")
 
         total_loss = base_loss + lambda_frict * reg_friction + lambda_len * reg_length + lambda_masses * reg_masses
         

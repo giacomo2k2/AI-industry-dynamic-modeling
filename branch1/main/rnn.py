@@ -108,7 +108,7 @@ def main(train_path: str,
             print(f"\nParams attuali: m2={dPend.get_m2().item():.3f}, l2={dPend.get_l2().item():.3f}, b2={dPend.get_b2().item():.3f}")
             
             # Reset Early Stopping 
-            early_stopper = EarlyStopping(patience=15)
+            early_stopper = EarlyStopping(patience=patience)
 
             # Datasets
             ds_train = KNGLDataset(X_train.astype(np.float32), Y_train.astype(np.float32), horizon=steps)
@@ -258,7 +258,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--training', action='store_true', default=True)
     parser.add_argument('--epochs', type=int, default=10)
-    parser.add_argument('--patience', type=int, default=15)
+    parser.add_argument('--patience', type=int, default=3)
     parser.add_argument('--lr', type=float, default=1e-2)
     parser.add_argument('--wd', type=float, default=0)
     parser.add_argument('--batch_size', type=int, default=512)
