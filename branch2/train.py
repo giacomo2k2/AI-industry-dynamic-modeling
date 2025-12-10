@@ -11,6 +11,7 @@ import torch.optim as optim
 from NNmodels import BaselineFNN, DeepFNN, LagrangianNN, ClassicODE, NeuralODE
 from models import DoublePendulum
 
+
 import os
 import json
 
@@ -18,20 +19,22 @@ from utils import generate_run_dir, history_plot, state_dot_step_plot, state_evo
 from metrics import energy_evolution_metric
 
 # Global constants
-MAX_EPOCHS = 70
+MAX_EPOCHS = 50
 BATCH_SIZE = 32
 LEARNING_RATE = 1e-3
-TEST_ITER = 10
+MIN_LR = 1e-5
+TEST_ITER = 100
 TRAIN_TEST_SPLIT = 0.8
+MAX_CHUNK_SIZE = 2
 
-ACTIVATION = 'SiLU'  # Options: 'ReLU', 'Tanh', 'SiLU', 'GELU', SELU, 'Softplus'
+ACTIVATION = 'Softplus'  # Options: 'ReLU', 'Tanh', 'SiLU', 'GELU', SELU, 'Softplus'
 
 SOLVER_NAME = 'ClassicODE'  # Options: 'ClassicODE', 'NeuralODE'
 FUNC_NAME = 'LagrangianNN'  # Options: 'BaselineFNN', 'DeepFNN', 'HamiltonianNN', 'LagrangianNN'
 
 FRICT_TYPE = 'nofrict'
 OPTIMIZER_NAME = 'AdamW' # Options: 'AdamW', 'Adam'
-LOSS = 'MSELoss'
+LOSS = 'MSELoss'  # Options: 'MSELoss', 'MAELoss'
 
 
 def train_step(func, dataloader, device, criterion, optimizer):
@@ -65,7 +68,6 @@ def train_evolution(solver, device, x, x0, T, criterion, optimizer):
     train_loss = criterion(x_pred, x)           # Loss
     
     train_loss.backward()                       # Backpropagation
-    
     optimizer.step()                            # Update weights        
 
     return train_loss.item()
@@ -104,7 +106,50 @@ def test_evolution(solver, device, x, x0, T, criterion):
 
         x_pred = solver(x0, T)
         test_loss = criterion(x_pred, x)
-    return test_loss.item(), x_pred.detach().cpu().numpy()
+    return test_loss.item(), x_pred
+
+
+def curricular_step(epoch, max_epochs, initial_chunk_size, final_chunk_size):
+    # logarithmically increase chunk size from initial to final over epochs
+    progress = epoch / max_epochs
+    chunk_size = initial_chunk_size * (final_chunk_size / initial_chunk_size) ** progress
+
+    return int(chunk_size)
+
+
+def get_batch(true_y, t, batch_size=32, chunk_size=20):
+    """
+    true_y: Your entire dataset of shape [Total_Time_Steps, State_Dim] (e.g., [1000, 2])
+    t: Your time tensor [0.0, 0.01, ..., 10.0]
+    """
+    total_time, total_pendulums, state_dim = true_y.shape
+
+    
+    # 1. Select random start points (indices)
+    # Ensure we don't pick an index too close to the end
+    s = torch.from_numpy(
+        np.random.choice(np.arange(total_time - chunk_size, dtype=np.int64), 
+                         batch_size, 
+                         replace=False)
+    )
+
+    b_idx = torch.from_numpy(np.random.choice(
+        np.arange(total_pendulums, dtype=np.int64), batch_size, replace=True))
+    
+    # 2. creating the batch of initial states
+    # Shape: [Batch_Size, State_Dim]
+    batch_y0 = true_y[s, b_idx, :]  
+    
+    # 3. Create the batch of "Ground Truth" trajectories to compare against
+    # We want to grab specific slices: s[0] to s[0]+chunk, s[1] to s[1]+chunk...
+    batch_y_target = torch.stack([true_y[si:si+chunk_size, bi, :] for si, bi in zip(s, b_idx)], dim=1)  # Shape: [Batch_Size, Chunk_Size, State_Dim]
+    
+    # 4. Create the 'relative' time points for the solver
+    # The solver typically needs t starting at 0 for the integration step
+    # We want to integrate from 0 to (chunk_size * dt)
+    batch_t = t[:chunk_size]  # Shape: [Chunk_Size] 
+    
+    return batch_y0, batch_t, batch_y_target
 
 
 def main():
@@ -153,12 +198,29 @@ def main():
     x_dot_dot = np.stack(x_dot_dot)     # Shape: (T, B, 2)
     energy = np.stack(energy)   # Shape: (T, B)
 
+    x_mean = np.mean(x, axis=(0, 1))  # we will use only x for plots
+    x_std = np.std(x, axis=(0, 1)) + 1e-6
+    x_dot_mean = np.mean(x_dot, axis=(0, 1))
+    x_dot_std = np.std(x_dot, axis=(0, 1)) + 1e-6
+    x_dot_dot_mean = np.mean(x_dot_dot, axis=(0, 1))
+    x_dot_dot_std = np.std(x_dot_dot, axis=(0, 1)) + 1e-6
+
+    # 2. Define helper functions (keep them for plotting later!)
+    def normalize(x, mean, std):
+        return (x - mean) / std
+
+    def denormalize(x, mean, std):
+        return x * std + mean
+
+
     # Convert to tensors
-    x_tensor = torch.tensor(x, dtype=torch.float32)             # Shape: (T, B, 4)
-    x_dot_dot_tensor = torch.tensor(x_dot_dot, dtype=torch.float32)     # Shape: (T, B, 2)
+    x_tensor = torch.tensor(normalize(x, x_mean, x_std), dtype=torch.float32)             # Shape: (T, B, 4)
+    x_dot_dot_tensor = torch.tensor(normalize(x_dot_dot, x_dot_dot_mean, x_dot_dot_std), dtype=torch.float32)     # Shape: (T, B, 2)
+
 
     # Time observations tensor
     T_obs = torch.tensor(df['time_step'].unique(), dtype=torch.float32)  # Shape: (T,)
+
 
     # Train-test split
     num_pendulums = x_tensor.shape[1]
@@ -173,6 +235,8 @@ def main():
     input_dim = len(x_cols)  # 4
     output_dim = len(x_dot_dot_cols)  # 2
 
+
+    
     # Select activation function
     match ACTIVATION:
         case 'ReLU':
@@ -226,7 +290,7 @@ def main():
                 'activation': ACTIVATION,  
             }
             
-            func = LagrangianNN(input_dim=input_dim, hidden_dim=hidden_dim).to(device)
+            func = LagrangianNN(input_dim=input_dim, hidden_dim=hidden_dim, activation=activation).to(device)
 
         case _:
             raise ValueError(f"Unknown FUNC_NAME: {FUNC_NAME}")
@@ -249,7 +313,7 @@ def main():
 
         case 'NeuralODE':
             # No dataloader needed
-            solver = NeuralODE(func, method='dopri5').to(device)
+            solver = NeuralODE(func, method='rk4').to(device)
 
             optimizer_parameters = solver.parameters()
         
@@ -265,6 +329,8 @@ def main():
     # Select Loss
     if LOSS == 'MSELoss':
         criterion = nn.MSELoss()
+    elif LOSS =='MAELoss':
+        criterion = nn.L1Loss()
     else:
         raise ValueError(f"Unknown LOSS: {LOSS}")
     
@@ -275,7 +341,7 @@ def main():
     test_losses = []
 
     # scheduler
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=MAX_EPOCHS, eta_min=1e-5)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=MAX_EPOCHS, eta_min=MIN_LR)
 
     print("---")
     for epoch in range(MAX_EPOCHS+1):
@@ -287,7 +353,9 @@ def main():
                 train_loss = train_step(func, dataloader_train, device, criterion, optimizer)  
             case 'NeuralODE':
                 solver.train()
-                train_loss = train_evolution(solver, device, x_train, x_train[0, :, :], T_obs, criterion, optimizer)
+                curricular_step_size = curricular_step(epoch, MAX_EPOCHS, initial_chunk_size=2, final_chunk_size=MAX_CHUNK_SIZE)
+                batch_y0, batch_t, batch_y_target = get_batch(x_train, T_obs, batch_size=BATCH_SIZE, chunk_size=curricular_step_size)
+                train_loss = train_evolution(solver, device, batch_y_target, batch_y0, batch_t, criterion, optimizer)
         scheduler.step()
         
         if epoch % TEST_ITER == 0:
@@ -295,7 +363,9 @@ def main():
                 case 'ClassicODE':
                     test_loss, _ = test_step(func, dataloader_test, device, criterion)
                 case 'NeuralODE':
-                    test_loss, _ = test_evolution(solver, device, x_test, x_test[0, :, :], T_obs, criterion)
+                    curricular_step_size = curricular_step(epoch, MAX_EPOCHS, initial_chunk_size=2, final_chunk_size=MAX_CHUNK_SIZE)
+                    batch_y0, batch_t, batch_y_test = get_batch(x_test, T_obs, batch_size=BATCH_SIZE, chunk_size=curricular_step_size)
+                    test_loss, _ = test_evolution(solver, device, batch_y_test, batch_y0, batch_t, criterion)
 
         
             train_losses.append(train_loss)
@@ -320,14 +390,38 @@ def main():
         case 'ClassicODE':
             _, x_dot_pred = test_step(func, dataloader, device, criterion)
             x_dot_pred = x_dot_pred.reshape(x_dot.shape)
+            x_dot_pred = denormalize(x_dot_pred, x_dot_mean, x_dot_std)
 
-            
             state_dot_step_plot(x_dot, x_dot_pred, ids=ids, run_dir=run_dir, solver_name=SOLVER_NAME,func_name=FUNC_NAME, frict_type=FRICT_TYPE)
 
     # Metrics on state evolution
+    # Test on rolling window in time of size chunk_size
+
+    # match SOLVER_NAME:
+    #     case 'ClassicODE':
+    #         state_evolution_loss, x_pred = test_evolution(solver, device, x_tensor, x_tensor[0, :, :], T_obs, criterion)
+
+    #     case 'NeuralODE':
+    #         # moving window over time for each time t
+    #         predictions = []
+    #         x0 = x_tensor[0, :, :].clone().to(device)  # initial state
+    #         predictions.append(x0)  # initial state
+    #         for i in range(x_tensor.shape[0]-MAX_CHUNK_SIZE+1):
+    #             _, x_pred = test_evolution(solver, device, x_tensor[i:i+MAX_CHUNK_SIZE, : , :], x0, T_obs[:MAX_CHUNK_SIZE], criterion)
+    #             x0 = x_pred[1, :, :].detach().clone()  # last predicted state as initial for next window
+                
+    #             if i < x_tensor.shape[0]-MAX_CHUNK_SIZE:
+    #                 predictions.append(x_pred[1, :, :].detach().clone())  # take only the last predicted state for next window
+    #             else:
+    #                 for j in range(1, x_pred.shape[0]):
+    #                     predictions.append(x_pred[j, :, :].detach().clone())  # take all the predicted states in the last window
+                
+    #         x_pred = torch.stack(predictions, dim=0)
+    #         state_evolution_loss = criterion(x_pred, x_tensor.to(device)).item()
     state_evolution_loss, x_pred = test_evolution(solver, device, x_tensor, x_tensor[0, :, :], T_obs, criterion)
-    x_pred[:, :, :2] = round_to_pi(x_pred[:, :, :2])  # wrap angles to [-pi, pi]
     
+    x_pred = x_pred.detach().cpu().numpy()
+    x_pred = denormalize(x_pred, x_mean, x_std)
     print(f"State Evolution Loss (MSE): {state_evolution_loss:.5f}")
     state_evolution_plot(x, x_pred, ids=ids, run_dir=run_dir, solver_name=SOLVER_NAME, func_name=FUNC_NAME, frict_type=FRICT_TYPE)
 

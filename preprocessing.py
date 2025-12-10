@@ -207,7 +207,7 @@ def process_data(path:str,
     
     processed_df, discarded = energy_check(df)
     processed_df = add_white_noise(processed_df)
-    processed_df = round_to_pi(processed_df)
+    #processed_df = round_to_pi(processed_df)
 
 
     status_cols = ['q1', 'q1_dot', 'q1_dot_dot', 'q2', 'q2_dot', 'q2_dot_dot']
@@ -248,15 +248,26 @@ def process_data(path:str,
 def main():
     
 
+    # df_nof = process_data(path = 'double_pendulum_nofrict.csv', 
+    #                       raw_path= 'branch1/data_enhanced/raw/',
+    #                       processed_path= 'branch1/data_enhanced/processed/')
+    # df_lowf = process_data(path = 'double_pendulum_lowfrict.csv',
+    #                        raw_path= 'branch1/data_enhanced/raw/',
+    #                        processed_path= 'branch1/data_enhanced/processed/')
+    # df_highf = process_data(path = 'double_pendulum_highfrict.csv',
+    #                         raw_path= 'branch1/data_enhanced/raw/',
+    #                         processed_path= 'branch1/data_enhanced/processed/')
+    
+
     df_nof = process_data(path = 'double_pendulum_nofrict.csv', 
-                          raw_path= 'branch1/data_enhanced/raw/',
-                          processed_path= 'branch1/data_enhanced/processed/')
+                          raw_path= 'data/raw/',
+                          processed_path= 'data/processed/')
     df_lowf = process_data(path = 'double_pendulum_lowfrict.csv',
-                           raw_path= 'branch1/data_enhanced/raw/',
-                           processed_path= 'branch1/data_enhanced/processed/')
+                           raw_path= 'data/raw/',
+                           processed_path= 'data/processed/')
     df_highf = process_data(path = 'double_pendulum_highfrict.csv',
-                            raw_path= 'branch1/data_enhanced/raw/',
-                            processed_path= 'branch1/data_enhanced/processed/')
+                            raw_path= 'data/raw/',
+                            processed_path= 'data/processed/')
 
 if __name__ == '__main__':
     main()

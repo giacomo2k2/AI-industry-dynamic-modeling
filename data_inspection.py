@@ -235,7 +235,7 @@ def show_example(path:str, id:int = 0, animate: bool = False):
         simulator.draw_simulation(pendulum, pendulum_data[['q1', 'q1_dot', 'q2', 'q2_dot']].to_numpy())
 
 def main():
-    example_id = 55
+    example_id = 17
     # Define the states
     cols = ['q1', 'q1_dot','q1_dot_dot', 'q2', 'q2_dot', 'q2_dot_dot']
     status_names = [r'$q_1$', r'$\dot{q}_1$', r'$\ddot{q}_1$', r'$q_2$', r'$\dot{q}_2$',  r'$\ddot{q}_2$']
@@ -253,7 +253,7 @@ def main():
 
         show_heatmap(df, cols, names = status_names,  vlim=vlim, file_name=f'plots/{f.split(".")[0]}_heatmap')
     
-    show_example('data/processed/double_pendulum_lowfrict.csv', id=example_id, animate=True)
+    show_example('data/processed/double_pendulum_nofrict.csv', id=example_id, animate=True)
 
 if __name__ == '__main__':
     main()
