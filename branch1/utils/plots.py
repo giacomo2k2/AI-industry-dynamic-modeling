@@ -386,3 +386,66 @@ def analyze_pendulum_dynamics(model,
 
     plt.tight_layout()
     plt.show()
+
+def plot_evolutions_comparison(true_states,
+                               predicted_states,
+                               dt=0.01,
+                               save_path = None,
+                               show_plot=False):
+    
+    """
+    Confronta le traiettorie vere e predette (posizioni e velocità).
+    true_states: (N, 4) -> [q1, q1_dot, q2, q2_dot]
+    predicted_states: (N, 4) -> [q1, q1_dot, q2, q2_dot]
+    """
+    
+    steps = len(true_states)
+    time_array = np.arange(0, steps * dt, dt)
+    
+    # Crea una griglia 2x2
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    fig.suptitle('Predicted vs True Trajectories', fontsize=16)
+    
+    # --- Grafico 1: Posizione q1 (Indice 0) ---
+    axes[0, 0].plot(time_array, true_states[:, 0], label='True q1', color='orange', linestyle='--')
+    axes[0, 0].plot(time_array, predicted_states[:, 0], label='Predicted q1', color='blue')
+    axes[0, 0].set_ylabel('Angle q1 (rad)')
+    axes[0, 0].set_title(r'Posizione $q_1$')
+    axes[0, 0].legend()
+    axes[0, 0].grid(True, alpha=0.3)
+
+    # --- Grafico 2: Velocità q1_dot (Indice 1) ---
+    axes[0, 1].plot(time_array, true_states[:, 1], label='True q1_dot', color='purple', linestyle='--')
+    axes[0, 1].plot(time_array, predicted_states[:, 1], label='Predicted q1_dot', color='cyan')
+    axes[0, 1].set_ylabel('Velocity q1_dot (rad/s)')
+    axes[0, 1].set_title(r'Velocità $\dot{q}_1$')
+    axes[0, 1].legend()
+    axes[0, 1].grid(True, alpha=0.3)
+
+    # --- Grafico 3: Posizione q2 (Indice 2) ---
+    axes[1, 0].plot(time_array, true_states[:, 2], label='True q2', color='red', linestyle='--')
+    axes[1, 0].plot(time_array, predicted_states[:, 2], label='Predicted q2', color='green')
+    axes[1, 0].set_ylabel('Angle q2 (rad)')
+    axes[1, 0].set_xlabel('Time (s)')
+    axes[1, 0].set_title(r'Posizione $q_2$')
+    axes[1, 0].legend()
+    axes[1, 0].grid(True, alpha=0.3)
+
+    # --- Grafico 4: Velocità q2_dot (Indice 3) ---
+    axes[1, 1].plot(time_array, true_states[:, 3], label='True q2_dot', color='magenta', linestyle='--')
+    axes[1, 1].plot(time_array, predicted_states[:, 3], label='Predicted q2_dot', color='lime')
+    axes[1, 1].set_ylabel('Velocity q2_dot (rad/s)')
+    axes[1, 1].set_xlabel('Time (s)')
+    axes[1, 1].set_title(r'Velocità $\dot{q}_2$')
+    axes[1, 1].legend()
+    axes[1, 1].grid(True, alpha=0.3)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+    if save_path:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        plt.savefig(save_path)
+
+    if show_plot:
+        plt.show()
+        plt.close()

@@ -383,11 +383,16 @@ def train_nn_model(
     show_lrs = False,
     lambda_c = 0.0,
     clipping_value = 1.0,
+    optimizer_type = 'adam',
     **fit_params,
 ):
     model.to(device)
     
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay = weight_decay)
+    if optimizer_type == 'adam':
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    elif optimizer_type == 'adamw':
+        optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
+        
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10, verbose=True, min_lr=1e-6)
 
     early_stopping = early_stopper
@@ -435,6 +440,7 @@ def train_nn_model(
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=clipping_value)
                 
                 optimizer.step()
+
                 running_loss += loss.item()
                 n_batches += 1
 
@@ -605,7 +611,8 @@ def train_lagrangian_nn_model(
 def plot_training_history(history=None,
                           figsize=None, 
                           print_final_scores=True,
-                          save_path=None):
+                          save_path=None,
+                          show_plot=False):
     
     fig = plt.figure(figsize=figsize)
     
@@ -620,7 +627,9 @@ def plot_training_history(history=None,
     plt.xlabel('epochs')
     plt.grid(linestyle=':')
     plt.tight_layout()
-    plt.show()
+
+    if show_plot:
+        plt.show()
 
     if save_path is not None:
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
@@ -731,16 +740,14 @@ def physics_loss(y_pred, y_true, model = None):
     #Loss on angles and velocity weighted not to obscure 
     base_loss = 10 * (cos_loss + sin_loss) + 1 * vel_loss
 
-    if model != None:
-        #print("sono qui")
+    if model is not None:
         dyn = model.f 
         
-        # Esempio: voglio bloccare forte l'attrito e la lunghezza
-        reg_friction = 0#dyn.logb1**2 + dyn.logb2**2
-        reg_length   = 0#dyn.logl1**2 + dyn.logl2**2
-        reg_masses   = 0#dyn.logm1**2 + dyn.logl2**2
+        # Regolarizzazione L2 sui parametri (corretto per tensori)
+        reg_friction = (dyn.logb1**2).mean() + (dyn.logb2**2).mean()
+        reg_length   = (dyn.logl1**2).mean() + (dyn.logl2**2).mean()
+        reg_masses   = (dyn.logm1**2).mean() + (dyn.logm2**2).mean()
 
-        #print ( reg_masses, reg_friction, reg_length)
         # Pesi della regolarizzazione (lambda)
         lambda_frict = 0.1  
         lambda_len   = 0.1 
@@ -751,7 +758,6 @@ def physics_loss(y_pred, y_true, model = None):
         return total_loss
     
     else:
-        #print("executed")
         return base_loss
 
 
@@ -877,6 +883,8 @@ def log_recipe(recipe: dict, log_path: str):
     with open(log_path, 'w') as f:
         for key, value in recipe.items():
             f.write(f'{key}: {value}\n')
+
+
 
 
             
