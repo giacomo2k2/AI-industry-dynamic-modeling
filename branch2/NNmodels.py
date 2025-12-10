@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch
-from torchdiffeq import odeint_adjoint as odeint
+from torchdiffeq import odeint
 from torch.autograd import grad
 from torch.autograd.functional import jacobian
 
@@ -51,6 +51,7 @@ class BaselineFNN(nn.Module):
         self.output = nn.Linear(hidden_dim, out_dim)
         
     def forward(self, t, x):
+        
         x_dot = x[:, 2:]  # extract velocities
         # x: shape (B, 4)
         x = self.trig(x)
@@ -89,10 +90,6 @@ class DeepFNN(nn.Module):
     
 
 
-
-import torch
-import torch.nn as nn
-from torch.autograd import grad
 
 class LagrangianNN(nn.Module):
     def __init__(self, input_dim, hidden_dim, activation=nn.Softplus()):
@@ -207,19 +204,20 @@ class LagrangianNN(nn.Module):
             # H_vv * q_ddot + H_vq * q_dot = dL_dq
             # => H_vv * q_ddot = dL_dq - H_vq * q_dot
             
+            epsilon = 1e-4 * torch.eye(self.dof, device=x.device).unsqueeze(0)
+            H_vv = H_vv + epsilon
+
             # Compute RHS
             # H_vq is (B, D, D), q_dot is (B, D) -> need (B, D, 1) for matmul or use einsum
             term_2 = torch.einsum('bij,bj->bi', H_vq, q_dot)
             rhs = dL_dq - term_2
 
-            # 6. Solve for q_ddot using Pseudo-Inverse (pinv) for stability
-            # q_ddot = pinv(H_vv) @ rhs
-            H_vv_inv = torch.linalg.pinv(H_vv) 
-            q_ddot = torch.einsum('bij,bj->bi', H_vv_inv, rhs)
+            # 6. Solve for q_ddot using linalg solve for efficiency and stability
+
+            q_ddot = torch.linalg.solve(H_vv, rhs)
 
             # Return state derivative [q_dot, q_ddot]
             return torch.cat([q_dot, q_ddot], dim=1)
-
 
 
 class ClassicODE(nn.Module):
@@ -236,20 +234,19 @@ class ClassicODE(nn.Module):
         # starting from z0 over the times specified in t_span.
         return solver(self.func, z0, T = T, method=method)
 
-
 class NeuralODE(nn.Module):
-    def __init__(self, func, method='rk4'):
+    # 'dopri5' is too slow for random initialized Hamiltonian/Lagrangian networks
+    def __init__(self, func, method='rk4', rtol=1e-3, atol=1e-3):
         super(NeuralODE, self).__init__()
         self.func = func
         self.method = method
+        self.rtol = rtol
+        self.atol = atol
     
     def forward(self, z0, t_span):
-        # z0: initial state (tensor)
-        # t_span: times at which to evaluate the solution (tensor)
-        # method: ODE solver (e.g., 'dopri5', 'rk4', 'adams'). 'dopri5' is robust.
-        
-        # The odeint function integrates the system defined by self.func 
-        # starting from z0 over the times specified in t_span.
-        return odeint(self.func, z0, t_span, method=self.method)
-    
+        return odeint(self.func, z0, t_span, 
+                      method=self.method, 
+                      rtol=self.rtol, 
+                      atol=self.atol)
+
 
