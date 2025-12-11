@@ -365,46 +365,65 @@ def get_adam_effective_lr(optimizer, param):
 
 def train_nn_model(
     model,
+    device,
+    
     ds_train,
     ds_val,
+
     early_stopper, 
-    loss_fn,
-    custom_loss = None,
-    verbose=False,
-    patience=10,
-    batch_size=32,
     epochs=100,
     lr=1e-3,
     weight_decay=0.0,
-    shuffle=True,
-    device="cpu",
-    horizon = 1,
+    batch_size=32,
+    optimizer_type = 'adam',
+    scheduler_type = 'plateau',
+    loss_type = 'mse',
+    
+    verbose=False,
+
     show_grad = False,
     show_lrs = False,
-    lambda_c = 0.0,
-    clipping_value = 1.0,
-    optimizer_type = 'adam',
     **fit_params,
 ):
+    # --- Model to device ---
     model.to(device)
     
+    # --- Optimizer and Scheduler ---
     if optimizer_type == 'adam':
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     elif optimizer_type == 'adamw':
         optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
-        
-    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10, verbose=True, min_lr=1e-6)
+    else:
+        print(f"[ERROR] Optimizer '{optimizer_type}' not recognized")
+        print("\tAvailable: \n\t -'adam' \n\t -'adamw'")
+        exit()
+    
+    if scheduler_type == 'plateau':
+        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10, verbose=True, min_lr=1e-6)
+    else:
+        print(f"[ERROR] Scheduler '{scheduler_type}' not recognized")
+        print("\tAvailable: \n\t -'plateau'")
+        exit()
 
-    early_stopping = early_stopper
+    # --- Loss Function ---
+    if loss_type == 'mse':
+        loss_fn = nn.MSELoss()
+    elif loss_type == 'physics':
+        loss_fn = physics_loss
+    else:
+        print(f"[ERROR] Loss function '{loss_type}' not recognized")
+        print("\tAvailable: \n\t -'mse' \n\t -'physics'")
+        exit()
+
+    # --- Data Loaders ---
     train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
     val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False)
 
+    # --- Training Loop ---
     history = {"loss": [], "val_loss": []}
-
-    print("Starting training...")
-    # tqdm solo sulle EPOCHE
     with tqdm(total=epochs, desc="Training", unit="epoch", disable=not verbose) as pbar:
         for epoch in range(epochs):
+            
             model.train()
             running_loss = 0.0
             n_batches = 0
@@ -413,13 +432,16 @@ def train_nn_model(
                 
                 xb, yb = xb.to(device), yb.to(device)
                 optimizer.zero_grad()
-                #print(xb.shape)
-                #print(yb.shape)
                 y_pred = model(xb)
-                loss = loss_fn(y_pred, yb) 
+
+                if loss_type == 'mse':
+                    loss = loss_fn(y_pred, yb) 
+                elif loss_type == 'physics':
+                    loss = loss_fn(y_pred, yb, model=model)
+
                 loss.backward()
-                # print the gradients and lr of the model parameters
-                if show_grad:
+
+                if show_grad: # debug on gradients
                     if i == 0:
                         print(f"Gradients for batch {i}:")
                         for name, param in model.named_parameters():
@@ -427,7 +449,7 @@ def train_nn_model(
                                 print(f"{name}: {param.grad.norm().item()}")
                             else:
                                 print(f"{name}: None")
-                if show_lrs:
+                if show_lrs: # debug on effective learning rates
                     if i == 0:
                         print(f"Effective Learing Rates for batch {i}:")
                         for name, param in model.named_parameters():
@@ -437,9 +459,6 @@ def train_nn_model(
                             else:
                                 print(f"{name}: None")
                             
-                #CLIPPING, ATTENTION
-                #torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=clipping_value)
-                
                 optimizer.step()
 
                 running_loss += loss.item()
@@ -448,7 +467,7 @@ def train_nn_model(
             epoch_loss = running_loss / max(n_batches, 1)
             history["loss"].append(epoch_loss)
 
-            # Validazione
+            # Validation
             if val_loader is not None:
                 model.eval()
                 val_running_loss = 0.0
@@ -457,7 +476,12 @@ def train_nn_model(
                     for xb, yb in val_loader:
                         xb, yb = xb.to(device), yb.to(device)
                         y_pred = model(xb)
-                        vloss = loss_fn(y_pred, yb)
+
+                        if loss_type == 'mse':
+                            vloss = loss_fn(y_pred, yb) 
+                        elif loss_type == 'physics':
+                            vloss = loss_fn(y_pred, yb, model=model)
+
                         val_running_loss += vloss.item()
                         val_batches += 1
                 val_loss = val_running_loss / max(val_batches, 1)
@@ -476,7 +500,7 @@ def train_nn_model(
                     early_stopper.restore_best_weights(model)
                     break
 
-                # Aggiorna tqdm con loss corrente
+                # Update progress bar
                 pbar.set_postfix({
                     'loss': f'{epoch_loss:.4f}',
                     'val_loss': f'{val_loss:.4f}'
@@ -484,7 +508,7 @@ def train_nn_model(
             else:
                 pbar.set_postfix({'loss': f'{epoch_loss:.4f}'})
 
-            pbar.update(1)  # Avanza la barra
+            pbar.update(1)
             pbar.set_description(f"Epoch {epoch+1}/{epochs}")
 
     return history

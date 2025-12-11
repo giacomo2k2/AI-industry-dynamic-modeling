@@ -13,16 +13,23 @@ import argparse
 def main(train_path: str, 
          val_path: str,
          test_path: str,
+
          version: str,
          model_path: str,
          model_name: str,
+
          training: bool,
+         patience: int,
          sin_cos_transform: bool,
          epochs: int,
          batch_size: int,
          lr: float,
          wd: float,
-         patience: int,
+            optimizer_type: str,
+            scheduler_type: str,
+            loss_type: str,
+
+
          verbose: bool,
          show_plots: bool):
     
@@ -87,7 +94,6 @@ def main(train_path: str,
 
     # --- Training or Loading ---
 
-    
     early_stopper = EarlyStopping(patience=patience)
         
     ds_train = KNGLDataset(X_train.astype(np.float32), Y_train.astype(np.float32), horizon=1)
@@ -99,15 +105,20 @@ def main(train_path: str,
 
         hist = train_nn_model(
             model=deepNN,
+            device=my_device,
+
             ds_train=ds_train,
             ds_val=ds_val,
-            loss_fn=loss_fn,
+
             early_stopper=early_stopper,
             epochs=epochs,
             lr=lr,
             weight_decay=wd,
-            batch_size=batch_size, 
-            device=my_device,
+            batch_size=batch_size,
+            optimizer_type=optimizer_type,
+            scheduler_type=scheduler_type,
+            loss_type=loss_type,
+
             verbose=verbose, 
         )
 
@@ -218,6 +229,10 @@ if __name__ == "__main__":
     parser.add_argument('--wd', type=float, default=1e-4)
     parser.add_argument('--batch_size', type=int, default=32)
 
+    parser.add_argument('--optimizer_type', type=str, default='adam')
+    parser.add_argument('--scheduler_type', type=str, default='plateau')
+    parser.add_argument('--loss_type', type=str, default='mse')
+
     parser.add_argument('--verbose', action='store_true', default=True)
 
     parser.add_argument('--version', type=str, default='v3')
@@ -234,18 +249,27 @@ if __name__ == "__main__":
         print("Evaluation mode")
     
 
-    main(train_path=args.train_path,
+    main(
+        train_path=args.train_path,
          val_path=args.val_path,
          test_path=args.test_path,
+
          version=args.version,
          model_path=args.model_path,
          model_name=args.model_name,
+
          training=args.training,
+
          sin_cos_transform=args.sin_cos_transform,
+
          epochs=args.epochs,
          batch_size=args.batch_size,
          lr=args.lr,
          wd=args.wd,
+         optimizer_type=args.optimizer_type,
+         scheduler_type=args.scheduler_type,
+         loss_type=args.loss_type,
+
          patience=args.patience,
          verbose=args.verbose,
          show_plots=args.show_plots)

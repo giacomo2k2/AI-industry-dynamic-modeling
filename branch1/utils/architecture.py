@@ -163,13 +163,29 @@ class DynLayer(nn.Module):
         
         return next_states
     
-class DynUDE(nn.Module):
+class DynNN(nn.Module):
     '''
     same as DynLayer but for UDE but with NN instead of physical parameters
     there are no physical parameters, but a NN that learns the dynamics
     '''
-    def __init__(self, input_dim=4, hidden_dim=256, output_dim=4):
+    def __init__(self, input_dim=4, hidden_dim=256, output_dim=4, activation='softplus', residual=False):
         super().__init__()
+
+        self.residual = (residual and input_dim == output_dim)
+
+        if activation == 'tanh':
+            self.activation_func = nn.Tanh()
+        elif activation == 'softplus':
+            self.activation_func = nn.Softplus()
+        elif activation == 'silu':
+            self.activation_func = nn.SiLU()
+        elif activation == 'relu':
+            self.activation_func = nn.ReLU()
+        elif activation == 'gelu':
+            self.activation_func = nn.GELU()
+        else:
+            print(f"\n\t[ERROR] '{activation}' not recognized as a valid input for activation function \n")
+            exit()
         
         # --- LAYER & PROFONDITÀ ---
         # 3 Layer Nascosti sono il "Sweet Spot" per la fisica.
@@ -183,11 +199,11 @@ class DynUDE(nn.Module):
         
         self.net = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
-            nn.Tanh(), 
+            self.activation_func, 
             nn.Linear(hidden_dim, hidden_dim),
-            nn.Tanh(),
+            self.activation_func,
             nn.Linear(hidden_dim, hidden_dim),
-            nn.Tanh(),
+            self.activation_func,
             nn.Linear(hidden_dim, output_dim)  # Output: Scalare (L'Hamiltoniana / Energia)
         )
 
@@ -197,9 +213,197 @@ class DynUDE(nn.Module):
         x = x.requires_grad_(True)
         
         # 1. La rete predice l'Energia Totale (H) in quello stato
-        outputs = self.net(x)
+        if self.residual:
+            outputs = x + self.net(x)
+        else:
+            outputs = self.net(x)
         
         return outputs
+    
+class DynUDE(nn.Module):
+    '''
+    same as DynLayer but for UDE but with NN instead of physical parameters
+    there are no physical parameters, but a NN that learns the dynamics
+    '''
+    def __init__(self, input_dim=4, hidden_dim=256, output_dim=10, activation='softplus'):
+        super().__init__()
+        
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.Tanh(), 
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, output_dim)  # Output: Scalare (L'Hamiltoniana / Energia)
+        )
+
+    def forward(self, x):
+        """
+        x: [Batch, 4] -> [q1, q1_dot, q2, q2_dot]
+        
+        the forward pass predicts the next states given the current states and inputs
+        outputs: [Batch, 10] -> [M11, M12, M21, M22, c1, c2, D11, D22, G1, G2]
+
+        then dynamics are computed
+        returns: [Batch, 4] -> [q1_dot, q1_ddot, q2_dot, q2_ddot]
+        """
+
+        # Importante: abilitiamo il gradiente sull'input per calcolare le derivate parziali
+        x = x.requires_grad_(True)
+        
+        # 1. La rete predice l'Energia Totale (H) in quello stato
+        outputs = self.net(x)
+
+        M11, M12 = outputs[:, 0], outputs[:, 1]
+        M21, M22 = outputs[:, 2], outputs[:, 3]
+        c1, c2   = outputs[:, 4], outputs[:, 5]
+        D11, D22 = outputs[:, 6], outputs[:, 7]
+        G1, G2   = outputs[:, 8], outputs[:, 9]
+
+        # --- 3. Costruzione Matrici Stimate ---
+        # Matrice di Inerzia M
+        M = torch.stack([
+            torch.stack([M11, M12], dim=1),
+            torch.stack([M21, M22], dim=1)
+        ], dim=1)  # Shape: [Batch, 2, 2]
+        
+        # Vettore Coriolis/Centrifuga C (nota: nel tuo codice dynamics era 'c')
+        C = torch.stack([c1, c2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+        
+        # Matrice Damping D
+        D = torch.stack([
+            torch.stack([D11, torch.zeros_like(D11)], dim=1),
+            torch.stack([torch.zeros_like(D22), D22], dim=1)
+        ], dim=1)  # Shape: [Batch, 2, 2]
+        
+        # Vettore Gravità G
+        G = torch.stack([G1, G2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+
+        # --- 4. Calcolo della Dinamica (Forward Dynamics) ---
+        # Estraiamo le velocità dallo stato attuale [q1, q1_dot, q2, q2_dot]
+        q1_dot = x[:, 1]
+        q2_dot = x[:, 3]
+        
+        q_dot = torch.stack([q1_dot, q2_dot], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+        
+        # Equazione del moto: M * q_ddot + C + D*q_dot + G = u
+        # Quindi: M * q_ddot = u - C - D*q_dot - G
+        # Termine noto b:
+        b = - C - torch.bmm(D, q_dot) - G  # Shape: [Batch, 2, 1]
+        
+        # Risolviamo per le accelerazioni (q_ddot)
+        # Gestiamo eventuali matrici singolari con un try-except o pseudo-inversa
+        try:
+            q_ddot_est = torch.linalg.solve(M, b)  # Shape: [Batch, 2, 1]
+        except RuntimeError:
+            q_ddot_est = torch.matmul(torch.linalg.pinv(M), b)  # Shape: [Batch, 2, 1]
+
+        q_ddot = q_ddot_est.squeeze(-1)  # Shape: [Batch, 2]
+
+        # --- 5. Costruzione del Vettore di Output ---
+        # Concatenazione di [q1_dot, q1_ddot, q2_dot, q2_ddot]
+        derivatives = torch.cat([q_dot.squeeze(-1), q_ddot], dim=1)  # Shape: [Batch, 4]
+        
+        return derivatives
+    
+class DynUDE_Informed(nn.Module):
+    def __init__(self, input_dim=4, hidden_dim=256, output_dim=9, activation='softplus'):
+        super().__init__()
+        
+        # M (Simmetrica): serve L11, L21, L22 -> 3 parametri
+        # C (Coriolis): c1, c2 -> 2 parametri
+        # D (Damping diagonale): d1, d2 -> 2 parametri
+        # G (Gravity): g1, g2 -> 2 parametri
+        # TOTALE: 9 parametri
+
+        self.softplus = nn.Softplus() # Per garantire positività dove necessario
+
+        if activation == 'tanh':
+            self.activation_func = nn.Tanh()
+        elif activation == 'softplus':
+            self.activation_func = nn.Softplus()
+        elif activation == 'silu':
+            self.activation_func = nn.SiLU()
+        elif activation == 'relu':
+            self.activation_func = nn.ReLU()
+        elif activation == 'gelu':
+            self.activation_func = nn.GELU()
+        else:
+            print(f"\n\t[ERROR] '{activation}' not recognized as a valid input for activation function \n")
+            exit()
+
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            self.activation_func,
+            nn.Linear(hidden_dim, hidden_dim),
+            self.activation_func,
+            nn.Linear(hidden_dim, hidden_dim),
+            self.activation_func,
+            nn.Linear(hidden_dim, output_dim)
+        )
+        
+
+    def forward(self, x):
+        # x: [Batch, 4] -> [q1, q1_dot, q2, q2_dot]
+        
+        # Predizione parametri grezzi
+        raw_out = self.net(x)
+        
+        # --- 1. Costruzione Matrice M (Metodo Cholesky) ---
+        # M deve essere definita positiva. Costruiamo L tale che M = L * L^T
+        # L = [[l11, 0], [l21, l22]]
+        
+        l11 = self.softplus(raw_out[:, 0]) + 1e-4  # Deve essere > 0
+        l21 = raw_out[:, 1]                        # Può essere negativo
+        l22 = self.softplus(raw_out[:, 2]) + 1e-4  # Deve essere > 0
+        
+        # Costruiamo L batch-wise
+        zeros = torch.zeros_like(l11)
+        row1 = torch.stack([l11, zeros], dim=1)
+        row2 = torch.stack([l21, l22], dim=1)
+        L = torch.stack([row1, row2], dim=1) # [Batch, 2, 2]
+        
+        # M = L @ L.transpose
+        M = torch.bmm(L, L.transpose(1, 2)) # [Batch, 2, 2]
+        # Ora M è garantita simmetrica e invertibile! Niente più try-except.
+
+        # --- 2. Damping D (Diagonale e Positivo) ---
+        d1 = self.softplus(raw_out[:, 3])
+        d2 = self.softplus(raw_out[:, 4])
+        
+        D = torch.stack([
+            torch.stack([d1, zeros], dim=1),
+            torch.stack([zeros, d2], dim=1)
+        ], dim=1)
+
+        # --- 3. Coriolis C ---
+        c1 = raw_out[:, 5]
+        c2 = raw_out[:, 6]
+        C = torch.stack([c1, c2], dim=1).unsqueeze(-1)
+
+        # --- 4. Gravity G ---
+        g1 = raw_out[:, 7]
+        g2 = raw_out[:, 8]
+        G = torch.stack([g1, g2], dim=1).unsqueeze(-1)
+
+        # --- 5. Risoluzione Dinamica ---
+        q1_dot = x[:, 1]
+        q2_dot = x[:, 3]
+        q_dot = torch.stack([q1_dot, q2_dot], dim=1).unsqueeze(-1)
+        
+        # Termine noto: b = -C - D*q_dot - G
+        b = -C - torch.bmm(D, q_dot) - G
+        
+        # Risolviamo M * q_ddot = b
+        # Essendo M definita positiva per costruzione, solve è stabile.
+        q_ddot_est = torch.linalg.solve(M, b) 
+        
+        q_ddot = q_ddot_est.squeeze(-1)
+        derivatives = torch.cat([q_dot.squeeze(-1), q_ddot], dim=1)
+        
+        return derivatives
+
 # =====================================================
 # ==========       Numerical Integrators      =========
 # =====================================================
