@@ -2,12 +2,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from data_inspection import show_bins, show_status_stats, show_energy_stats
+import os
 
 # Set global plot style
 plt.rc('font', family='serif')
 
 # Global plotting flag
-PLOT = True
+PLOT = False
 
 # ========================================================
 # ================== MODIFY THE DATASET ==================
@@ -193,21 +194,31 @@ def add_white_noise(df: pd.DataFrame, std: float = 0.01) -> pd.DataFrame:
 # ================== MAIN PROCESSING =====================
 # ========================================================
 
-def process_data(path:str, 
-                 plot: bool = PLOT,
-                 raw_path: str = 'data/raw/',
-                 processed_path: str = 'data/processed/') -> pd.DataFrame:
+def process_data(
+        path:str, 
+        plot: bool = PLOT,
+        raw_path: str = 'data/raw/',
+        processed_path: str = 'data/processed/',
+        energy_cut : bool = True,
+        white_noise: bool = False,
+        round_pi: bool = False
+    ) -> pd.DataFrame:
     
     sim_type = path.split('_')[2].split('.')[0]
     print(f"Processing {sim_type} data...")
     
     # Read the csv in the data raw folder
-    df = pd.read_csv(f'{raw_path}{path}')
+    read_path = os.path.join(raw_path, path)
+    df = pd.read_csv(read_path)
 
+    if energy_cut:
+        processed_df, discarded = energy_check(df)
     
-    processed_df, discarded = energy_check(df)
-    processed_df = add_white_noise(processed_df)
-    #processed_df = round_to_pi(processed_df)
+    if white_noise:
+        processed_df = add_white_noise(processed_df)
+
+    if round_pi:
+        processed_df = round_to_pi(processed_df)
 
 
     status_cols = ['q1', 'q1_dot', 'q1_dot_dot', 'q2', 'q2_dot', 'q2_dot_dot']
@@ -232,7 +243,9 @@ def process_data(path:str,
         show_bins(processed_df, cols=status_cols, names=status_names, vlim=vlim, save=False)
 
     # Save processed dataframe to csv
-    processed_df.to_csv(f'{processed_path}{path}', index=False)
+    save_path = os.path.join(processed_path, path)
+    os.makedirs(processed_path, exist_ok=True)
+    processed_df.to_csv(save_path, index=False)
 
     # Print process terminated and number of pendulums kept
     n_total = df['id_pendulum'].nunique()
@@ -245,7 +258,13 @@ def process_data(path:str,
 # ================== RUN THE PROCESSING ==================
 # ========================================================
 
-def main():
+def main(
+        raw_path: str,
+        processed_path: str,
+        energy_cut : bool,
+        white_noise: bool,
+        round_pi: bool
+):
     
 
     # df_nof = process_data(path = 'double_pendulum_nofrict.csv', 
@@ -257,18 +276,49 @@ def main():
     # df_highf = process_data(path = 'double_pendulum_highfrict.csv',
     #                         raw_path= 'branch1/data_enhanced/raw/',
     #                         processed_path= 'branch1/data_enhanced/processed/')
+
+    if energy_cut:
+        # add to the path '_EC'
+        # example 'branch1/data' to 'branch1/data_EC'
+        processed_path = os.path.join(os.path.dirname(processed_path), os.path.basename(processed_path) + '_EC/')
+    
+    if white_noise:
+        # add to the path '_WN'
+        processed_path = os.path.join(os.path.dirname(processed_path), os.path.basename(processed_path) + '_WN/')
+
+    if round_pi:
+        # add to the path '_RP'
+        processed_path = os.path.join(os.path.dirname(processed_path), os.path.basename(processed_path) + '_RP/')
     
 
     df_nof = process_data(path = 'double_pendulum_nofrict.csv', 
-                          raw_path= 'data/raw/',
-                          processed_path= 'data/processed/')
+                          raw_path= raw_path,
+                          processed_path= processed_path,
+                          energy_cut= energy_cut,
+                          white_noise= white_noise,
+                          round_pi= round_pi)
+    
     df_lowf = process_data(path = 'double_pendulum_lowfrict.csv',
-                           raw_path= 'data/raw/',
-                           processed_path= 'data/processed/')
+                           raw_path= raw_path,
+                           processed_path= processed_path,
+                           energy_cut= energy_cut,
+                           white_noise= white_noise,
+                           round_pi= round_pi)
+    
     df_highf = process_data(path = 'double_pendulum_highfrict.csv',
-                            raw_path= 'data/raw/',
-                            processed_path= 'data/processed/')
+                            raw_path= raw_path,
+                            processed_path= processed_path,
+                            energy_cut= energy_cut,
+                            white_noise= white_noise,
+                            round_pi= round_pi)
 
 if __name__ == '__main__':
-    main()
+    
+    main(
+        raw_path= 'branch1/data_enhanced/raw',
+        processed_path= 'branch1/data_enhanced/processed',
+        energy_cut = True,
+        white_noise= False,
+        round_pi= False
+    )
   

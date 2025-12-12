@@ -10,28 +10,29 @@ from branch1.utils.plots import plot_matrices_predictions, plot_dynamics_predict
 from torch import nn
 import argparse
 
-def main(train_path: str, 
-         val_path: str,
-         test_path: str,
+def main(
+        train_path: str, 
+        val_path: str,
+        test_path: str,
 
-         version: str,
-         model_path: str,
-         model_name: str,
+        version: str,
+        model_path: str,
+        model_name: str,
 
-         training: bool,
-         patience: int,
-         sin_cos_transform: bool,
-         epochs: int,
-         batch_size: int,
-         lr: float,
-         wd: float,
-            optimizer_type: str,
-            scheduler_type: str,
-            loss_type: str,
+        training: bool,
+        patience: int,
+        sin_cos_transform: bool,
+        epochs: int,
+        batch_size: int,
+        lr: float,
+        wd: float,
+        optimizer_type: str,
+        scheduler_type: str,
+        loss_type: str,
 
-
-         verbose: bool,
-         show_plots: bool):
+        verbose: bool,
+        show_plots: bool
+    ):
     
     # --- Device setup ---
 

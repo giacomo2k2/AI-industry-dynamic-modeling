@@ -1,11 +1,20 @@
 import numpy as np
 import pandas as pd
+import os
 
 from models import DoublePendulum
 from simulation import Simulator
 
 
-def main():
+def main(
+        save_path,
+        m1=2.2, 
+        m2=1.8, 
+        l1=1.2, 
+        l2=1.0, 
+        b1=0.3, 
+        b2=0.3
+):
 
     n_pendulums = 100
     steps = 1000
@@ -15,7 +24,12 @@ def main():
 
     # Single pendulum instance reused; only init changes
     pendulum = DoublePendulum(
-        m1=2.2, m2=1.8, l1=1.2, l2=1.0, b1=0.3, b2=0.3
+        m1=m1, 
+        m2=m2, 
+        l1=l1, 
+        l2=l2, 
+        b1=b1, 
+        b2=b2
     )
 
     simulator = Simulator(dt)
@@ -68,10 +82,21 @@ def main():
                 'G2': G[1]
             })
 
-
     df = pd.DataFrame(rows)
-    #WARNING PAY ATTENTION TO THE DIRECTORY IT GOES TO: WE HAVE CHANGED IT TO OUR BRANCH
-    df.to_csv('branch1/data_enhanced/raw/single_pendulum_lowfrict.csv', index=False)
+
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    df.to_csv(save_path, index=False)
+    
 
 if __name__ == '__main__':
-    main()
+
+    #WARNING PAY ATTENTION TO THE DIRECTORY IT GOES TO: WE HAVE CHANGED IT TO OUR BRANCH
+    main(
+        save_path='branch1/data_no_modulo/raw/single_pendulum_lowfrict.csv',
+        m1=2.2,
+        m2=1.8,
+        l1=1.2,
+        l2=1.0,
+        b1=0.3,
+        b2=0.3
+    )

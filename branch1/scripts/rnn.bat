@@ -1,31 +1,46 @@
-@echo off
 
-python -m branch1.main.rnn ^
-    --train_path "branch1/data_enhanced/training/train_nofrict.csv" ^
-    --val_path "branch1/data_enhanced/training/val_nofrict.csv" ^
-    --test_path "branch1/data_enhanced/training/test_nofrict.csv" ^
-    --model_path "branch1/models/integrator/" ^
-    --model_name "integrator_model.pth" ^
-    --version "NeuralUDEv4_nofrict" ^
-    --epochs 40 ^
-    --patience 3 ^
-    --lr 0.01 ^
-    --wd 0.0 ^
-    --batch_size 256 ^
-    --optimizer "adam" ^
-    --l1_ref 1.0 ^
-    --l2_ref 5.0 ^
-    --m1_ref 1.0 ^
-    --m2_ref 1.0 ^
-    --b1_ref 1.0 ^
-    --b2_ref 0.5 ^
-    --training ^
+@echo off
+REM ==========================================
+REM  Windows Launcher
+REM ==========================================
+
+set SCRIPT_NAME=branch1.main.rnn
+
+echo Avvio rnn.py ...
+
+python -m %SCRIPT_NAME% ^
+    --train_path "branch1/data_enhanced/training/train_lowfrict.csv" ^
+    --val_path "branch1/data_enhanced/training/val_lowfrict.csv" ^
+    --test_path "branch1/data_enhanced/training/test_lowfrict.csv" ^
     --verbose ^
-    --show_plots ^
+    --patience 5 ^
+    --wd 1e-5 ^
+    --batch_size 256 ^
+    --optimizer_type "adam" ^
+    --scheduler_type "plateau" ^
+    --loss_type "mse" ^
+    --curriculum_steps 2 4 ^
+    --epochs_per_stage 2 2 ^
+    --lrs 1e-3 5e-4 ^
+    --integrator "rk4" ^
+    --dynlayer "nn" ^
+    --activation "softplus" ^
     --fixed_l1 ^
     --fixed_l2 ^
+    --fixed_m1 ^
     --fixed_m2 ^
-    --fixed_m1 
+    --fixed_b1 ^
+    --version "exp_norm" ^
+    --sin_cos_transform ^
+    --normalization ^
+    --training
 
+REM Controllo errori
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERRORE] Lo script ha riscontrato un problema.
+    exit /b %errorlevel%
+)
 
-pause
+echo.
+echo [SUCCESS] Script terminato correttamente.

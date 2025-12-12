@@ -124,6 +124,30 @@ def pull_data_by_ids(data_path: str = '',
 
     return X, Y
 
+def get_dominant_frequencies(signal_data, dt, top_k=32):
+        """
+        signal_data: array numpy delle posizioni (es. theta1) [N_samples]
+        dt: passo temporale (es. 0.01s)
+        top_k: quante frequenze vogliamo estrarre
+        """
+        n = len(signal_data)
+        
+        # 1. Calcola la FFT
+        freqs = np.fft.rfftfreq(n, d=dt)
+        fft_vals = np.abs(np.fft.rfft(signal_data))
+        
+        # 2. Ignora la frequenza 0 (il bias/media statica)
+        freqs = freqs[1:]
+        fft_vals = fft_vals[1:]
+        
+        # 3. Trova gli indici delle frequenze con ampiezza maggiore
+        #argsort ordina crescente, quindi prendiamo gli ultimi k e invertiamo
+        top_indices = np.argsort(fft_vals)[-top_k:][::-1]
+        
+        dominant_freqs = freqs[top_indices]
+        
+        return torch.tensor(dominant_freqs, dtype=torch.float32)
+
 class KNGLDataset(Dataset):
 
     '''
@@ -154,16 +178,90 @@ class KNGLDataset(Dataset):
                  inputs, # (pendulums, evolution_length, 5)
                  targets, # (pendulums, evolution_length, 4)
                  horizon=32,
-                 transform=None):
+                 transform=None,
+                 X_feature_positions_map=None,
+                 Y_feature_position_map=None,
+                 normalization_map=None,
+                 fourier_features=-1):
+        
+
    
         self.inputs = torch.FloatTensor(inputs)  # Converti in tensor
         self.targets = torch.FloatTensor(targets)
-        
+
+        self.X_feature_positions_map = X_feature_positions_map
+        self.Y_feature_position_map = Y_feature_position_map
+        self.normalization_map = normalization_map
+
         self.transform = transform
+
         self.horizon = horizon
         
         self.evolution_length = self.inputs.shape[1]
         self.n_pendulums = self.inputs.shape[0]
+
+        # Normalize input and output if normalization map is provided
+        if self.normalization_map:
+
+            # normalize inputs
+            for feature, pos in X_feature_positions_map.items():
+                if feature in normalization_map: # normalize only what has been normalized
+                    self.inputs[:, :, pos] = (self.inputs[:, :, pos] - normalization_map[feature]['mean']) / (normalization_map[feature]['std'] + 1e-8)
+
+            # normalize targets
+            for feature, pos in Y_feature_position_map.items():
+                if feature in normalization_map: # normalize only what has been normalized
+                    self.targets[:, :, pos] = (self.targets[:, :, pos] - normalization_map[feature]['mean']) / (normalization_map[feature]['std'] + 1e-8)
+
+        # Add Fourier features if specified (only on inputs)
+        if fourier_features>0:
+
+            if 'q1' in X_feature_positions_map:
+                
+                q1_pos = X_feature_positions_map['q1']
+                q1_np = self.inputs[:, :, q1_pos].numpy()
+                q1_freqs = get_dominant_frequencies(q1_np.flatten(), dt=0.01, top_k=fourier_features)
+
+                self.inputs = torch.cat([self.inputs,
+                                         torch.sin(2 * np.pi * q1_freqs.unsqueeze(0).unsqueeze(0) * self.inputs[:, :, q1_pos].unsqueeze(-1)),
+                                         torch.cos(2 * np.pi * q1_freqs.unsqueeze(0).unsqueeze(0) * self.inputs[:, :, q1_pos].unsqueeze(-1))], dim=-1)
+            
+            elif 'q1_sin' in X_feature_positions_map and 'q1_cos' in X_feature_positions_map:
+
+                q1_sin_pos = X_feature_positions_map['q1_sin']
+                q1_cos_pos = X_feature_positions_map['q1_cos']
+                q1_angles = torch.atan2(self.inputs[:, :, q1_sin_pos], self.inputs[:, :, q1_cos_pos]).numpy()
+                q1_freqs = get_dominant_frequencies(q1_angles.flatten(), dt=0.01, top_k=fourier_features)
+
+                q1_angles_tensor = torch.atan2(self.inputs[:, :, q1_sin_pos], self.inputs[:, :, q1_cos_pos]).unsqueeze(-1)
+                
+                self.inputs = torch.cat([self.inputs,
+                                         torch.sin(2 * np.pi * q1_freqs.unsqueeze(0).unsqueeze(0) * q1_angles_tensor),
+                                         torch.cos(2 * np.pi * q1_freqs.unsqueeze(0).unsqueeze(0) * q1_angles_tensor)], dim=-1)
+
+            if 'q2' in X_feature_positions_map:
+                
+                q2_pos = X_feature_positions_map['q2']
+                q2_np = self.inputs[:, :, q2_pos].numpy()
+                q2_freqs = get_dominant_frequencies(q2_np.flatten(), dt=0.01, top_k=fourier_features)
+
+                self.inputs = torch.cat([self.inputs,
+                                         torch.sin(2 * np.pi * q2_freqs.unsqueeze(0).unsqueeze(0) * self.inputs[:, :, q2_pos].unsqueeze(-1)),
+                                         torch.cos(2 * np.pi * q2_freqs.unsqueeze(0).unsqueeze(0) * self.inputs[:, :, q2_pos].unsqueeze(-1))], dim=-1)
+            
+            elif 'q2_sin' in X_feature_positions_map and 'q2_cos' in X_feature_positions_map:
+
+                q2_sin_pos = X_feature_positions_map['q2_sin']
+                q2_cos_pos = X_feature_positions_map['q2_cos']
+                q2_angles = torch.atan2(self.inputs[:, :, q2_sin_pos], self.inputs[:, :, q2_cos_pos]).numpy()
+                q2_freqs = get_dominant_frequencies(q2_angles.flatten(), dt=0.01, top_k=fourier_features)
+
+                q2_angles_tensor = torch.atan2(self.inputs[:, :, q2_sin_pos], self.inputs[:, :, q2_cos_pos]).unsqueeze(-1)
+                
+                self.inputs = torch.cat([self.inputs,
+                                         torch.sin(2 * np.pi * q2_freqs.unsqueeze(0).unsqueeze(0) * q2_angles_tensor),
+                                         torch.cos(2 * np.pi * q2_freqs.unsqueeze(0).unsqueeze(0) * q2_angles_tensor)], dim=-1)
+
     
     def __len__(self): # il data loader con __len__ sa che può chiamare len-1 volte  
         return self.n_pendulums * (self.evolution_length - self.horizon)  # Numero totale di campioni (size 0)
@@ -230,6 +328,20 @@ def turn_to_cosine_sine(X_dataset, cols=['q1', 'q2']):
     
     return X_transformed
 
+def fourier_features(X_dataset, cols=['q1', 'q2'], top_k=16, dt=0.01):
+    '''
+    Adds Fourier features for specified angular columns in the dataset.
+    '''
+    X_transformed = X_dataset.copy()
+    for col in cols:
+        angles = X_transformed[col].values
+        dominant_freqs = get_dominant_frequencies(angles, dt=dt, top_k=top_k).numpy()
+        
+        for i, freq in enumerate(dominant_freqs):
+            X_transformed[f'{col}_fourier_sin_{i}'] = np.sin(2 * np.pi * freq * angles)
+            X_transformed[f'{col}_fourier_cos_{i}'] = np.cos(2 * np.pi * freq * angles)
+
+    return X_transformed
 # ===============================================
 # ================= Metrics =====================
 # ===============================================
