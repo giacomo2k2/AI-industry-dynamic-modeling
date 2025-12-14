@@ -49,12 +49,12 @@ def main(
 if __name__ == "__main__":
 
     csv_paths = [
-        ("branch1/data_enhanced/processed_EC/double_pendulum_highfrict.csv", "highfrict"),
-        ("branch1/data_enhanced/processed_EC/double_pendulum_lowfrict.csv", "lowfrict"),
-        ("branch1/data_enhanced/processed_EC/double_pendulum_nofrict.csv", "nofrict"),
+        ("branch1/data_enhanced/processed_EC_WN/double_pendulum_highfrict.csv", "highfrict"),
+        ("branch1/data_enhanced/processed_EC_WN/double_pendulum_lowfrict.csv", "lowfrict"),
+        ("branch1/data_enhanced/processed_EC_WN/double_pendulum_nofrict.csv", "nofrict"),
     ]
 
-    output_dir = "branch1/data_enhanced/training_EC"
+    output_dir = "branch1/data_enhanced/training_EC_WN"
     split_ratios = (0.64, 0.16, 0.20)
 
     for csv_path, tag in csv_paths:

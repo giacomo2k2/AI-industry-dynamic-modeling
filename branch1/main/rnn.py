@@ -4,14 +4,14 @@ import numpy as np
 from branch1.utils.training import (train_nn_model, plot_training_history, EarlyStopping, physics_loss, KNGLDataset, pull_data_by_ids,
                                     save_model, load_model, evaluate_model, predict_model, average_discrepancy_perc, avg_param_difference, 
                                     max_param_difference, log_recipe, turn_to_cosine_sine)
-from branch1.utils.architecture import DynLayer, EulerModel, RK4Model, device_setup, DynUDE, DynNN, DynUDE_Informed
-from branch1.utils.plots import plot_evolutions_comparison
+from branch1.utils.architecture import DynLayer, EulerModel, RK4Model, device_setup, DynUDE, DynNN, DynUDE_Informed, UDE_More_Informed
+from branch1.utils.plots import plot_evolutions_comparison, plot_matrices_predictions
 from torch import nn
 import argparse
 from models import DoublePendulum
 from simulation import Simulator
 import os
-import traceback # <--- Aggiungi questo import in alto o qui
+import traceback
 import sys
     
 def main(
@@ -58,6 +58,7 @@ def main(
 
             'sin_cos_transform': sin_cos_transform,
             'normalization': normalization,
+            'fourier_features': fourier_features,
 
             'curriculum_steps': curriculum_steps,
             'epochs_per_stage': epochs_per_stage,
@@ -273,6 +274,20 @@ def main(
             normalization_map = normalization_map,
             activation=activation
         )
+    
+    elif dynlayer == 'more_informed_ude':
+        dyn_layer = UDE_More_Informed(
+            input_dim=len(X_train_columns) - 1 + extra_features_len,
+            output_dim=8,
+            sin_cos_transform = sin_cos_transform,
+            X_feature_positions_map = X_feature_positions_map,
+            Y_feature_position_map = Y_feature_position_map,
+            Y_feature_DynLayer_positions_map = Y_feature_DynLayer_positions_map,
+            normalization = normalization,
+            normalization_map = normalization_map,
+            activation=activation
+        )
+        
     else:
         print(f"\n\t[ERROR] '{dynlayer}' not recognized as a valid input for dynlayer \n")
         print("\tAvailable: \n\t -'ode' \n\t -'nn' \n\t -'ude' \n\t -'informed_ude' \n")
@@ -428,7 +443,19 @@ def main(
         print("\nLoading model from path: ", model_path)
         model, history_full = load_model(model = model, 
                                          model_path = model_path)
+        
+        model.to(my_device)
+        model.eval()
                 
+    # --- Plot training history ---
+    
+    print("\nSaving training history plot to path: ", history_path)
+    plot_training_history(
+        history = history_full, 
+        figsize=(10,6),
+        save_path=history_path,
+        show_plot=show_plots
+    )
 
     # --- Evaluation comparing GT ---
 
@@ -444,19 +471,51 @@ def main(
         print(f"\tl1: {l1_gt:.4f}, l2: {l2_gt:.4f}")
         print(f"\tm1: {m1_gt:.4f}, m2: {m2_gt:.4f}\n")
 
-    # --- Plot training history ---
+    # --- Evaluation comparing matrices ---
     
-    print("\nSaving training history plot to path: ", history_path)
-    plot_training_history(
-        history = history_full, 
-        figsize=(10,6),
-        save_path=history_path,
-        show_plot=show_plots
-    )
+    if dynlayer == 'ude' or dynlayer == 'informed_ude' or dynlayer == 'more_informed_ude':
+
+        X_matrices_test, Y_matrices_test = pull_data_by_ids(
+            data_path=test_path,
+            data_splitter='id_pendulum',
+            xcols = X_train_columns[:-1],  # exclude time_step
+            ycols = ['M11', 'M12', 'M21', 'M22', 'c1', 'c2', 'D11', 'D22', 'G1', 'G2'],
+            modify_func = modify_func
+        )
+
+        for i in range(10):
+
+            X_matrices_test_i_np = X_matrices_test[i,:,:]
+            Y_matrices_test_i_np = Y_matrices_test[i,:,:]
+
+            X_matrices_test_i = torch.Tensor(X_matrices_test_i_np).to(my_device)
+            
+            M, C, D, G = dyn_layer.predict_matrices(X_matrices_test_i)
+            C = C.squeeze(-1)
+            G = G.squeeze(-1)
+
+            Y_matrices_pred_i_np = np.zeros_like(Y_matrices_test_i_np)
+            Y_matrices_pred_i_np[:,0] = M[:,0,0].detach().cpu().numpy()  # M11
+            Y_matrices_pred_i_np[:,1] = M[:,0,1].detach().cpu().numpy()  # M12
+            Y_matrices_pred_i_np[:,2] = M[:,1,0].detach().cpu().numpy()  # M21
+            Y_matrices_pred_i_np[:,3] = M[:,1,1].detach().cpu().numpy()  # M22
+            Y_matrices_pred_i_np[:,4] = C[:,0].detach().cpu().numpy()    # c1
+            Y_matrices_pred_i_np[:,5] = C[:,1].detach().cpu().numpy()    # c2
+            Y_matrices_pred_i_np[:,6] = D[:,0,0].detach().cpu().numpy()  # D11
+            Y_matrices_pred_i_np[:,7] = D[:,1,1].detach().cpu().numpy()  # D22
+            Y_matrices_pred_i_np[:,8] = G[:,0].detach().cpu().numpy()    # G1
+            Y_matrices_pred_i_np[:,9] = G[:,1].detach().cpu().numpy()    # G2
+            
+            mat_comp_path_i = os.path.join(plots_folder, f'mat_comp_{i}.png')
+
+            plot_matrices_predictions(
+                y_true=Y_matrices_test_i_np, 
+                y_pred=Y_matrices_pred_i_np,
+                save_path = mat_comp_path_i,
+                show_plot=show_plots
+            )
 
     # --- Evaluating an evolution with predicted parameters ---
-    model.to(my_device)
-    model.eval()
 
     for i in range(10):  # evaluate on 3 different sequences
 

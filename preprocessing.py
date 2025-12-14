@@ -109,7 +109,11 @@ def kullback_leibler(p, q, eps=1e-10, lambda_val=1.0, threshold_penalty = 0):
 
     return np.sum(p * np.log(p / q)) + lambda_val * threshold_penalty**2
 
-def optimize_threshold(df:pd.DataFrame) -> float:
+def optimize_threshold(
+        df:pd.DataFrame,
+        save_path:str = None,
+        show_plot:bool = False
+    ) -> float:
     """
     Optimize the threshold based on Kullback-Leibler divergence between the 
     distribution of binned angles and a uniform distribution.
@@ -156,7 +160,7 @@ def optimize_threshold(df:pd.DataFrame) -> float:
 
 
 
-    plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(10, 6))
     plt.plot(thresholds_vec, kl_vector, label='KL Divergence')
     plt.scatter(best_threshold, best_kl_divergence, linestyle='', marker='o', color='red', label='Optimal Threshold')
     plt.title('Kullback-Leibler Divergence vs. Threshold')
@@ -164,7 +168,11 @@ def optimize_threshold(df:pd.DataFrame) -> float:
     plt.ylabel('Kullback-Leibler Divergence')
     plt.grid()
     plt.tight_layout()
-    plt.show()
+    if show_plot:
+        plt.show()
+    if save_path:
+        fig.savefig(save_path+'.png')
+        
 
     return best_threshold
 
@@ -195,21 +203,29 @@ def add_white_noise(df: pd.DataFrame, std: float = 0.01) -> pd.DataFrame:
 # ========================================================
 
 def process_data(
-        path:str, 
+        file_path:str, 
+        processed_folder: str,
         plot: bool = PLOT,
-        raw_path: str = 'data/raw/',
-        processed_path: str = 'data/processed/',
         energy_cut : bool = True,
         white_noise: bool = False,
         round_pi: bool = False
     ) -> pd.DataFrame:
+
+    plot_folder = os.path.join('plots', processed_folder)
+    os.makedirs(plot_folder, exist_ok=True)
+    print("Plots folder: ", plot_folder)
+
+    print("Resulting datsets will be saved in: ", processed_folder)
+    os.makedirs(processed_folder, exist_ok=True)
+
+    file_name = os.path.basename(file_path).split('.csv')[0]
+    print(f"File name: {file_name}")
     
-    sim_type = path.split('_')[2].split('.')[0]
+    sim_type = file_path.split('_')[2].split('.')[0]
     print(f"Processing {sim_type} data...")
     
     # Read the csv in the data raw folder
-    read_path = os.path.join(raw_path, path)
-    df = pd.read_csv(read_path)
+    df = pd.read_csv(file_path)
 
     if energy_cut:
         processed_df, discarded = energy_check(df)
@@ -233,7 +249,13 @@ def process_data(
 
         show_energy_stats(processed_df, filename=sim_type)
 
-    threshold = optimize_threshold(processed_df)
+    threshold_path = os.path.join(plot_folder, file_name+'_threshold')
+    print("Saving optmized threshold plot in : ", threshold_path)
+    threshold = optimize_threshold(
+        df = processed_df,
+        save_path= threshold_path,
+        show_plot= plot
+    )
 
     print(f"Optimal threshold for {sim_type}: {threshold}")
     processed_df = cut_dataset(processed_df, threshold=threshold)
@@ -243,8 +265,8 @@ def process_data(
         show_bins(processed_df, cols=status_cols, names=status_names, vlim=vlim, save=False)
 
     # Save processed dataframe to csv
-    save_path = os.path.join(processed_path, path)
-    os.makedirs(processed_path, exist_ok=True)
+    save_path = os.path.join(processed_folder, file_name)
+    os.makedirs(processed_folder, exist_ok=True)
     processed_df.to_csv(save_path, index=False)
 
     # Print process terminated and number of pendulums kept
@@ -259,8 +281,8 @@ def process_data(
 # ========================================================
 
 def main(
-        raw_path: str,
-        processed_path: str,
+        raw_folder: str,
+        processed_folder: str,
         energy_cut : bool,
         white_noise: bool,
         round_pi: bool
@@ -277,48 +299,56 @@ def main(
     #                         raw_path= 'branch1/data_enhanced/raw/',
     #                         processed_path= 'branch1/data_enhanced/processed/')
 
-    if energy_cut:
-        # add to the path '_EC'
-        # example 'branch1/data' to 'branch1/data_EC'
-        processed_path = os.path.join(os.path.dirname(processed_path), os.path.basename(processed_path) + '_EC/')
-    
-    if white_noise:
-        # add to the path '_WN'
-        processed_path = os.path.join(os.path.dirname(processed_path), os.path.basename(processed_path) + '_WN/')
+    mode_string = ''
 
-    if round_pi:
-        # add to the path '_RP'
-        processed_path = os.path.join(os.path.dirname(processed_path), os.path.basename(processed_path) + '_RP/')
-    
 
-    df_nof = process_data(path = 'double_pendulum_nofrict.csv', 
-                          raw_path= raw_path,
-                          processed_path= processed_path,
+    for i , mod in enumerate([energy_cut, white_noise, round_pi]):
+        if mod:
+            mode_string += '_' + ['EC', 'WN', 'RP'][i]
+
+
+    processed_folder = os.path.join(os.path.dirname(processed_folder), os.path.basename(processed_folder) + mode_string)
+
+
+    for f in os.listdir(raw_folder):
+        # Load processed data
+        file_path = os.path.join(raw_folder, f)
+
+        df = process_data(file_path = file_path, 
+                          processed_folder= processed_folder,
                           energy_cut= energy_cut,
                           white_noise= white_noise,
                           round_pi= round_pi)
+
+
+    # df_nof = process_data(path = 'double_pendulum_nofrict.csv', 
+    #                       raw_path= raw_path,
+    #                       processed_path= processed_path,
+    #                       energy_cut= energy_cut,
+    #                       white_noise= white_noise,
+    #                       round_pi= round_pi)
     
-    df_lowf = process_data(path = 'double_pendulum_lowfrict.csv',
-                           raw_path= raw_path,
-                           processed_path= processed_path,
-                           energy_cut= energy_cut,
-                           white_noise= white_noise,
-                           round_pi= round_pi)
+    # df_lowf = process_data(path = 'double_pendulum_lowfrict.csv',
+    #                        raw_path= raw_path,
+    #                        processed_path= processed_path,
+    #                        energy_cut= energy_cut,
+    #                        white_noise= white_noise,
+    #                        round_pi= round_pi)
     
-    df_highf = process_data(path = 'double_pendulum_highfrict.csv',
-                            raw_path= raw_path,
-                            processed_path= processed_path,
-                            energy_cut= energy_cut,
-                            white_noise= white_noise,
-                            round_pi= round_pi)
+    # df_highf = process_data(path = 'double_pendulum_highfrict.csv',
+    #                         raw_path= raw_path,
+    #                         processed_path= processed_path,
+    #                         energy_cut= energy_cut,
+    #                         white_noise= white_noise,
+    #                         round_pi= round_pi)
 
 if __name__ == '__main__':
-    
+
     main(
-        raw_path= 'branch1/data_enhanced/raw',
-        processed_path= 'branch1/data_enhanced/processed',
+        raw_folder= 'branch1/data_enhanced/raw',
+        processed_folder= 'branch1/data_enhanced/processed_PROVA',
         energy_cut = True,
-        white_noise= False,
+        white_noise=True,
         round_pi= False
     )
   

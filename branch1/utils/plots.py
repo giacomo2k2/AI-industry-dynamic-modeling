@@ -4,7 +4,12 @@ import matplotlib.pyplot as plt
 from pina import LabelTensor
 import os
 
-def plot_matrices_predictions(y_true, y_pred, save_path=None):
+def plot_matrices_predictions(
+        y_true, 
+        y_pred, 
+        save_path=None,
+        show_plot = False
+    ):
     
     fig = plt.figure(figsize=(12, 8))
     param_names = ['M11', 'M12', 'M21', 'M22', 'c1', 'c2', 'D11', 'D22', 'G1', 'G2']
@@ -15,7 +20,9 @@ def plot_matrices_predictions(y_true, y_pred, save_path=None):
         plt.title(param_names[i])
         plt.legend()
     plt.tight_layout()
-    plt.show()
+    if show_plot:
+        plt.show()
+        
 
     if save_path is not None:
         os.makedirs(os.path.dirname(save_path), exist_ok=True)

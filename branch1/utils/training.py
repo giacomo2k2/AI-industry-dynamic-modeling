@@ -11,7 +11,7 @@ import numpy as np
 from tqdm import tqdm
 from torch import nn
 from models import DoublePendulum
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.lr_scheduler import ReduceLROnPlateau, OneCycleLR
 import os
 
 
@@ -499,6 +499,10 @@ def train_nn_model(
 ):
     # --- Model to device ---
     model.to(device)
+
+    # --- Data Loaders ---
+    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
+    val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False)
     
     # --- Optimizer and Scheduler ---
     if optimizer_type == 'adam':
@@ -510,11 +514,22 @@ def train_nn_model(
         print("\tAvailable: \n\t -'adam' \n\t -'adamw'")
         exit()
     
+    scheduler = None
     if scheduler_type == 'plateau':
         scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10, verbose=True, min_lr=1e-6)
+    elif scheduler_type == 'onecycle':
+        scheduler = OneCycleLR(
+            optimizer, 
+            max_lr=lr, 
+            steps_per_epoch=len(train_loader), 
+            epochs=epochs, 
+            pct_start=0.3, 
+            div_factor=25.0, 
+            final_div_factor=1e4
+        )
     else:
         print(f"[ERROR] Scheduler '{scheduler_type}' not recognized")
-        print("\tAvailable: \n\t -'plateau'")
+        print("\tAvailable: \n\t -'plateau' \n\t -'onecycle'")
         exit()
 
     # --- Loss Function ---
@@ -522,14 +537,12 @@ def train_nn_model(
         loss_fn = nn.MSELoss()
     elif loss_type == 'physics':
         loss_fn = physics_loss
+    elif loss_type == 'mae':
+        loss_fn = nn.L1Loss()
     else:
         print(f"[ERROR] Loss function '{loss_type}' not recognized")
         print("\tAvailable: \n\t -'mse' \n\t -'physics'")
         exit()
-
-    # --- Data Loaders ---
-    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
-    val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False)
 
     # --- Training Loop ---
     history = {"loss": [], "val_loss": []}
@@ -548,6 +561,8 @@ def train_nn_model(
 
                 if loss_type == 'mse':
                     loss = loss_fn(y_pred, yb) 
+                elif loss_type == 'mae':
+                    loss = loss_fn(y_pred, yb)
                 elif loss_type == 'physics':
                     loss = loss_fn(y_pred, yb, model=model)
 
@@ -573,6 +588,9 @@ def train_nn_model(
                             
                 optimizer.step()
 
+                if scheduler_type == 'onecycle':
+                    scheduler.step()
+
                 running_loss += loss.item()
                 n_batches += 1
 
@@ -591,6 +609,8 @@ def train_nn_model(
 
                         if loss_type == 'mse':
                             vloss = loss_fn(y_pred, yb) 
+                        elif loss_type == 'mae':
+                            vloss = loss_fn(y_pred, yb)
                         elif loss_type == 'physics':
                             vloss = loss_fn(y_pred, yb, model=model)
 
@@ -599,7 +619,8 @@ def train_nn_model(
                 val_loss = val_running_loss / max(val_batches, 1)
                 history["val_loss"].append(val_loss)
 
-                scheduler.step(val_loss)
+                if scheduler_type == 'plateau':
+                    scheduler.step(val_loss)
 
                 # Early stopping
                 stop = early_stopper.step(val_loss, model)

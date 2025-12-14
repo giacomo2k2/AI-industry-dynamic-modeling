@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-
+import os
 from simulation import Simulator
 from models import DoublePendulum
+import seaborn as sns
+
 
 plt.rc('font', family='serif')
 
@@ -100,18 +102,19 @@ def show_energy_stats(df:pd.DataFrame, filename:str='', save:bool = False):
         fig.savefig('plots/energy_stats_' + filename + '.png')
     
 
-def show_bins(df: pd.DataFrame,  cols:list, names: list, vlim: np.ndarray, save: bool = False, filename: str = ''):
-    
-
+def show_bins(
+        df: pd.DataFrame,  
+        cols:list, names: list, 
+        vlim: np.ndarray, 
+        save_path: str = None, 
+    ):
 
     pendulum_data = df
 
     # extract states
     states = pendulum_data[cols].to_numpy()
 
-
     fig, axes = plt.subplots(2, 3, figsize=(12, 6))
-
 
     configs = [
         (states[:, 0], (-vlim[0], vlim[0]),    names[0]),
@@ -131,15 +134,22 @@ def show_bins(df: pd.DataFrame,  cols:list, names: list, vlim: np.ndarray, save:
     fig.tight_layout()
     plt.show()
 
-
-    if save and id == -1:
+    if save_path:
         # save the plot as png
-        fig.savefig('plots/histogram_pendulum_' + filename + '.png')
+        fig.savefig(save_path + '_bins.png')
 
 
 
-def show_heatmap(df, cols: list, names : list, vlim: np.ndarray, pendulum_id: str ='id_pendulum', time: str ='time_step',
-                      figsize: tuple =(12,6), file_name:str = None) -> None:
+def show_heatmap(
+        df, 
+        cols: list, 
+        names : list, 
+        vlim: np.ndarray, 
+        pendulum_id: str ='id_pendulum', 
+        time: str ='time_step',
+        figsize: tuple =(12,6), 
+        file_name:str = None
+    ) -> None:
     """
     Generates a 2x2 grid of heatmaps visualizing the evolution of state variables over time.
 
@@ -234,27 +244,147 @@ def show_example(path:str, id:int = 0, animate: bool = False):
 
         simulator.draw_simulation(pendulum, pendulum_data[['q1', 'q1_dot', 'q2', 'q2_dot']].to_numpy())
 
-def main():
-    example_id = 17
+def show_conditional_distribution(
+        df: pd.DataFrame,
+        target_col: str,
+        condition_col: str,
+        condition_bins: int = 10,
+        row_col_plots: tuple = (5, 2)
+):
+    """
+    Plots the conditional distribution of a target variable given binned conditions of another variable.
+
+    ---
+    Args:
+        df (pd.DataFrame): DataFrame containing the data.
+        target_col (str): The column name of the target variable.
+        condition_col (str): The column name of the conditioning variable.
+        condition_bins (int): Number of bins to divide the conditioning variable into.
+    """
+
+    rows, cols = row_col_plots
+
+    if rows * cols < condition_bins:
+        raise ValueError("row_col_plots deve poter accomodare tutti i condition bins.")
+
+    condition_values = df[condition_col]
+    target_values = df[target_col]
+
+    # Creazione dei bin
+    bins = np.linspace(condition_values.min(), condition_values.max(), condition_bins + 1)
+    bin_indices = np.digitize(condition_values, bins) - 1
+
+    fig, axes = plt.subplots(rows, cols, figsize=(15, 10)) 
+    axes = axes.flatten()  
+
+    for i in range(condition_bins):
+        ax = axes[i] 
+
+        bin_target_values = target_values[bin_indices == i]
+        
+        if len(bin_target_values) > 0:
+            ax.hist(bin_target_values, bins=30, alpha=0.7, color='skyblue', edgecolor='black', density=True)
+            
+            ax.set_title(f'Bin {i+1}: {bins[i]:.2f} - {bins[i+1]:.2f}')
+            ax.set_xlabel(target_col)
+            ax.set_ylabel('Density')
+            ax.grid(True, alpha=0.3)
+        else:
+            ax.text(0.5, 0.5, 'No Data', horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+
+    # Hide subplots that are not used
+    for j in range(condition_bins, len(axes)):
+        axes[j].axis('off')
+
+    plt.suptitle(f'Conditional Distribution of {target_col} given {condition_col}', fontsize=16)
+    plt.tight_layout() 
+    plt.show()
+
+
+def show_correlation_matrix(
+        df: pd.DataFrame, 
+        target:str,
+        features_cols: list
+    ):
+    """
+    Plots the correlation matrix for the specified columns in the DataFrame.
+
+    ---
+    Args:
+        df (pd.DataFrame): DataFrame containing the data.
+        target (str): The target column name.
+        features_cols (list): List of feature column names.
+    """
+    cols = [target] + features_cols
+    corr = df[cols].corr()
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(corr, annot=True, fmt=".2f", cmap='coolwarm', square=True)
+    plt.title('Correlation Matrix')
+    plt.show()
+    
+
+def main(
+        processed_folder: str,
+        example_id: int = 17
+):
+    
     # Define the states
     cols = ['q1', 'q1_dot','q1_dot_dot', 'q2', 'q2_dot', 'q2_dot_dot']
     status_names = [r'$q_1$', r'$\dot{q}_1$', r'$\ddot{q}_1$', r'$q_2$', r'$\dot{q}_2$',  r'$\ddot{q}_2$']
 
-    files = [
-        'double_pendulum_nofrict.csv',
-        'double_pendulum_lowfrict.csv',
-        'double_pendulum_highfrict.csv'
-    ]
+    plot_dir = os.path.join('plots', processed_folder)
+    os.makedirs(plot_dir, exist_ok=True)
 
-    for f in files:
+    for f in os.listdir(processed_folder):
         # Load processed data
-        df = pd.read_csv('data/processed/'+f)
+        df = pd.read_csv(os.path.join(processed_folder, f))
+
+
+        # show_conditional_distribution(
+        #     df = df, 
+        #     target_col='q1_dot_dot', 
+        #     condition_col='q1', 
+        #     condition_bins=3,
+        #     row_col_plots=(1, 3)
+        # )
+
+        show_correlation_matrix(
+            df = df,
+            target = 'q1_dot_dot',
+            features_cols = ['q1', 'q1_dot', 'q2', 'q2_dot']
+        )
+
+        exit()
+
+        # Compute lim for heatmap
         vlim = df[cols].abs().max().to_numpy()
 
-        show_heatmap(df, cols, names = status_names,  vlim=vlim, file_name=f'plots/{f.split(".")[0]}_heatmap')
+        # Show heatmap (a heatmap for each state)
+        show_heatmap(
+            df = df, 
+            cols = cols,
+            names = status_names,  
+            vlim=vlim, 
+            file_name= os.path.join(plot_dir, f.split('.csv')[0]+'_heatmap')
+        )
+
+        show_bins(
+            df = df,
+            cols = cols,
+            names = status_names,
+            vlim = vlim,
+            save_path = os.path.join(plot_dir, f.split('.csv')[0]+'_heatmap')
+        )
     
     show_example('data/processed/double_pendulum_nofrict.csv', id=example_id, animate=True)
 
 if __name__ == '__main__':
-    main()
+
+    processed_folder = 'branch1/data_enhanced/processed_EC_WN'
+    example_id = 17
+
+    main(
+        processed_folder=processed_folder,
+        example_id=example_id
+    )
     

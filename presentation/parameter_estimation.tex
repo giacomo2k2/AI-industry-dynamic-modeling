@@ -1,1 +1,173 @@
-\subsection{Parameter Estimation}
+\section{Parameter Estimation}
+
+%------------------------------------------------
+
+\subsection{Physical Parameters}
+
+\begin{frame}
+    \frametitle{Assumptions for Physical Parameters Estimation}
+
+    Assumptions
+    \begin{itemize}
+        \item the pendulum is always the same
+        \item physical parameters don't change over time
+    \end{itemize}
+
+    Known
+    \begin{itemize}
+        \item dynamics of the system 
+        \item state at each time step
+        \item some physical parameters (optional)
+    
+    Goal
+    \begin{itemize}
+        \item estimate unknown physical parameters
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Architecture for Physical Parameters Estimation}
+
+    We propose to use an integrator plus a dynamic model with learnable physical parameters:
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.4\textwidth]{images/integrator.png}
+    \end{figure}
+
+    Training recipe:
+    \begin{itemize}
+        \item loss (MSE, MAE)
+        \item curricular steps (increasing h)
+        \item data transformation (sin-cos)
+    \end{itemize}
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{Architecture for Physical Parameters Estimation}
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.4\textwidth]{images/dyn_ode.png}
+    \end{figure}
+
+    Fixing some parameters can help the estimation of the others.
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.4\textwidth]{images/dyn_ode_fixed.png}
+    \end{figure}
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{Results for Physical Parameters Estimation}
+
+    Fixing parameters make the difference.
+
+    Gauge invariance issue can affect the estimation.
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.7\textwidth]{images/phys_params_results.png}
+    \end{figure}
+\end{frame}
+
+%------------------------------------------------
+
+\subsection{Dynamics Matrices Entries}
+
+\begin{frame}
+    \frametitle{Assumptions for Matrices Entries Estimation}
+
+    Assumptions
+    \begin{itemize}
+        \item the pendulum is always the same
+        \item physical parameters don't change over time
+    \end{itemize}
+
+    Known
+    \begin{itemize}
+        \item dynamics of the system
+        \item state at each time step 
+        \item some matrices entries (optional)
+    \end{itemize}
+    
+    Goal
+    \begin{itemize}
+        \item estimate unknown matrices entries
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{NN for Matrices Entries Estimation}
+
+    The first approach we propose is to use a NN that simply learns the entries of the matrices.
+
+    Requirements
+    \begin{itemize}
+        \item GT values for matrices in dataset
+    \end{itemize}
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.4\textwidth]{images/entries_NN.png}
+    \end{figure}
+
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{UDE for Matrices Entries Estimation}
+
+    The second approach is a UDE dynamic layer combinaed with the integrator
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.4\textwidth]{images/dyn_UDE.png}
+    \end{figure}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Informed UDE for Matrices Entries Estimation}
+
+    We can enhance the UDE approach `informing' better our UDE
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.4\textwidth]{images/informed_UDE.png}
+    \end{figure}
+
+     \begin{figure}
+        \centering
+        \includegraphics[width=0.4\textwidth]{images/better_informed_UDE.png}
+    \end{figure}
+
+\end{frame}
+
+%------------------------------------------------
+
+\subsection{Results}
+
+
+\begin{frame}
+    \frametitle{Results for Physical Parameters Estimation}
+
+    Learning directly on the entries makes the task easy.
+
+    Gauge invariance issue can affect the estimation using UDE. 
+
+    Informing better UDE helps a lot. 
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.7\textwidth]{images/matirces_entries_results.png}
+    \end{figure}
+\end{frame}
+
+
+

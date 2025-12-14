@@ -10,11 +10,11 @@ set /a fail_count=0
 set /a total_runs=0
 
 REM --- PARAMETRI FISSI ---
-set COMMON_ARGS=--train_path "branch1/data_enhanced/training/train_nofrict.csv" --val_path "branch1/data_enhanced/training/val_nofrict.csv" --test_path "branch1/data_enhanced/training/test_nofrict.csv" --training --verbose --patience 15 --wd 1e-5 --loss_type mse --optimizer_type adam --scheduler_type plateau --integrator rk4 --activation softplus --fixed_m1 --fixed_m2 
+set COMMON_ARGS=--train_path "branch1/data_enhanced/training/train_lowfrict.csv" --val_path "branch1/data_enhanced/training/val_lowfrict.csv" --test_path "branch1/data_enhanced/training/test_lowfrict.csv" --training --verbose --patience 25 --wd 1e-5 --loss_type mae --optimizer_type adam --scheduler_type onecycle --integrator rk4 --activation softplus  --fixed_l1 --fixed_l2 --fixed_m1 --fixed_m2 --fixed_b1  
 REM --- LOOP PRINCIPALE ---
-FOR %%L in (ode) DO (
+FOR %%L in ( ude) DO (
     
-    set /a version_counter=80
+    set /a version_counter=150
     
     echo.
     echo ========================================================
@@ -22,18 +22,18 @@ FOR %%L in (ode) DO (
     echo ========================================================
 
     REM --- LOOP STEPS ---
-    FOR %%C in ("4 8 16 32") DO (
+    FOR %%C in ("2 4 8 16") DO (
         
         REM --- LOOP LR ---
-        FOR %%R in ("1e-2 5e-3 5e-3 1e-3") DO (
+        FOR %%R in ("1e-2 5e-3 1e-3 5e-4") DO (
             
             REM --- LOOP EPOCHS ---
-            FOR %%E in ("30 20 10 5") DO (
+            FOR %%E in ("2 2 2 2") DO (
                 
                 REM --- LOOP BATCH SIZE ---
-                FOR %%B in (512 1024) DO (
+                FOR %%B in (512) DO (
                     
-                    FOR %%S in (true false) DO (
+                    FOR %%S in (true) DO (
                         if "%%S"=="true" (set SINCOS_FLAG=--sin_cos_transform) else (set SINCOS_FLAG=)
 
                         REM Logica Norm (solo per NN)

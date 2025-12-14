@@ -2468,3 +2468,1591 @@ Traceback (most recent call last):
                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
 ==============================
+
+==============================
+TIMESTAMP: 2025-12-13 15:07:25.005287
+CONFIG: Layer=informed_ude, Ver=v121, BS=128, SinCos=True, Norm=False
+ERROR: torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 569, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 467, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 983, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 902, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 582, in forward
+    q_ddot_est = torch.linalg.solve(M, b)
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+torch._C._LinAlgError: torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 15:58:09.635462
+CONFIG: Layer=informed_ude, Ver=v120, BS=256, SinCos=True, Norm=False
+ERROR: mat1 and mat2 shapes cannot be multiplied (256x6 and 70x256)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 569, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 359, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 547, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 983, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 957, in integration
+    der.append(self.f(curr_y))
+               ^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 530, in forward
+    raw_out = self.net(x)
+              ^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (256x6 and 70x256)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 15:58:14.896281
+CONFIG: Layer=informed_ude, Ver=v121, BS=128, SinCos=True, Norm=False
+ERROR: mat1 and mat2 shapes cannot be multiplied (128x6 and 70x256)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 569, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 359, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 547, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 983, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 957, in integration
+    der.append(self.f(curr_y))
+               ^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 530, in forward
+    raw_out = self.net(x)
+              ^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (128x6 and 70x256)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 16:02:22.107852
+CONFIG: Layer=informed_ude, Ver=v120, BS=256, SinCos=True, Norm=False
+ERROR: mat1 and mat2 shapes cannot be multiplied (256x6 and 70x256)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 569, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 359, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 547, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 983, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 957, in integration
+    der.append(self.f(curr_y))
+               ^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 530, in forward
+    raw_out = self.net(x)
+              ^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (256x6 and 70x256)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 16:28:48.124112
+CONFIG: Layer=informed_ude, Ver=v120, BS=256, SinCos=True, Norm=False
+ERROR: torch.linalg.solve: (Batch element 237): The solver failed because the input matrix is singular.
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 569, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 359, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 547, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 990, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 948, in integration
+    k4 = self.f(k4_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 582, in forward
+    q_ddot_est = torch.linalg.solve(M, b)
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+torch._C._LinAlgError: torch.linalg.solve: (Batch element 237): The solver failed because the input matrix is singular.
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 19:21:31.817323
+CONFIG: Ver=v1000, BS=256, SinCos=True, Norm=False
+ERROR: The size of tensor a (10) must match the size of tensor b (6) at non-singleton dimension 2
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\ude.py", line 301, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\ude.py", line 163, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 550, in train_nn_model
+    loss = loss_fn(y_pred, yb)
+          ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\loss.py", line 610, in forward
+    return F.mse_loss(input, target, reduction=self.reduction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\functional.py", line 3884, in mse_loss
+    expanded_input, expanded_target = torch.broadcast_tensors(input, target)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\functional.py", line 76, in broadcast_tensors
+    return _VF.broadcast_tensors(tensors)  # type: ignore[attr-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: The size of tensor a (10) must match the size of tensor b (6) at non-singleton dimension 2
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 20:03:04.972515
+CONFIG: Layer=more_informed_ude, Ver=v140, BS=512, SinCos=True, Norm=False
+ERROR: element 0 of tensors does not require grad and does not have a grad_fn
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 373, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 590, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1242, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1155, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 815, in forward
+    h = coriolis_from_M(q, q_dot, self.mass_net)  # [B,2]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 702, in coriolis_from_M
+    grad_Mij = torch.autograd.grad(
+               ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\__init__.py", line 496, in grad
+    result = _engine_run_backward(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\graph.py", line 823, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 20:08:52.130431
+CONFIG: Layer=more_informed_ude, Ver=v140, BS=512, SinCos=True, Norm=False
+ERROR: element 0 of tensors does not require grad and does not have a grad_fn
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 373, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 590, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1244, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1157, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 816, in forward
+    h = coriolis_from_M(q, q_dot, self.mass_net)  # [B,2]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 703, in coriolis_from_M
+    grad_Mij = torch.autograd.grad(
+               ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\__init__.py", line 496, in grad
+    result = _engine_run_backward(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\graph.py", line 823, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 20:09:09.472391
+CONFIG: Layer=more_informed_ude, Ver=v141, BS=512, SinCos=False, Norm=False
+ERROR: element 0 of tensors does not require grad and does not have a grad_fn
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 373, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 590, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1244, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1157, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 816, in forward
+    h = coriolis_from_M(q, q_dot, self.mass_net)  # [B,2]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 703, in coriolis_from_M
+    grad_Mij = torch.autograd.grad(
+               ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\__init__.py", line 496, in grad
+    result = _engine_run_backward(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\graph.py", line 823, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 20:49:23.553654
+CONFIG: Layer=more_informed_ude, Ver=v140, BS=512, SinCos=True, Norm=False
+ERROR: DynUDE_InformedStructured.__init__() got an unexpected keyword argument 'activation'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 279, in main
+    dyn_layer = DynUDE_InformedStructured(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: DynUDE_InformedStructured.__init__() got an unexpected keyword argument 'activation'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 20:49:33.123334
+CONFIG: Layer=more_informed_ude, Ver=v141, BS=512, SinCos=False, Norm=False
+ERROR: DynUDE_InformedStructured.__init__() got an unexpected keyword argument 'activation'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 279, in main
+    dyn_layer = DynUDE_InformedStructured(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: DynUDE_InformedStructured.__init__() got an unexpected keyword argument 'activation'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 20:51:03.582880
+CONFIG: Layer=more_informed_ude, Ver=v140, BS=512, SinCos=True, Norm=False
+ERROR: element 0 of tensors does not require grad and does not have a grad_fn
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 373, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 590, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1226, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1139, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 805, in forward
+    h = coriolis_from_M(q, q_dot, self.mass)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 709, in coriolis_from_M
+    grad_Mij = torch.autograd.grad(
+               ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\__init__.py", line 496, in grad
+    result = _engine_run_backward(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\graph.py", line 823, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 20:51:25.822644
+CONFIG: Layer=more_informed_ude, Ver=v141, BS=512, SinCos=False, Norm=False
+ERROR: element 0 of tensors does not require grad and does not have a grad_fn
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 373, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 590, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1226, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1139, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 805, in forward
+    h = coriolis_from_M(q, q_dot, self.mass)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 709, in coriolis_from_M
+    grad_Mij = torch.autograd.grad(
+               ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\__init__.py", line 496, in grad
+    result = _engine_run_backward(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\graph.py", line 823, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 20:58:13.486459
+CONFIG: Layer=more_informed_ude, Ver=v140, BS=512, SinCos=True, Norm=False
+ERROR: element 0 of tensors does not require grad and does not have a grad_fn
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 373, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 590, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1257, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1170, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 839, in forward
+    G = torch.autograd.grad(V.sum(), q, create_graph=True)[0]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\__init__.py", line 496, in grad
+    result = _engine_run_backward(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\graph.py", line 823, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 20:58:45.891934
+CONFIG: Layer=more_informed_ude, Ver=v141, BS=512, SinCos=False, Norm=False
+ERROR: element 0 of tensors does not require grad and does not have a grad_fn
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 373, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 590, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1257, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1170, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 839, in forward
+    G = torch.autograd.grad(V.sum(), q, create_graph=True)[0]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\__init__.py", line 496, in grad
+    result = _engine_run_backward(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\graph.py", line 823, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 21:13:51.303357
+CONFIG: Layer=more_informed_ude, Ver=v140, BS=512, SinCos=True, Norm=False
+ERROR: only one element tensors can be converted to Python scalars
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 547, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1106, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1019, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 684, in forward
+    M = torch.tensor([
+       ^^^^^^^^^^^^^^
+ValueError: only one element tensors can be converted to Python scalars
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 21:15:49.145112
+CONFIG: Layer=more_informed_ude, Ver=v140, BS=512, SinCos=True, Norm=False
+ERROR: expected Tensor as element 1 in argument 0, but got float
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 547, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1106, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1019, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 686, in forward
+    torch.stack([m2 * l2**2 + m2 *l1 *l2 * cosq2, m2 * l2**2], dim=1)
+TypeError: expected Tensor as element 1 in argument 0, but got float
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 21:18:49.239125
+CONFIG: Layer=more_informed_ude, Ver=v140, BS=512, SinCos=True, Norm=False
+ERROR: stack expects each tensor to be equal size, but got [512] at entry 0 and [] at entry 1
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 547, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1107, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1020, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 687, in forward
+    torch.stack([m2 * l2**2 + m2 *l1 *l2 * cosq2, m2 * l2**2], dim=1)
+RuntimeError: stack expects each tensor to be equal size, but got [512] at entry 0 and [] at entry 1
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 22:56:40.277620
+CONFIG: Layer=more_informed_ude, Ver=v145, BS=1024, SinCos=True, Norm=False
+ERROR: element 0 of tensors does not require grad and does not have a grad_fn
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 604, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1283, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1196, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 822, in forward
+    grad_M_ij = torch.autograd.grad(M_ij.sum(), x, create_graph=True, retain_graph=True)[0]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\__init__.py", line 496, in grad
+    result = _engine_run_backward(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\graph.py", line 823, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 22:56:49.543429
+CONFIG: Layer=more_informed_ude, Ver=v146, BS=512, SinCos=True, Norm=False
+ERROR: element 0 of tensors does not require grad and does not have a grad_fn
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 604, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1283, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1196, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 822, in forward
+    grad_M_ij = torch.autograd.grad(M_ij.sum(), x, create_graph=True, retain_graph=True)[0]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\__init__.py", line 496, in grad
+    result = _engine_run_backward(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\autograd\graph.py", line 823, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:01:30.596104
+CONFIG: Layer=more_informed_ude, Ver=v145, BS=1024, SinCos=True, Norm=False
+ERROR: 'UDE_More_Informed' object has no attribute 'softplus'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1123, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1036, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 666, in forward
+    d1 = self.softplus(outputs[:, 2])
+         ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1928, in __getattr__
+    raise AttributeError(
+AttributeError: 'UDE_More_Informed' object has no attribute 'softplus'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:01:35.660269
+CONFIG: Layer=more_informed_ude, Ver=v146, BS=512, SinCos=True, Norm=False
+ERROR: 'UDE_More_Informed' object has no attribute 'softplus'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1123, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1036, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 666, in forward
+    d1 = self.softplus(outputs[:, 2])
+         ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1928, in __getattr__
+    raise AttributeError(
+AttributeError: 'UDE_More_Informed' object has no attribute 'softplus'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:34:20.808704
+CONFIG: Layer=more_informed_ude, Ver=v145, BS=1024, SinCos=True, Norm=False
+ERROR: stack(): argument 'tensors' (position 1) must be tuple of Tensors, not Tensor
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1128, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1041, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 663, in forward
+    c = torch.stack(
+        ^^^^^^^^^^^^
+TypeError: stack(): argument 'tensors' (position 1) must be tuple of Tensors, not Tensor
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:34:26.095509
+CONFIG: Layer=more_informed_ude, Ver=v146, BS=512, SinCos=True, Norm=False
+ERROR: stack(): argument 'tensors' (position 1) must be tuple of Tensors, not Tensor
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1128, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1041, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 663, in forward
+    c = torch.stack(
+        ^^^^^^^^^^^^
+TypeError: stack(): argument 'tensors' (position 1) must be tuple of Tensors, not Tensor
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:35:13.054748
+CONFIG: Layer=more_informed_ude, Ver=v145, BS=1024, SinCos=True, Norm=False
+ERROR: stack expects each tensor to be equal size, but got [1024] at entry 0 and [1024, 2] at entry 1
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1128, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1041, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 723, in forward
+    derivatives = torch.stack([q_dot.squeeze(-1)[:, 0], q_ddot[:, 0], q_dot.squeeze(-1)[:, 1], q_ddot[:, 1]], dim=1)  # Shape: [Batch, 4]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: stack expects each tensor to be equal size, but got [1024] at entry 0 and [1024, 2] at entry 1
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:35:18.269129
+CONFIG: Layer=more_informed_ude, Ver=v146, BS=512, SinCos=True, Norm=False
+ERROR: stack expects each tensor to be equal size, but got [512] at entry 0 and [512, 2] at entry 1
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1128, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1041, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 723, in forward
+    derivatives = torch.stack([q_dot.squeeze(-1)[:, 0], q_ddot[:, 0], q_dot.squeeze(-1)[:, 1], q_ddot[:, 1]], dim=1)  # Shape: [Batch, 4]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: stack expects each tensor to be equal size, but got [512] at entry 0 and [512, 2] at entry 1
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:35:57.259133
+CONFIG: Layer=more_informed_ude, Ver=v145, BS=1024, SinCos=True, Norm=False
+ERROR: The size of tensor a (2) must match the size of tensor b (1024) at non-singleton dimension 1
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1128, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1041, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 685, in forward
+    C = c * q_dot.squeeze(-1)  # Shape: [Batch, 2, 1]
+        ~~^~~~~~~~~~~~~~~~~~~
+RuntimeError: The size of tensor a (2) must match the size of tensor b (1024) at non-singleton dimension 1
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:36:02.547527
+CONFIG: Layer=more_informed_ude, Ver=v146, BS=512, SinCos=True, Norm=False
+ERROR: The size of tensor a (2) must match the size of tensor b (512) at non-singleton dimension 1
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1128, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1041, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 685, in forward
+    C = c * q_dot.squeeze(-1)  # Shape: [Batch, 2, 1]
+        ~~^~~~~~~~~~~~~~~~~~~
+RuntimeError: The size of tensor a (2) must match the size of tensor b (512) at non-singleton dimension 1
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:37:21.217358
+CONFIG: Layer=more_informed_ude, Ver=v145, BS=1024, SinCos=True, Norm=False
+ERROR: stack expects each tensor to be equal size, but got [1024] at entry 0 and [1024, 2] at entry 1
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1132, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1045, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 727, in forward
+    derivatives = torch.stack([q_dot.squeeze(-1)[:, 0], q_ddot[:, 0], q_dot.squeeze(-1)[:, 1], q_ddot[:, 1]], dim=1)  # Shape: [Batch, 4]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: stack expects each tensor to be equal size, but got [1024] at entry 0 and [1024, 2] at entry 1
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:37:26.463774
+CONFIG: Layer=more_informed_ude, Ver=v146, BS=512, SinCos=True, Norm=False
+ERROR: stack expects each tensor to be equal size, but got [512] at entry 0 and [512, 2] at entry 1
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1132, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1045, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 727, in forward
+    derivatives = torch.stack([q_dot.squeeze(-1)[:, 0], q_ddot[:, 0], q_dot.squeeze(-1)[:, 1], q_ddot[:, 1]], dim=1)  # Shape: [Batch, 4]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: stack expects each tensor to be equal size, but got [512] at entry 0 and [512, 2] at entry 1
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:38:48.057523
+CONFIG: Layer=more_informed_ude, Ver=v145, BS=1024, SinCos=True, Norm=False
+ERROR: stack expects each tensor to be equal size, but got [1024] at entry 0 and [1024, 2] at entry 1
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1134, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1047, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 729, in forward
+    derivatives = torch.stack([q_dot.squeeze(-1)[:, 0], q_ddot[:, 0], q_dot.squeeze(-1)[:, 1], q_ddot[:, 1]], dim=1)  # Shape: [Batch, 4]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: stack expects each tensor to be equal size, but got [1024] at entry 0 and [1024, 2] at entry 1
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:38:53.308783
+CONFIG: Layer=more_informed_ude, Ver=v146, BS=512, SinCos=True, Norm=False
+ERROR: stack expects each tensor to be equal size, but got [512] at entry 0 and [512, 2] at entry 1
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1134, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1047, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 729, in forward
+    derivatives = torch.stack([q_dot.squeeze(-1)[:, 0], q_ddot[:, 0], q_dot.squeeze(-1)[:, 1], q_ddot[:, 1]], dim=1)  # Shape: [Batch, 4]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: stack expects each tensor to be equal size, but got [512] at entry 0 and [512, 2] at entry 1
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:39:14.282790
+CONFIG: Layer=more_informed_ude, Ver=v145, BS=1024, SinCos=True, Norm=False
+ERROR: stack expects each tensor to be equal size, but got [1024] at entry 0 and [1024, 2] at entry 1
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1134, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1047, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 729, in forward
+    derivatives = torch.stack([q_dot.squeeze(-1)[:, 0], q_ddot[:, :, 0], q_dot.squeeze(-1)[:, 1], q_ddot[:, :, 1]], dim=1)  # Shape: [Batch, 4]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: stack expects each tensor to be equal size, but got [1024] at entry 0 and [1024, 2] at entry 1
+==============================
+
+==============================
+TIMESTAMP: 2025-12-13 23:39:19.460652
+CONFIG: Layer=more_informed_ude, Ver=v146, BS=512, SinCos=True, Norm=False
+ERROR: stack expects each tensor to be equal size, but got [512] at entry 0 and [512, 2] at entry 1
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 558, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1134, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1047, in integration
+    k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 729, in forward
+    derivatives = torch.stack([q_dot.squeeze(-1)[:, 0], q_ddot[:, :, 0], q_dot.squeeze(-1)[:, 1], q_ddot[:, :, 1]], dim=1)  # Shape: [Batch, 4]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: stack expects each tensor to be equal size, but got [512] at entry 0 and [512, 2] at entry 1
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 00:39:18.174546
+CONFIG: Layer=more_informed_ude, Ver=v145, BS=64, SinCos=True, Norm=False
+ERROR: cannot access local variable 'loss' where it is not associated with a value
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 567, in train_nn_model
+    loss.backward()
+    ^^^^
+UnboundLocalError: cannot access local variable 'loss' where it is not associated with a value
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 00:40:48.459634
+CONFIG: Layer=more_informed_ude, Ver=v145, BS=64, SinCos=True, Norm=False
+ERROR: cannot access local variable 'vloss' where it is not associated with a value
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 584, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 615, in train_nn_model
+    val_running_loss += vloss.item()
+                        ^^^^^
+UnboundLocalError: cannot access local variable 'vloss' where it is not associated with a value
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 16:32:45.504629
+CONFIG: Layer=ude, Ver=v150, BS=512, SinCos=True, Norm=False
+ERROR: mat1 and mat2 shapes cannot be multiplied (333x7 and 6x256)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 626, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 481, in main
+    M, C, D, G = dyn_layer.predict_matrices(X_matrices_test_i)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 487, in predict_matrices
+    outputs = self.net(x)
+              ^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (333x7 and 6x256)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 16:34:58.233048
+CONFIG: Layer=ude, Ver=v150, BS=512, SinCos=True, Norm=False
+ERROR: could not broadcast input array from shape (333,1) into shape (333,)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 626, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 488, in main
+    Y_matrices_pred_i_np[:,4] = C[:,0].detach().cpu().numpy()    # c1
+    ~~~~~~~~~~~~~~~~~~~~^^^^^
+ValueError: could not broadcast input array from shape (333,1) into shape (333,)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 16:37:58.308881
+CONFIG: Layer=ude, Ver=v150, BS=512, SinCos=True, Norm=False
+ERROR: could not broadcast input array from shape (333,1) into shape (333,)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 627, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 493, in main
+    Y_matrices_pred_i_np[:,8] = G[:,0].detach().cpu().numpy()    # G1
+    ~~~~~~~~~~~~~~~~~~~~^^^^^
+ValueError: could not broadcast input array from shape (333,1) into shape (333,)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 16:43:23.118871
+CONFIG: Layer=more_informed_ude, Ver=v150, BS=64, SinCos=True, Norm=False
+ERROR: [Errno 2] No such file or directory: 'branch1/models\\integrator\\more_informed_ude\\v150\\rnn.pth'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 628, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 444, in main
+    model, history_full = load_model(model = model,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 922, in load_model
+    model.load_state_dict(torch.load(model_path))
+                          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\serialization.py", line 1425, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\serialization.py", line 751, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\serialization.py", line 732, in __init__
+    super().__init__(open(name, mode))
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'branch1/models\\integrator\\more_informed_ude\\v150\\rnn.pth'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 16:44:14.536444
+CONFIG: Layer=more_informed_ude, Ver=v145, BS=64, SinCos=True, Norm=False
+ERROR: Expected all tensors to be on the same device, but found at least two devices, cpu and cuda:0! (when checking argument for argument mat1 in method wrapper_CUDA_addmm)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 628, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 481, in main
+    M, C, D, G = dyn_layer.predict_matrices(X_matrices_test_i)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 864, in predict_matrices
+    outputs = self.net(x)
+              ^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Expected all tensors to be on the same device, but found at least two devices, cpu and cuda:0! (when checking argument for argument mat1 in method wrapper_CUDA_addmm)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 16:48:03.694350
+CONFIG: Layer=more_informed_ude, Ver=v145, BS=64, SinCos=True, Norm=False
+ERROR: Expected all tensors to be on the same device, but found at least two devices, cpu and cuda:0! (when checking argument for argument mat1 in method wrapper_CUDA_addmm)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 629, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 482, in main
+    M, C, D, G = dyn_layer.predict_matrices(X_matrices_test_i)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 864, in predict_matrices
+    outputs = self.net(x)
+              ^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Expected all tensors to be on the same device, but found at least two devices, cpu and cuda:0! (when checking argument for argument mat1 in method wrapper_CUDA_addmm)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 16:49:26.036211
+CONFIG: Layer=informed_ude, Ver=v150, BS=64, SinCos=True, Norm=False
+ERROR: Expected all tensors to be on the same device, but found at least two devices, cpu and cuda:0! (when checking argument for argument mat1 in method wrapper_CUDA_addmm)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 629, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 482, in main
+    M, C, D, G = dyn_layer.predict_matrices(X_matrices_test_i)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 646, in predict_matrices
+    raw_out = self.net(x)
+              ^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Expected all tensors to be on the same device, but found at least two devices, cpu and cuda:0! (when checking argument for argument mat1 in method wrapper_CUDA_addmm)
+==============================

@@ -13,27 +13,25 @@ python -m %SCRIPT_NAME% ^
     --val_path "branch1/data_enhanced/training/val_lowfrict.csv" ^
     --test_path "branch1/data_enhanced/training/test_lowfrict.csv" ^
     --verbose ^
-    --patience 5 ^
+    --patience 25 ^
     --wd 1e-5 ^
-    --batch_size 256 ^
+    --batch_size 64 ^
     --optimizer_type "adam" ^
-    --scheduler_type "plateau" ^
-    --loss_type "mse" ^
+    --scheduler_type "onecycle" ^
+    --loss_type "mae" ^
     --curriculum_steps 2 4 ^
     --epochs_per_stage 2 2 ^
     --lrs 1e-3 5e-4 ^
     --integrator "rk4" ^
-    --dynlayer "nn" ^
+    --dynlayer "more_informed_ude" ^
     --activation "softplus" ^
     --fixed_l1 ^
     --fixed_l2 ^
     --fixed_m1 ^
     --fixed_m2 ^
     --fixed_b1 ^
-    --version "exp_norm" ^
-    --sin_cos_transform ^
-    --normalization ^
-    --training
+    --version "v145" ^
+    --sin_cos_transform
 
 REM Controllo errori
 if %errorlevel% neq 0 (
