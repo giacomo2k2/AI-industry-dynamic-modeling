@@ -1,0 +1,92 @@
+\section{Background and Motivation}
+
+\begin{frame}
+	\frametitle{Double Pendulum}
+	
+	\begin{figure}
+		\includegraphics[width=0.3\linewidth]{double_pendulum.png}
+		\caption{Double Pendulum.}
+	\end{figure}
+
+    \vspace{1em}
+
+    For the sake of simplicity, we refer to the state as $q = [\theta_1, \theta_2]^T$.
+
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Double Pendulum Equations}
+    \footnotesize % Reduce the font size for better readability
+
+    %The state is defined as $q = [\theta_1, \theta_2]^T$.
+    
+    \vspace{1em}
+    
+    \textbf{Inertia Matrix} $M(q)$
+    \begin{equation}
+        \begin{bmatrix}
+            (m_1{+}m_2)l_1^2 + m_2l_2^2 + 2m_2l_1l_2 \cos(q_2) & m_2l_2^2 + m_2l_1l_2 \cos(q_2) \\
+            m_2l_2^2 + m_2l_1l_2 \cos(q_2) & m_2l_2^2
+        \end{bmatrix}
+    \end{equation}
+
+    \vspace{1em}
+    
+    \textbf{Gravity Vector} $G(q)$
+    \begin{equation}
+        G(q) = \begin{bmatrix}
+            (m_1{+}m_2)g l_1 \sin(q_1) + m_2 g l_2 \sin(q_1{+}q_2) \\
+            m_2 g l_2 \sin(q_1{+}q_2)
+        \end{bmatrix}
+    \end{equation}
+    
+    % 3. Damping & Coriolis
+    \vspace{1em}
+    \begin{columns}[T]
+        \begin{column}{0.4\textwidth}
+            \textbf{Damping} $D$
+            \begin{equation}
+                D =
+                \begin{bmatrix}
+                    b_1 & 0 \\
+                    0 & b_2
+                \end{bmatrix}
+            \end{equation}
+        \end{column}
+        
+        \begin{column}{0.57\textwidth}
+            \textbf{Coriolis Vector} 
+            \begin{equation}
+                \mathbf{c}(\mathbf{q}, \dot{\mathbf{q}}) = 
+                \begin{bmatrix}
+                    -m_2 l_1 l_2 s_2 (2\dot{\theta}_1 + \dot{\theta}_2)\dot{\theta}_2 \\
+                    m_2 l_1 l_2 s_2 \dot{\theta}_1^2
+                \end{bmatrix}
+            \end{equation}
+        \end{column}
+    \end{columns}
+
+    \vspace{1em}
+    
+    \textbf{Dynamics Equation}
+    \begin{equation}
+        M(q)\ddot{q} + \mathbf{c}(q, \dot{q}) + D\dot{q} + G(q) = u
+    \end{equation}
+
+   
+\end{frame}
+
+\begin{frame}
+    \frametitle{Motivation}
+
+    \begin{itemize}
+        \item Real physical systems are chaotic and non-linear
+        \item Parameter estimation with sensor is expensive and noisy
+        \item ...
+        \item ...
+    \end{itemize}
+
+\end{frame}
+
+
