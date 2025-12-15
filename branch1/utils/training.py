@@ -494,7 +494,7 @@ def train_nn_model(
     verbose=False,
 
     show_grad = False,
-    show_lrs = False,
+    show_lrs = False,   
     **fit_params,
 ):
     # --- Model to device ---
@@ -558,13 +558,14 @@ def train_nn_model(
                 xb, yb = xb.to(device), yb.to(device)
                 optimizer.zero_grad()
                 y_pred = model(xb)
-
+               
                 if loss_type == 'mse':
                     loss = loss_fn(y_pred, yb) 
                 elif loss_type == 'mae':
                     loss = loss_fn(y_pred, yb)
                 elif loss_type == 'physics':
                     loss = loss_fn(y_pred, yb, model=model)
+                
 
                 loss.backward()
 
@@ -613,7 +614,8 @@ def train_nn_model(
                             vloss = loss_fn(y_pred, yb)
                         elif loss_type == 'physics':
                             vloss = loss_fn(y_pred, yb, model=model)
-
+                        
+                            
                         val_running_loss += vloss.item()
                         val_batches += 1
                 val_loss = val_running_loss / max(val_batches, 1)
@@ -904,6 +906,8 @@ class LagrangianLoss(nn.Module):
         loss_physics = torch.mean(res_1_norm**2) + torch.mean(res_2_norm**2)
         
         return loss_physics
+
+
     
 # ============================================================
 # ================ Loading and Saving Models =================

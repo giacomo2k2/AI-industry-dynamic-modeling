@@ -643,6 +643,7 @@ class DynUDE_Informed(nn.Module):
         x = x.requires_grad_(True)
         
         # Predizione parametri grezzi
+        
         raw_out = self.net(x)
 
         if self.normalization:

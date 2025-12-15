@@ -4056,3 +4056,314 @@ Traceback (most recent call last):
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 RuntimeError: Expected all tensors to be on the same device, but found at least two devices, cpu and cuda:0! (when checking argument for argument mat1 in method wrapper_CUDA_addmm)
 ==============================
+
+==============================
+TIMESTAMP: 2025-12-14 22:06:46.381236
+CONFIG: Layer=more_informed_ude, Ver=v170, BS=128, SinCos=True, Norm=False
+ERROR: cannot access local variable 'xb' where it is not associated with a value
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 630, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 375, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 546, in train_nn_model
+    xb=xb,
+       ^^
+UnboundLocalError: cannot access local variable 'xb' where it is not associated with a value
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 22:08:48.409419
+CONFIG: Layer=more_informed_ude, Ver=v170, BS=128, SinCos=True, Norm=False
+ERROR: rollout_loss() got an unexpected keyword argument 'sin_cos_transform'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 630, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 375, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 572, in train_nn_model
+    loss, debug_dict = rollout_loss(
+                       ^^^^^^^^^^^^^
+TypeError: rollout_loss() got an unexpected keyword argument 'sin_cos_transform'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 22:13:23.202439
+CONFIG: Layer=more_informed_ude, Ver=v170, BS=128, SinCos=True, Norm=False
+ERROR: rollout_loss() got an unexpected keyword argument 'sin_cos_transform'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 630, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 375, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 572, in train_nn_model
+    loss, debug_dict = rollout_loss(
+                       ^^^^^^^^^^^^^
+TypeError: rollout_loss() got an unexpected keyword argument 'sin_cos_transform'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 22:14:02.302627
+CONFIG: Layer=more_informed_ude, Ver=v170, BS=128, SinCos=True, Norm=False
+ERROR: mat1 and mat2 shapes cannot be multiplied (128x7 and 6x256)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 630, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 375, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 572, in train_nn_model
+    loss, debug_dict = rollout_loss(
+                       ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 965, in rollout_loss
+    M,C,D,G = dyn_layer.predict_matrices(xb[:,t,:])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 864, in predict_matrices
+    outputs = self.net(x)
+              ^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (128x7 and 6x256)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 22:14:52.143413
+CONFIG: Layer=informed_ude, Ver=v170, BS=128, SinCos=True, Norm=False
+ERROR: mat1 and mat2 shapes cannot be multiplied (128x7 and 6x256)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 630, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 375, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 572, in train_nn_model
+    loss, debug_dict = rollout_loss(
+                       ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 965, in rollout_loss
+    M,C,D,G = dyn_layer.predict_matrices(xb[:,t,:])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 646, in predict_matrices
+    raw_out = self.net(x)
+              ^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (128x7 and 6x256)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 22:19:36.198084
+CONFIG: Layer=informed_ude, Ver=v170, BS=128, SinCos=True, Norm=False
+ERROR: mat1 and mat2 shapes cannot be multiplied (128x7 and 6x256)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 630, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 375, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 572, in train_nn_model
+    loss, debug_dict = rollout_loss(
+                       ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 966, in rollout_loss
+    M,C,D,G = dyn_layer.predict_matrices(xb[:,t,:])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 646, in predict_matrices
+    raw_out = self.net(x)
+              ^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (128x7 and 6x256)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 22:22:08.831790
+CONFIG: Layer=informed_ude, Ver=v170, BS=128, SinCos=True, Norm=False
+ERROR: mat1 and mat2 shapes cannot be multiplied (128x7 and 6x256)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 630, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 375, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 572, in train_nn_model
+    loss, debug_dict = rollout_loss(
+                       ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 966, in rollout_loss
+    M,C,D,G = dyn_layer.predict_matrices(xb[:,t,:])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 647, in predict_matrices
+    raw_out = self.net(x)
+              ^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\container.py", line 250, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (128x7 and 6x256)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 22:32:07.637972
+CONFIG: Layer=more_informed_ude, Ver=v170, BS=128, SinCos=True, Norm=False
+ERROR: 'tuple' object has no attribute 'size'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 629, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 375, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 565, in train_nn_model
+    loss = loss_fn(y_pred, yb)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\loss.py", line 128, in forward
+    return F.l1_loss(input, target, reduction=self.reduction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\functional.py", line 3800, in l1_loss
+    if not (target.size() == input.size()):
+                             ^^^^^^^^^^
+AttributeError: 'tuple' object has no attribute 'size'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-14 22:32:12.730752
+CONFIG: Layer=informed_ude, Ver=v170, BS=128, SinCos=True, Norm=False
+ERROR: 'tuple' object has no attribute 'size'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 629, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 375, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 565, in train_nn_model
+    loss = loss_fn(y_pred, yb)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\loss.py", line 128, in forward
+    return F.l1_loss(input, target, reduction=self.reduction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\functional.py", line 3800, in l1_loss
+    if not (target.size() == input.size()):
+                             ^^^^^^^^^^
+AttributeError: 'tuple' object has no attribute 'size'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-15 02:28:23.583710
+CONFIG: Layer=informed_ude, Ver=v170, BS=128, SinCos=True, Norm=False
+ERROR: torch.linalg.solve: (Batch element 21): The solver failed because the input matrix is singular.
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 628, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 374, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 560, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1332, in forward
+    res, der = self.integration(y0, T, aux)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1260, in integration
+    k2 = self.f(k2_input) # NB: we assume f returns derivatives in physical space
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 633, in forward
+    q_ddot_est = torch.linalg.solve(M, b)
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+torch._C._LinAlgError: torch.linalg.solve: (Batch element 21): The solver failed because the input matrix is singular.
+==============================
