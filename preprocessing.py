@@ -176,7 +176,7 @@ def optimize_threshold(
 
     return best_threshold
 
-def add_white_noise(df: pd.DataFrame, std: float = 0.01) -> pd.DataFrame:
+def add_white_noise(df: pd.DataFrame, std: float = 0.1) -> pd.DataFrame:
     """
     Add white Gaussian noise to the state variables of the dataframe.
     

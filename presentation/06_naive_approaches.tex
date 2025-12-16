@@ -1,0 +1,98 @@
+\section{Naive Approaches}
+
+
+%\subsection{Hamiltonian Neural Networks (HNN)}
+\begin{frame}{Hamiltonian Neural Networks (HNN)}
+    Choosing the Hamiltonian would be the \textbf{best option} but a set of \textbf{canonical variables} is needed
+
+    \vspace{-1em}
+    
+    $$ z = [q, p]^{\top}$$
+
+    where $\mathbf{p}$ are the generalized moments.
+
+    \par Given the \textbf{Hamiltonian} as $\mathcal{H}$, it's possible to find the dynamics with: 
+
+    $$\frac{dq}{dt} = \frac{d\mathcal{H}}{dp}, \frac{dp}{dt} = -\frac{d\mathcal{H}}{dq}$$
+    
+    It's possible to use an MLP neural network that learns the Hamiltonian $\mathcal{H}_\theta$ and a loss that enforces the dynamics: 
+
+    $$\mathcal{L}_{HNN} =  \left \lVert \frac{d\mathcal{H}_\theta}{dp} - \frac{\partial q}{\partial t} \right \rVert_2 + \left \lVert \frac{d\mathcal{H}_\theta}{dq} + \frac{\partial p}{\partial t} \right   \rVert_2$$
+
+    Two problems of momenta: 
+
+    \begin{itemize}
+        \item they depend on the parameters of the system
+        \item more importantly they depend on the coupled dynamics not known
+    \end{itemize}
+    
+    
+\end{frame}
+
+
+%\subsection{Parameters Predictor}
+\begin{frame}{Entries Prediction}
+    Remembering equation (4), is it necessary to know matrices structure thoroughly?
+    \begin{block}{Matrices Structure}
+        \par\textbf{Goal} $\rightarrow$  \textbf{Graybox} approach $+$ insights on system properties. 
+        \par\textbf{GT (Ground Truth)} $\rightarrow$ \textbf{Newton-Euler} algorithms. \\
+        \par\textbf{Application}: \textbf{Quick inference} for control purposes. \\
+    \end{block}
+    \begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{stock3.png}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Entries Prediction - Considerations}
+    \begin{itemize} 
+        \item \textbf{Advantages}:Quick training, very good results.
+        \item \textbf{Disadvantages}: Requires GT values for matrices entries.
+        \item We would like to obtain the same results \textbf{without} knowing the entries.
+    \end{itemize}
+\end{frame}
+
+
+
+
+
+
+
+% \begin{frame}
+%     \frametitle{Assumptions for Matrices Entries Estimation}
+
+%     Assumptions
+%     \begin{itemize}
+%         \item the pendulum is always the same
+%         \item physical parameters don't change over time
+%     \end{itemize}
+
+%     Known
+%     \begin{itemize}
+%         \item dynamics of the system
+%         \item state at each time step 
+%         \item some matrices entries (optional)
+%     \end{itemize}
+    
+%     Goal
+%     \begin{itemize}
+%         \item estimate unknown matrices entries
+%     \end{itemize}
+
+% \end{frame}
+
+% \begin{frame}
+%     \frametitle{NN for Matrices Entries Estimation}
+
+%     The first approach we propose is to use a NN that simply learns the entries of the matrices.
+
+%     Requirements
+%     \begin{itemize}
+%         \item GT values for matrices in dataset
+%     \end{itemize}
+
+%     \begin{figure}
+%         \centering
+%         \includegraphics[width=0.4\textwidth]{images/entries_NN.png}
+%     \end{figure}
+

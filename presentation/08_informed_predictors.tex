@@ -1,0 +1,128 @@
+\section{Neural Networks with Physical Structure}
+
+
+
+\begin{frame}{Informed UDE}
+    
+        
+    \begin{block}{\textbf{Exploiting All Physical Knowledge}:}
+        \begin{itemize}
+            \item Mass matrix $\mathbf{M}$: \textbf{Positive definite} and \textbf{symmetric}.
+            \item Friction: \textbf{Positive definite}, \textbf{diagonal/constant} matrix.
+            \item Last term in $\mathbf{M}(\mathbf{q})$ matrix is constant as well as $\mathbf{d_{11}}$ and $\mathbf{d_{22}}$ in $\mathbf{D}$ which is diagonal.
+        \end{itemize}
+    \end{block}
+    \vspace{1em}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.4\textwidth]{stock2.png}
+    \end{figure}
+    
+\end{frame}
+
+\begin{frame}
+    \begin{itemize}      
+        \item \textbf{Implementation}: Use of \textbf{Cholesky decomposition} to guarantee $\mathbf{M}$ positive definite.
+        \item \textbf{Better} takes less to converge, more stable.
+        \item \textbf{Troubles} in estimating entries in highly chaotic regions.
+    \end{itemize}
+
+    \textbf{Can we plug in even more knowledge?}
+\end{frame}
+
+
+% \begin{frame}
+%     \frametitle{Informed UDE for Matrices Entries Estimation}
+
+%     We can enhance the UDE approach `informing' better our UDE
+
+%     \begin{figure}
+%         \centering
+%         \includegraphics[width=0.4\textwidth]{images/informed_UDE.png}
+%     \end{figure}
+
+%      \begin{figure}
+%         \centering
+%         \includegraphics[width=0.4\textwidth]{images/better_informed_UDE.png}
+%     \end{figure}
+
+% \end{frame}
+
+
+% \begin{frame}
+%     \frametitle{Results for Physical Parameters Estimation}
+
+%     Learning directly on the entries makes the task easy.
+
+%     Gauge invariance issue can affect the estimation using UDE. 
+
+%     Informing better UDE helps a lot. 
+
+%     \begin{figure}
+%         \centering
+%         \includegraphics[width=0.7\textwidth]{images/matirces_entries_results.png}
+%     \end{figure}
+% \end{frame}
+
+
+
+
+
+\begin{frame} {Structured Lagrangian Neural Network (SLNN) - Architecture (1)}
+    
+        Instead of learning a black box $\mathcal{L}$ it is possible to expolit known physical properties of mechanical systems. 
+
+        $$ \mathcal{L} = T - V = \frac{1}{2} \dot{q}^{\top} M \dot {q} - V$$
+        \begin{itemize}
+            \item  To learn a positive definite $M$ it is possible to use \textbf{Cholesky decomposition}: 
+                    $$M = L L^{\top}$$
+
+                    Where $L$ is a learned \textbf{lower triangular} matrix and \textbf{softplus} is applied to its diagonal entries. 
+            
+            \item The potential energy $V$ is learned via an MPL that has as inputs the state
+            \item Additional: \textbf{friction} matrix learned and rendered positive definite via softplus
+
+        \end{itemize}
+               
+\end{frame}
+
+\begin{frame} {Structured Lagrangian Neural Network (SLNN) - Architecture (2)}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.5\linewidth]{stock.png} \\
+        \vspace{-1em}
+    \end{figure}
+
+\end{frame}
+
+
+\begin{frame}{Structured Lagrangian Neural Network (SLNN) - Comparison LNN vs SLNN vs Baseline}
+    
+    % Define commands (It is better to put these in the preamble, but they work here)
+    \newcommand{\cmark}{\textcolor{green!70!black}{\ding{51}}} 
+    \newcommand{\xmark}{\textcolor{red}{\ding{55}}}             
+
+    % This makes the \thead headers bold automatically
+    \renewcommand\theadfont{\bfseries}
+
+    \centering
+        % 4 columns: 1 for Metric name, 3 for the models
+        \begin{tabular}{cccc}
+            \toprule
+            \textbf{Metric} & \textbf{Baseline} & \textbf{LNN} & \textbf{SLNN} \\
+            \midrule
+            Energy conservation         & \xmark & \cmark & \cmark \\
+            Friction                    & \cmark & \xmark & \cmark \\
+            Broken physics sensitivity  & \xmark & \cmark & \cmark \\
+            Stable                      & \cmark & \xmark & \cmark \\
+            Not-only mechanical systems & \cmark & \cmark & \xmark \\
+            \bottomrule
+    \end{tabular}
+
+    \vspace{3em}
+
+    It's possible to add different \textbf{modules} to SLNN such as friction to learn different models. 
+
+\end{frame}
+
+

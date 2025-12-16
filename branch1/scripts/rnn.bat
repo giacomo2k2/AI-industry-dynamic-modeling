@@ -9,19 +9,19 @@ set SCRIPT_NAME=branch1.main.rnn
 echo Avvio rnn.py ...
 
 python -m %SCRIPT_NAME% ^
-    --train_path "branch1/data_enhanced/training/train_lowfrict.csv" ^
-    --val_path "branch1/data_enhanced/training/val_lowfrict.csv" ^
-    --test_path "branch1/data_enhanced/training/test_lowfrict.csv" ^
+    --train_path "branch1/data_enhanced/training_EC_WN/train_lowfrict.csv" ^
+    --val_path "branch1/data_enhanced/training_EC_WN/val_lowfrict.csv" ^
+    --test_path "branch1/data_enhanced/training_EC_WN/test_lowfrict.csv" ^
     --verbose ^
-    --patience 25 ^
+    --patience 20 ^
     --wd 1e-5 ^
-    --batch_size 64 ^
+    --batch_size 32 ^
     --optimizer_type "adam" ^
     --scheduler_type "onecycle" ^
     --loss_type "mae" ^
-    --curriculum_steps 2 4 ^
-    --epochs_per_stage 2 2 ^
-    --lrs 1e-3 5e-4 ^
+    --curriculum_steps 2 4 8 16 32 ^
+    --epochs_per_stage 80 60 40 20 10 ^
+    --lrs 5e-3 1e-3 5e-4 5e-4 1e-4 ^
     --integrator "rk4" ^
     --dynlayer "more_informed_ude" ^
     --activation "softplus" ^
@@ -30,8 +30,10 @@ python -m %SCRIPT_NAME% ^
     --fixed_m1 ^
     --fixed_m2 ^
     --fixed_b1 ^
-    --version "v145" ^
-    --sin_cos_transform
+    --version "v_200" ^
+    --sin_cos_transform ^
+    --sample_weights ^
+    --training
 
 REM Controllo errori
 if %errorlevel% neq 0 (

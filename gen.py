@@ -12,8 +12,8 @@ def main(
         m2=1.8, 
         l1=1.2, 
         l2=1.0, 
-        b1=0.3, 
-        b2=0.3
+        b1=0.0, 
+        b2=0.0
 ):
 
     n_pendulums = 100
@@ -92,11 +92,11 @@ if __name__ == '__main__':
 
     #WARNING PAY ATTENTION TO THE DIRECTORY IT GOES TO: WE HAVE CHANGED IT TO OUR BRANCH
     main(
-        save_path='branch1/data_no_modulo/raw/single_pendulum_lowfrict.csv',
+        save_path='branch1/data_enhanced/raw/ZV/double_pendulum_highfrict_zv.csv',
         m1=2.2,
         m2=1.8,
         l1=1.2,
         l2=1.0,
-        b1=0.3,
-        b2=0.3
+        b1=3.0,
+        b2=3.0
     )

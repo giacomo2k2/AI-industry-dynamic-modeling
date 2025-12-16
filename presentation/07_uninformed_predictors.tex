@@ -1,0 +1,114 @@
+
+\begin{frame}{UDE – Uninformed}
+        \par\textbf{Premise}: \textbf{Universal Differential Equations}. 
+        \par\textbf{Model Layers}: Can we exploit past Architecture?.
+        \begin{figure}
+            \centering
+            \includegraphics[width=0.4\textwidth]{stock2.png}
+        \end{figure}
+        
+\end{frame}
+
+
+\begin{frame} {UDE – Uninformed - Considerations}
+    \begin{block} {Matrix Inversion}
+        \par The equations of motion can be rewritten as:
+        $$\ddot{\mathbf{q}} = \mathbf{M}(\mathbf{q})^{-1} [\mathbf{C}(\mathbf{q}, \dot{\mathbf{q}}) \dot{\mathbf{q}} + \mathbf{D} \dot{\mathbf{q}} + \mathbf{G}(\mathbf{q})]$$
+    \end{block}
+    \vspace{1em}
+    \begin{itemize}
+        \item Much time to converge: RK4 integration combined with deep backpropagation.
+        \item Not constrained : no physical knowledge, not even good sense.
+        \item \textbf{Initial Results}: Often \textbf{poor results} due to instability.
+        \item \textbf{Ill-Posing}: Many \textbf{degrees of indeterminacy}.
+    \end{itemize}
+\end{frame}
+
+
+
+
+\begin{frame}{Lagrangian Neural Networks (LNN) - Architecture}
+    Euler-Lagrange equation can be \textbf{discretized} and expanded with chain rule
+
+    $$ \frac{d}{dt} \nabla_{\dot{q}} \mathcal{L} - \nabla_{q} \mathcal{L} = 0 \rightarrow
+    \bigl(\nabla_{\dot{q}} \nabla_{\dot{q}}^{\top} \mathcal{L}\bigr) \ddot{q} +
+    \bigl(\nabla_{q} \nabla_{\dot{q}}^{\top} \mathcal{L}\bigr) \dot{q} = \nabla_{q} \mathcal{L} $$ 
+
+    Since the hessian $\nabla_{\dot{q}} \nabla_{\dot{q}}^{\top} \mathcal{L}$, which is the \textbf{Inertia matrix}, is positive definite:
+
+    $$ \ddot{q} = \bigl(\nabla_{\dot{q}} \nabla_{\dot{q}}^{\top} \mathcal{L}\bigr)^{-1} \biggl[ \nabla_{q} \mathcal{L} - \bigl(\nabla_{q} \nabla_{\dot{q}}^{\top} \mathcal{L}\bigr) \dot{q}  \biggr]$$ 
+
+    $\mathcal{L}$ is the output of a black box neural network, while the Lagrangian Equation is computed through internal chains of gradients in the network
+
+    \begin{figure}[T]
+            \centering
+            \includegraphics[width=0.3\linewidth]{stock.png} \\
+            \vspace{-1em}
+    \end{figure} 
+
+\end{frame}
+
+
+\begin{frame}{Lagrangian Neural Networks (LNN) - Results}
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \centering
+            \textbf{Evolution testing}
+            \begin{figure}[h]
+                    \centering
+                    \includegraphics[width=0.4\linewidth]{stock.png} \\
+                    \vspace{-1em}
+            \end{figure}    
+        
+        \end{column}
+
+        \begin{column}{0.5\textwidth}
+            \centering
+            \textbf{Energy drift LNN vs baseline}
+            \begin{figure}[T]
+                    \centering
+                    \includegraphics[width=0.4\linewidth]{stock.png} \\
+                    \vspace{-1em}
+            \end{figure} 
+            
+        \end{column}
+    \end{columns}
+\end{frame}
+
+
+\begin{frame}{Lagrangian Neural Networks (LNN) - Considerations}
+    \begin{itemize}
+        \item Almost perfect \textbf{Energy} conservation
+        \item positive definiteness of \textbf{Hessian} is not guaranteed being $\mathcal{L}$ black box, causing \textbf{instability}
+        \item \textbf{Batch Size}: Very small $\rightarrow$ need for \textbf{noisy gradients} to escape shallow loss regions (as suggested in literature).
+        \item \textbf{Speed Issues}: Hessian computation is expensive.
+        \item \textbf{Anomaly}: Difficulty learning \textbf{non-conservative systems} or systems with \textbf{broken physics}.
+
+        \begin{columns}[T]
+            \begin{column}{0.5\textwidth}
+                \centering
+                \begin{figure}[h]
+                        \centering
+                        \includegraphics[width=0.4\linewidth]{stock.png} \\
+                        \vspace{-1em}
+                        \caption{loss descent - correct physics}
+                \end{figure}    
+            
+            \end{column}
+
+            \begin{column}{0.5\textwidth}
+                \centering
+                \begin{figure}[T]
+                        \centering
+                        \includegraphics[width=0.4\linewidth]{stock.png} \\
+                        \vspace{-1em}
+                        \caption{loss descent - broken physics}
+                \end{figure} 
+                
+            \end{column}
+        \end{columns}
+
+
+    \end{itemize}
+\end{frame}
+

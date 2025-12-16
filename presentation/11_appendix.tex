@@ -1,0 +1,60 @@
+\section{Appendix}
+
+\subsection{Appendix A - Double Pendulum Dynamics}
+\label{subsec:appendixA}
+\begin{frame}{Appendix A - Double Pendulum Dynamics}
+    The dynamic model can be expressed in matrix form as:
+    \begin{equation}
+        \boxed{M(\mathbf{q})\ddot{\mathbf{q}} + \mathbf{c}(\mathbf{q}, \dot{\mathbf{q}}) + D\dot{\mathbf{q}} + G(\mathbf{q}) = \mathbf{\tau}}
+    \end{equation}
+
+    \vspace{1.5em}
+    \footnotesize 
+    
+    % --- RIGA 1: Inertia e Gravity ---
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Inertia Matrix} $M(\mathbf{q}) = M(\mathbf{q})^\top \in \mathbb{R}^4  \succ 0$:
+            \begin{equation*}
+                \begin{bmatrix}
+                    (m_1+m_2)l_1^2 + m_2l_2^2 + 2m_2l_1 l_2c_2 & m_2l_2^2 + m2l_1l_2c_2\\
+                    m_2l_2^2 +m_2l_1l_2c_2 & m_2l_2^2
+                \end{bmatrix}
+            \end{equation*}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \textbf{Gravity Vector} $G(\mathbf{q})$:
+            \begin{equation*}
+                \begin{bmatrix}
+                    (m_1+m_2)gl_1s_1 + m_2gl_2s_{12} \\
+                    m_2gl_2s_{12}
+                \end{bmatrix}
+            \end{equation*}
+        \end{column}
+    \end{columns}
+    
+    \vspace{2.5em} % Spazio tra le righe
+    
+    % --- RIGA 2: Coriolis e Damping ---
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Coriolis} $\mathbf{c}(\mathbf{q}, \dot{\mathbf{q}})$:
+            \begin{equation*}
+                \begin{bmatrix}
+                    -m_2 \cdot l_1 \cdot l_2 \cdot s_2 \cdot (2 \cdot \dot{q}_1 + \dot{q}_2) \cdot \dot{q}_2 \\
+                    m_2 \cdot l_1 \cdot l_2 \cdot s_2 \cdot \dot{q}_1^2
+                \end{bmatrix}
+            \end{equation*}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \textbf{Damping Matrix} $D = D^\top \succ 0$:
+            \begin{equation*}
+                \begin{bmatrix}
+                    b_1 & 0 \\
+                    0 & b_2
+                \end{bmatrix}
+            \end{equation*}
+        \end{column}
+    \end{columns}
+    \let\thefootnote\relax\footnote{\textit{Note: $s_1 = \sin(q_1), c_1 = \cos(q_1), s_{12} = \sin(q_1+q_2), c_{12} = \cos(q_1+q_2)$.}}
+\end{frame}

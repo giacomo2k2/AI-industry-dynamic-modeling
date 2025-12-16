@@ -4,7 +4,7 @@ import numpy as np
 from branch1.utils.training import (train_nn_model, plot_training_history, EarlyStopping, physics_loss, KNGLDataset, pull_data_by_ids,
                                     save_model, load_model, evaluate_model, predict_model, average_discrepancy_perc, avg_param_difference, 
                                     max_param_difference, log_recipe, turn_to_cosine_sine)
-from branch1.utils.architecture import DynLayer, EulerModel, RK4Model, device_setup, DynUDE, DynNN, DynUDE_Informed, UDE_More_Informed
+from branch1.utils.architecture import DynLayer, EulerModel, RK4Model, device_setup, DynUDE, DynNN, DynUDE_Informed, UDE_More_Informed, UDE_D_constant
 from branch1.utils.plots import plot_evolutions_comparison, plot_matrices_predictions
 from torch import nn
 import argparse
@@ -22,6 +22,7 @@ def main(
         sin_cos_transform: bool,
         normalization: bool,
         fourier_features: int,
+        sample_weights: bool,
 
         training: bool,
         patience: int,
@@ -179,7 +180,7 @@ def main(
     if fourier_features>0:
         extra_features_len = 2 * 2 * fourier_features  # q1 and q2 each with sin and cos components
     else:
-        extra_features_len = 0 
+        extra_features_len = 0    
 
     # --- Train Data ---
 
@@ -188,7 +189,50 @@ def main(
                                          xcols = X_train_columns,
                                          ycols = Y_train_columns,
                                          modify_func = modify_func) 
+    
+    # --- Sample Weights ---
 
+    train_weights = None 
+    
+    if sample_weights:
+
+        print("Number of samples in training data:", X_train.shape)
+        
+        state_vars = X_train_columns[:-1] # exclude time_step
+        
+        weights = np.ones(X_train.shape[0]*X_train.shape[1], dtype=np.float32) # inizializziamo i pesi a 1
+        
+        num_bins = 10
+
+        for var in state_vars:
+            
+            var_idx = X_feature_positions_map[var]
+
+            var_values = X_train[:, :, var_idx]
+
+            var_values = var_values.flatten()
+
+            counts, edges = np.histogram(var_values, bins=num_bins)
+            
+            bin_indices = np.digitize(var_values, edges[1:-1])
+            
+            sample_counts = counts[bin_indices]
+            
+            inv_freq = 1.0 / (sample_counts + 1e-6)
+            
+            weights *= inv_freq
+
+        weights /= np.mean(weights)
+        
+        weights = np.clip(weights, a_min=0.1, a_max=10.0) # clipping to avoid extreme weights for a single outlier
+
+        # reshape weights to match number of sequences
+        weights = weights.reshape(X_train.shape[0], X_train.shape[1])
+        
+        # Assegniamo il risultato a train_weights
+        train_weights = weights
+
+        
     # --- Val Data ---
     
     X_val, Y_val =  pull_data_by_ids(data_path=val_path, 
@@ -287,10 +331,22 @@ def main(
             normalization_map = normalization_map,
             activation=activation
         )
+    elif dynlayer == 'ude_d_constant':
+        dyn_layer = UDE_D_constant(
+            input_dim=len(X_train_columns) - 1 + extra_features_len,
+            output_dim=6,
+            sin_cos_transform = sin_cos_transform,
+            X_feature_positions_map = X_feature_positions_map,
+            Y_feature_position_map = Y_feature_position_map,
+            Y_feature_DynLayer_positions_map = Y_feature_DynLayer_positions_map,
+            normalization = normalization,
+            normalization_map = normalization_map,
+            activation=activation
+        )
         
     else:
         print(f"\n\t[ERROR] '{dynlayer}' not recognized as a valid input for dynlayer \n")
-        print("\tAvailable: \n\t -'ode' \n\t -'nn' \n\t -'ude' \n\t -'informed_ude' \n")
+        print("\tAvailable: \n\t -'ode' \n\t -'nn' \n\t -'ude' \n\t -'informed_ude' \n\t -'ude_d_constant' \n")
         exit()
 
     # --- Integrator ---
@@ -357,7 +413,8 @@ def main(
                 normalization_map=normalization_map,
                 X_feature_positions_map=X_feature_positions_map,
                 Y_feature_position_map=Y_feature_position_map,
-                fourier_features=fourier_features
+                fourier_features=fourier_features,
+                weights=train_weights
             )
 
             ds_val = KNGLDataset(
@@ -367,7 +424,8 @@ def main(
                 normalization_map=normalization_map,
                 X_feature_positions_map=X_feature_positions_map,
                 Y_feature_position_map=Y_feature_position_map,
-                fourier_features=fourier_features
+                fourier_features=fourier_features,
+                weights=None
             )
             
             # Training
@@ -549,6 +607,8 @@ if __name__ == "__main__":
     parser.add_argument('--normalization', action='store_true', default=False)
     parser.add_argument('--fourier_features', type=int, default=-1)
 
+    parser.add_argument('--sample_weights', action='store_true', default=False)
+
     parser.add_argument('--training', action='store_true', default=False)
     parser.add_argument('--verbose', action='store_true', default=False)
     parser.add_argument('--patience', type=int, default=3)
@@ -633,6 +693,7 @@ if __name__ == "__main__":
         sin_cos_transform=args.sin_cos_transform,
         normalization=args.normalization,
         fourier_features=args.fourier_features,
+        sample_weights=args.sample_weights,
 
         training=args.training,
         patience=args.patience,

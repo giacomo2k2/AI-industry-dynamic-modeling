@@ -13,6 +13,7 @@ from torch import nn
 from models import DoublePendulum
 from torch.optim.lr_scheduler import ReduceLROnPlateau, OneCycleLR
 import os
+import torch.nn.functional as F
 
 
 # ===============================================
@@ -152,39 +153,39 @@ class KNGLDataset(Dataset):
 
     '''
     Docstring for KNGLDataset
-    Custom Dataset for loading pendulum data for training neural networks.
+    Custom Dataset for loading double pendulum data for training neural networks.
     Inputs:
     - inputs: np.ndarray
-        Array of input features with shape (n_pendulums, evolution_length, 5).
+        Input data of shape (n_pendulums, evolution_length, n_features).
     - targets: np.ndarray
-        Array of target values with shape (n_pendulums, evolution_length, 4).
-    - time_steps: int
-        Number of time steps to consider for each sample.
-    - transform: callable, optional
+        Target data of shape (n_pendulums, evolution_length, n_target_features).
+    - horizon: int
+        Length of the input sequences to be used for training.
+    - transform: callable or None
         Optional transform to be applied on a sample.
-    Outputs:
-    - sample: torch.FloatTensor
-        Tensor of input features for a given sample.
-    - target: torch.FloatTensor
-        Tensor of target values for a given sample.
-    
-    Methods:
-    - __len__: returns the total number of samples in the dataset.
-    - __getitem__: retrieves a sample and its corresponding target based on the index.
-
-    
+    - X_feature_positions_map: dict
+        Mapping of feature names to their positions in the input data.
+    - Y_feature_position_map: dict
+        Mapping of feature names to their positions in the target data.
+    - normalization_map: dict or None
+        Normalization parameters for input and target features.
+    - fourier_features: int
+        Number of Fourier features to add for angular variables. If -1, no Fourier features are added.
+    - weights: np.ndarray or None
+        Sample weights of shape (n_pendulums, evolution_length)
     '''
-    def __init__(self, 
-                 inputs, # (pendulums, evolution_length, 5)
-                 targets, # (pendulums, evolution_length, 4)
-                 horizon=32,
-                 transform=None,
-                 X_feature_positions_map=None,
-                 Y_feature_position_map=None,
-                 normalization_map=None,
-                 fourier_features=-1):
-        
-
+    def __init__(
+            self, 
+            inputs, # (pendulums, evolution_length, 5)
+            targets, # (pendulums, evolution_length, 4)
+            horizon=32,
+            transform=None,
+            X_feature_positions_map=None,
+            Y_feature_position_map=None,
+            normalization_map=None,
+            fourier_features=-1,
+            weights=None
+        ):
    
         self.inputs = torch.FloatTensor(inputs)  # Converti in tensor
         self.targets = torch.FloatTensor(targets)
@@ -199,6 +200,17 @@ class KNGLDataset(Dataset):
         
         self.evolution_length = self.inputs.shape[1]
         self.n_pendulums = self.inputs.shape[0]
+
+        # Sample weights
+        if weights is not None:
+
+            self.weights = torch.FloatTensor(weights)
+            
+            if self.weights.shape[0] != self.n_pendulums or self.weights.shape[1] != self.evolution_length:
+                raise ValueError(f"Shape mismatch: Weights flat size {self.weights.shape[0]} != Data size {self.n_pendulums * self.evolution_length}")
+        else:
+            # if no weights provided, set all to 1
+            self.weights = torch.ones(self.n_pendulums, self.evolution_length)
 
         # Normalize input and output if normalization map is provided
         if self.normalization_map:
@@ -261,7 +273,7 @@ class KNGLDataset(Dataset):
                 self.inputs = torch.cat([self.inputs,
                                          torch.sin(2 * np.pi * q2_freqs.unsqueeze(0).unsqueeze(0) * q2_angles_tensor),
                                          torch.cos(2 * np.pi * q2_freqs.unsqueeze(0).unsqueeze(0) * q2_angles_tensor)], dim=-1)
-
+                
     
     def __len__(self): # il data loader con __len__ sa che può chiamare len-1 volte  
         return self.n_pendulums * (self.evolution_length - self.horizon)  # Numero totale di campioni (size 0)
@@ -273,6 +285,8 @@ class KNGLDataset(Dataset):
 
         sample = self.inputs[pendulum_idx, time_idx:time_idx+self.horizon]
         target = self.targets[pendulum_idx, time_idx:time_idx+self.horizon]
+
+        weight_seq = self.weights[pendulum_idx, time_idx : time_idx + self.horizon]
         
         if self.transform:
             sample = self.transform(sample)
@@ -283,8 +297,14 @@ class KNGLDataset(Dataset):
         #print(sample)
         #print("\nTARGET")
         #print(target)
+
+        if self.horizon == 1:
+            # if horizon is 1, squeeze the second dimension
+            # from (1, features) to (features,)
+            sample = sample.squeeze(0)
+            target = target.squeeze(0)
         
-        return sample, target  # Ritorna tupla (input, target)
+        return sample, target, weight_seq  # Ritorna tupla (input, target, weights)
     
 # ===============================================
 # ============= Modify  data ====================
@@ -475,6 +495,24 @@ def get_adam_effective_lr(optimizer, param):
     effective_lr = lr / bias_correction1 / (torch.sqrt(exp_avg_sq) + eps)
     return effective_lr
 
+@torch.jit.script
+def weighted_mse_loss(input: torch.Tensor, target: torch.Tensor, weights: torch.Tensor) -> torch.Tensor:
+    
+    loss = F.mse_loss(input, target, reduction='none')
+
+    w_expanded = weights.unsqueeze(-1)
+
+    return (loss * w_expanded).mean()
+
+@torch.jit.script
+def weighted_mae_loss(input: torch.Tensor, target: torch.Tensor, weights: torch.Tensor) -> torch.Tensor:
+    
+    loss = F.l1_loss(input, target, reduction='none')
+    
+    w_expanded = weights.unsqueeze(-1)
+    
+    return (loss * w_expanded).mean()
+
 def train_nn_model(
     model,
     device,
@@ -501,8 +539,8 @@ def train_nn_model(
     model.to(device)
 
     # --- Data Loaders ---
-    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
-    val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False)
+    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True, persistent_workers=True)
+    val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
     
     # --- Optimizer and Scheduler ---
     if optimizer_type == 'adam':
@@ -534,11 +572,14 @@ def train_nn_model(
 
     # --- Loss Function ---
     if loss_type == 'mse':
-        loss_fn = nn.MSELoss()
+        loss_train = weighted_mse_loss
+        loss_val = nn.MSELoss()
     elif loss_type == 'physics':
+        raise NotImplementedError("Physics loss is not implemented yet.")
         loss_fn = physics_loss
     elif loss_type == 'mae':
-        loss_fn = nn.L1Loss()
+        loss_train = weighted_mae_loss
+        loss_val = nn.L1Loss() 
     else:
         print(f"[ERROR] Loss function '{loss_type}' not recognized")
         print("\tAvailable: \n\t -'mse' \n\t -'physics'")
@@ -553,19 +594,14 @@ def train_nn_model(
             running_loss = 0.0
             n_batches = 0
 
-            for i, (xb, yb) in enumerate(train_loader):
+            for i, (xb, yb, weights_b) in enumerate(train_loader):
                 
-                xb, yb = xb.to(device), yb.to(device)
+                xb, yb, weights_b = xb.to(device), yb.to(device), weights_b.to(device)
+                
                 optimizer.zero_grad()
                 y_pred = model(xb)
                
-                if loss_type == 'mse':
-                    loss = loss_fn(y_pred, yb) 
-                elif loss_type == 'mae':
-                    loss = loss_fn(y_pred, yb)
-                elif loss_type == 'physics':
-                    loss = loss_fn(y_pred, yb, model=model)
-                
+                loss = loss_train(y_pred, yb, weights_b)
 
                 loss.backward()
 
@@ -604,20 +640,16 @@ def train_nn_model(
                 val_running_loss = 0.0
                 val_batches = 0
                 with torch.no_grad():
-                    for xb, yb in val_loader:
+                    for xb, yb, _ in val_loader:
+                        
                         xb, yb = xb.to(device), yb.to(device)
                         y_pred = model(xb)
 
-                        if loss_type == 'mse':
-                            vloss = loss_fn(y_pred, yb) 
-                        elif loss_type == 'mae':
-                            vloss = loss_fn(y_pred, yb)
-                        elif loss_type == 'physics':
-                            vloss = loss_fn(y_pred, yb, model=model)
-                        
-                            
+                        vloss = loss_val(y_pred, yb)
+
                         val_running_loss += vloss.item()
                         val_batches += 1
+
                 val_loss = val_running_loss / max(val_batches, 1)
                 history["val_loss"].append(val_loss)
 
