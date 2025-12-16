@@ -75,9 +75,9 @@ class DoublePendulum:
         Updates self.initial_state.
         """
         q1_init = np.random.uniform(-np.pi, np.pi)
-        q1_dot_init = np.random.uniform(-2, 2)
+        q1_dot_init = np.random.uniform(-0.0, 0.0)
         q2_init = np.random.uniform(-np.pi, np.pi)
-        q2_dot_init = np.random.uniform(-2, 2)
+        q2_dot_init = np.random.uniform(-0.0, 0.0)
 
         self.initial_state = np.array([q1_init, q1_dot_init, q2_init, q2_dot_init])
 
@@ -123,6 +123,9 @@ class DoublePendulum:
             [m2 * l2**2 + m2 *l1 *l2 * np.cos(q2), m2 * l2**2]
         ])
         
+
+
+
         # === 2. Coriolis and Centrifugal Forces Vector -> c(q, q_dot) = C(o, q_dot)*q_dot ===
         # Represents fictitious forces arising from rotation. Strongly non linear.
         c = np.array([

@@ -14,24 +14,6 @@ PLOT = True
 # ========================================================
 
 
-def round_to_pi(df: pd.DataFrame):
-    """
-    Wrap angles to the interval [-pi, pi].
-
-    ---
-    Args:
-        df (pd.DataFrame): Input dataframe containing angle data.
-
-    ---
-    Returns:
-        pd.DataFrame: Dataframe with angles wrapped to [-pi, pi].
-    """
-    # ATTENTION: watchout the module, in NN it may not work.
-    q = df[['q1', 'q2']].to_numpy() + np.pi
-    q = np.mod(q, 2*np.pi) - np.pi
-    df['q1'], df['q2'] = q[:,0], q[:,1]
-
-    return df
 
 def energy_check(df, tol=1e-2):
     """
@@ -69,7 +51,7 @@ def energy_check(df, tol=1e-2):
     
     return valid_df.drop(columns='dE'), list(bad)
 
-def cut_dataset(df:pd.DataFrame, threshold:float) -> pd.DataFrame:
+def cut_dataset(df:pd.DataFrame, threshold:float, min_threshold:float = None) -> pd.DataFrame:
     """
     Keep onlty the time steps lower than a time threshold.
 
@@ -82,8 +64,10 @@ def cut_dataset(df:pd.DataFrame, threshold:float) -> pd.DataFrame:
     Returns:
         pd.DataFrame: Dataframe filtered by the time threshold.
     """
-    
-    return df[df['time_step'] < threshold]
+    if min_threshold is not None:
+        return df[(df['time_step'] >= min_threshold) & (df['time_step'] < threshold)]
+    else:
+        return df[df['time_step'] < threshold]
 
 
 
@@ -108,60 +92,145 @@ def kullback_leibler(p, q, eps=1e-10, lambda_val=1.0, threshold_penalty = 0):
 
     return np.sum(p * np.log(p / q)) + lambda_val * threshold_penalty**2
 
-def optimize_threshold(df:pd.DataFrame) -> float:
+
+# def optimize_threshold(df:pd.DataFrame) -> float:
+#     """
+#     Optimize the threshold based on Kullback-Leibler divergence between the 
+#     distribution of binned angles and a uniform distribution.
+    
+#     ---
+#     Args:
+#         distr_bins (np.ndarray): Histogram bins of the angle distributions.
+#         uniform_bins (np.ndarray): Histogram bins of a uniform distribution.
+    
+#     ---
+#     Returns:
+#         float: Optimal threshold value that minimizes the KL divergence.
+#     """
+#     best_threshold = None
+#     best_kl_divergence = float('inf')
+#     kl_vector = []
+#     max_time = df['time_step'].to_numpy()[-1]
+#     thresholds_vec = np.linspace(0.0, max_time, num=100)
+
+
+
+#     for threshold in thresholds_vec:
+#         if threshold == 0.0:
+#             kl_vector.append(np.nan)
+#             continue
+        
+#         df_temp = cut_dataset(df, threshold=threshold)
+
+#         # produce bins
+#         states = df_temp[['q1', 'q2']].to_numpy()
+#         kl_divergence = 0
+
+#         for i in range(states.shape[1]):
+#             distr_bins, _ = np.histogram(states[:, i], bins=200, range=(-np.pi, np.pi), density=True)
+#             uniform_bins = np.ones_like(distr_bins) / distr_bins.size
+#             q = distr_bins / distr_bins.sum()
+#             kl_divergence += kullback_leibler(q = q, p = uniform_bins, lambda_val= 0.5, threshold_penalty= (max_time - threshold)/max_time)
+            
+#         kl_vector.append(kl_divergence)
+
+#         if kl_divergence < best_kl_divergence:
+#             best_kl_divergence = kl_divergence
+#             best_threshold = threshold
+
+
+
+#     plt.figure(figsize=(10, 6))
+#     plt.plot(thresholds_vec, kl_vector, label='KL Divergence')
+#     plt.scatter(best_threshold, best_kl_divergence, linestyle='', marker='o', color='red', label='Optimal Threshold')
+#     plt.title('Kullback-Leibler Divergence vs. Threshold')
+#     plt.xlabel('Threshold')
+#     plt.ylabel('Kullback-Leibler Divergence')
+#     plt.grid()
+#     plt.tight_layout()
+#     plt.show()
+
+#     return best_threshold
+
+
+def optimize_threshold(df: pd.DataFrame) -> float:
     """
-    Optimize the threshold based on Kullback-Leibler divergence between the 
-    distribution of binned angles and a uniform distribution.
-    
-    ---
-    Args:
-        distr_bins (np.ndarray): Histogram bins of the angle distributions.
-        uniform_bins (np.ndarray): Histogram bins of a uniform distribution.
-    
-    ---
-    Returns:
-        float: Optimal threshold value that minimizes the KL divergence.
+    Optimize the threshold based on Multivariate Kullback-Leibler divergence 
+    on the full phase space (q1, q2, q1_dot, q2_dot).
     """
     best_threshold = None
     best_kl_divergence = float('inf')
     kl_vector = []
+    
+    # 1. Prepare global parameters
     max_time = df['time_step'].to_numpy()[-1]
-    thresholds_vec = np.linspace(0.0, max_time, num=100)
+    thresholds_vec = np.linspace(0.0, max_time, num=50) # Reduced num for performance
 
+    # 2. Define global bounds for the histogram to keep bins consistent across loops
+    # Angles are always -pi to pi
+    # Velocities: we take the max absolute value seen in the whole dataset
+    max_v1 = df['q1_dot'].abs().max()
+    max_v2 = df['q2_dot'].abs().max()
+    
+    # Define ranges for: [q1, q2, q1_dot, q2_dot]
+    # We add a small buffer (+0.1) to velocity bounds to ensure no data falls on the edge
+    bounds = [
+        [-np.pi, np.pi], 
+        [-np.pi, np.pi], 
+        [-max_v1 - 0.1, max_v1 + 0.1], 
+        [-max_v2 - 0.1, max_v2 + 0.1]
+    ]
 
-
+    # 3. Main Optimization Loop
     for threshold in thresholds_vec:
         if threshold == 0.0:
             kl_vector.append(np.nan)
             continue
         
+        # Cut dataset
         df_temp = cut_dataset(df, threshold=threshold)
-
-        # produce bins
-        states = df_temp[['q1', 'q2']].to_numpy()
-        kl_divergence = 0
-
-        for i in range(states.shape[1]):
-            distr_bins, _ = np.histogram(states[:, i], bins=200, range=(-np.pi, np.pi), density=True)
-            uniform_bins = np.ones_like(distr_bins) / distr_bins.size
-            q = distr_bins / distr_bins.sum()
-            kl_divergence += kullback_leibler(q = q, p = uniform_bins, lambda_val= 0.5, threshold_penalty= (max_time - threshold)/max_time)
+        
+        # Extract full state: q1, q2, q1_dot, q2_dot
+        states = df_temp[['q1', 'q2', 'q1_dot', 'q2_dot']].to_numpy()
+        
+        # 4. Compute N-Dimensional Histogram
+        # CRITICAL: bins must be small (e.g., 10 to 15) to avoid memory explosion in 4D
+        # bins=12 means 12^4 = 20,736 bins. 
+        H, edges = np.histogramdd(states, bins=12, range=bounds, density=True)
+        
+        # Normalize Histogram to get Q (Observed Distribution)
+        # We flatten the array to treat it as a single probability vector
+        q = H.flatten()
+        q = q / (q.sum() + 1e-10) # Normalize sum to 1
+        
+        # 5. Define Target Distribution P (Uniform Reference)
+        # In a fully mixed ergodic system, we compare against a flat distribution
+        p = np.ones_like(q) / q.size
+        
+        # Calculate KL
+        # We calculate one single scalar KL for the whole 4D space
+        current_kl = kullback_leibler(
+            q=q, 
+            p=p, 
+            lambda_val=0.01, 
+            threshold_penalty=(max_time - threshold) / max_time
+        )
             
-        kl_vector.append(kl_divergence)
+        kl_vector.append(current_kl)
 
-        if kl_divergence < best_kl_divergence:
-            best_kl_divergence = kl_divergence
+        if current_kl < best_kl_divergence:
+            best_kl_divergence = current_kl
             best_threshold = threshold
 
-
-
+    # Plotting
     plt.figure(figsize=(10, 6))
-    plt.plot(thresholds_vec, kl_vector, label='KL Divergence')
-    plt.scatter(best_threshold, best_kl_divergence, linestyle='', marker='o', color='red', label='Optimal Threshold')
-    plt.title('Kullback-Leibler Divergence vs. Threshold')
-    plt.xlabel('Threshold')
-    plt.ylabel('Kullback-Leibler Divergence')
-    plt.grid()
+    plt.plot(thresholds_vec, kl_vector, label='Multivariate KL Divergence')
+    plt.scatter(best_threshold, best_kl_divergence, c='red', zorder=5, label=f'Optimal: {best_threshold:.2f}')
+    plt.title('Multivariate KL Divergence vs. Threshold')
+    plt.xlabel('Time Threshold')
+    plt.ylabel('KL Divergence (4D Phase Space)')
+    plt.grid(True, alpha=0.3)
+    plt.legend()
     plt.tight_layout()
     plt.show()
 
@@ -207,14 +276,15 @@ def process_data(path:str,
     
     processed_df, discarded = energy_check(df)
     processed_df = add_white_noise(processed_df)
-    #processed_df = round_to_pi(processed_df)
+    
 
 
     status_cols = ['q1', 'q1_dot', 'q1_dot_dot', 'q2', 'q2_dot', 'q2_dot_dot']
     status_names = [r'$q_1$', r'$\dot{q}_1$', r'$\ddot{q}_1$', r'$q_2$', r'$\dot{q}_2$',  r'$\ddot{q}_2$']
     vlim = processed_df[status_cols].abs().max().to_numpy()
 
-
+    vlim[0] = np.pi
+    vlim[3] = np.pi
     if plot:
         show_bins(processed_df, cols=status_cols, names=status_names, vlim=vlim, save=True, filename=sim_type)
 
@@ -227,6 +297,7 @@ def process_data(path:str,
     print(f"Optimal threshold for {sim_type}: {threshold}")
     processed_df = cut_dataset(processed_df, threshold=threshold)
 
+    #show_status_stats(processed_df, cols=status_cols, names=status_names, filename=sim_type)   
 
     if plot:
         show_bins(processed_df, cols=status_cols, names=status_names, vlim=vlim, save=False)
@@ -262,12 +333,12 @@ def main():
     df_nof = process_data(path = 'double_pendulum_nofrict.csv', 
                           raw_path= 'data/raw/',
                           processed_path= 'data/processed/')
-    df_lowf = process_data(path = 'double_pendulum_lowfrict.csv',
-                           raw_path= 'data/raw/',
-                           processed_path= 'data/processed/')
-    df_highf = process_data(path = 'double_pendulum_highfrict.csv',
-                            raw_path= 'data/raw/',
-                            processed_path= 'data/processed/')
+    # df_lowf = process_data(path = 'double_pendulum_lowfrict.csv',
+    #                        raw_path= 'data/raw/',
+    #                        processed_path= 'data/processed/')
+    # df_highf = process_data(path = 'double_pendulum_highfrict.csv',
+    #                         raw_path= 'data/raw/',
+    #                         processed_path= 'data/processed/')
 
 if __name__ == '__main__':
     main()

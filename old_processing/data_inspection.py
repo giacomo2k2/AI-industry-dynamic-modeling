@@ -109,6 +109,9 @@ def show_bins(df: pd.DataFrame,  cols:list, names: list, vlim: np.ndarray, save:
     # extract states
     states = pendulum_data[cols].to_numpy()
 
+    # use module on angles
+    states[:, 0] = np.mod(states[:, 0] + np.pi, 2 * np.pi) - np.pi
+    states[:, 3] = np.mod(states[:, 3] + np.pi, 2 * np.pi) - np.pi
 
     fig, axes = plt.subplots(2, 3, figsize=(12, 6))
 
@@ -124,7 +127,7 @@ def show_bins(df: pd.DataFrame,  cols:list, names: list, vlim: np.ndarray, save:
 
 
     for ax, (data, rng, title) in zip(axes.ravel(), configs):
-        ax.hist(data, bins=100, range=rng, density=True)
+        ax.hist(data, bins=200, range=rng, density=True)
         ax.set_title(f"Histogram of {title}")
         ax.set_ylabel("Density")
 
@@ -242,18 +245,18 @@ def main():
 
     files = [
         'double_pendulum_nofrict.csv',
-        'double_pendulum_lowfrict.csv',
-        'double_pendulum_highfrict.csv'
+        #'double_pendulum_lowfrict.csv',
+        #'double_pendulum_highfrict.csv'
     ]
 
     for f in files:
         # Load processed data
-        df = pd.read_csv('data/processed/'+f)
+        df = pd.read_csv('data/preprocessed/'+f)
         vlim = df[cols].abs().max().to_numpy()
 
         show_heatmap(df, cols, names = status_names,  vlim=vlim, file_name=f'plots/{f.split(".")[0]}_heatmap')
     
-    show_example('data/processed/double_pendulum_nofrict.csv', id=example_id, animate=True)
+    show_example('data/preprocessed/double_pendulum_nofrict.csv', id=example_id, animate=True)
 
 if __name__ == '__main__':
     main()
