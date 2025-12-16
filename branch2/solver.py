@@ -17,10 +17,10 @@ def solver(func: torch.nn.Module, x0: torch.Tensor, T: torch.Tensor, method: str
 def solver_step(func: torch.nn.Module,  x: torch.Tensor, dt: float, method: str = 'fe') -> torch.Tensor:
 
     if method == 'rk4':
-        k1 = func(t = None, x=x)
-        k2 = func(t = None, x=x + dt * k1 / 2)
-        k3 = func(t = None, x=x + dt * k2 / 2)
-        k4 = func(t = None, x=x + dt * k3)
+        k1 = func(t = None, x=x).clone()
+        k2 = func(t = None, x=x + dt * k1 / 2).clone()
+        k3 = func(t = None, x=x + dt * k2 / 2).clone()
+        k4 = func(t = None, x=x + dt * k3).clone()
 
         new_states = x + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
     elif method == 'fe':

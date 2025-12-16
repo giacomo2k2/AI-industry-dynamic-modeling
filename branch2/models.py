@@ -260,7 +260,7 @@ class DoublePendulum:
         """
         # Extract joints position
         q1 = states[0]
-        q2 = states[2]
+        q2 = states[1]
         
         # Compute cartesians position (Forward Kinematics)
         p1 = np.array([self.l1 * np.sin(q1), -self.l1 * np.cos(q1)])
