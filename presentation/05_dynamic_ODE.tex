@@ -2,8 +2,8 @@
 
 \begin{frame}{White Box Approach }
     \begin{block}{Physical Parameters Estimation}
-        \textbf{Assumptions}: Full \textbf{knowledge of the equations} of the system . \\
-        \textbf{Goal}: Identify the \textbf{six parameters vectore} : $ m_1, m_2, l_1, l_2, b_1, b_2 $.
+        \textbf{Assumptions}: full lnowledge of the dynamics \\
+        \textbf{Goal}: identify physical parameters $ m_1, m_2, l_1, l_2, b_1, b_2 $.
     \end{block}
     
     \begin{figure}
@@ -13,37 +13,48 @@
 \end{frame}
 
 \begin{frame}{Physical Parameters Estimation - Architecture}
-    
-
-    \textbf{Training Recipe}:
-    \begin{itemize}
-        \item Loss: \textbf{MSE} between predicted and true derivatives.
-        \item \textbf{Curricular Learning}: progressively increasing the integration step $h$ during training.
-        \item Data Transformation: trigonometric transformation of angles \textbf{(sin, cos)}.
-        \item \textbf{Batching} and Learning Rate Scheduling.
-    \end{itemize}
 
     \begin{figure}
         \centering
-        \includegraphics[width=0.6\textwidth]{stock.png}
+        \includegraphics[width=0.5\textwidth]{05_dynamic_ODE/DynODE.pdf}
+        \caption{Dynamic Layer for ODE}
+    \end{figure}
+
+     \begin{figure}
+        \centering
+        \includegraphics[width=0.5\textwidth]{05_dynamic_ODE/DynODE_fixed.pdf}
+        \caption{Dynamic Layer for ODE with fixed parameters}
     \end{figure}
 
 \end{frame}
 
 \begin{frame}{Physical Parameters Estimation - Results}
     \textbf{Observations}:
-    \begin{itemize}
-        \item \textbf{Gauge Invariance Property}.
-        \item \textbf{Parameter Convergence}: optimal Identification.
-        \item \textbf{Correct Evolution} even though little deviations of parameters $\rightarrow$ high deviations after a while.
-        \item \textbf{Energy evolution}: Perfectly matching (\textit{by-construction}).
-        \item \textbf{Metrics}: R2 score, Max Parameter Discrepancy.
-        \item \textbf{Fixing Parameters}: helps the identification of the others.
-    \end{itemize}
-    \begin{figure}
-        \centering
-        \includegraphics[width=0.8\textwidth]{stock.png}
-    \end{figure}
+    \begin{columns}
+        \begin{column}{0.4\textwidth}
+            \begin{itemize}
+                \item \textbf{Gauge Invariance Property}
+                \item Convergence
+                \item \textbf{Correct Evolution} $\rightarrow$ deviations over long time.
+                \item \textbf{Energy evolution}: matching (\textit{by-construction}).
+                \item low \textbf{Max Parameter Discrepancy}
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.4\textwidth}
+            \centering
+            \textbf{Evolution Testing}
+            
+            \begin{figure}[T]
+                    \centering
+                    \includegraphics[width=0.4\linewidth]{stock.png} \\
+                    \vspace{-1em}
+                    \caption{evolution testing}
+            \end{figure} 
+            
+        \end{column}
+    \end{columns}
+    
 \end{frame}
 
 

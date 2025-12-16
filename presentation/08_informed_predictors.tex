@@ -10,17 +10,18 @@
             \item Mass matrix $\mathbf{M}$: \textbf{Positive definite} and \textbf{symmetric}.
             \item Friction: \textbf{Positive definite}, \textbf{diagonal/constant} matrix.
             \item Last term in $\mathbf{M}(\mathbf{q})$ matrix is constant as well as $\mathbf{d_{11}}$ and $\mathbf{d_{22}}$ in $\mathbf{D}$ which is diagonal.
+            \item \textbf{Implementation}: Use of \textbf{Cholesky decomposition} to guarantee $\mathbf{M}$ positive definite.
         \end{itemize}
     \end{block}
     \vspace{1em}
     \begin{figure}
         \centering
-        \includegraphics[width=0.4\textwidth]{stock2.png}
+        \includegraphics[width=0.8\textwidth]{08_informed_predictors/Dyn_Informed_UDE.pdf}
     \end{figure}
     
 \end{frame}
 
-\begin{frame}
+\begin{frame} {Informed UDE - Results}
     \begin{itemize}      
         \item \textbf{Implementation}: Use of \textbf{Cholesky decomposition} to guarantee $\mathbf{M}$ positive definite.
         \item \textbf{Better} takes less to converge, more stable.
@@ -30,6 +31,38 @@
     \textbf{Can we plug in even more knowledge?}
 \end{frame}
 
+\begin{frame} {"More" Informed UDE}
+    \begin{block}{Idea}      
+        If we somehow could give the matrix M to the system, so as to avoid inversion problems...
+    \end{block}
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.8\textwidth]{08_informed_predictors/Dyn_More_informed.pdf}
+    \end{figure}
+\end{frame}
+
+\begin{frame} {Informed UDE - Drawing Conclusions}
+    \begin{itemize}      
+        \item \textbf{Better} takes less to converge, more stable.
+        \item \textbf{Troubles} in estimating entries in highly chaotic regions.
+    \end{itemize}
+    \vspace{1em}
+    \begin{table}[h]
+        \centering
+        \caption{Comparison of the three UDE methods}
+        \label{tab: metodi}
+        \begin{tabular}{ l c c p{2.5cm} }
+            \toprule
+            \textbf{Metodo} & \textbf{Time to converge} & \textbf{Informations} & \textbf{Comments} \\
+            \midrule
+                Uninformed      & High                  & None                       & Unstable, Dumb    \\
+                Informed      & Medium                 & Structural properties           & Stable, Complicated Identification             \\
+                More Informed       & Medium                 & M matrix                    & Easier Identification, Unrealistic       \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+\end{frame}
 
 % \begin{frame}
 %     \frametitle{Informed UDE for Matrices Entries Estimation}

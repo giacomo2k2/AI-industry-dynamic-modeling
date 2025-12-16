@@ -1019,7 +1019,14 @@ class UDE_D_constant(nn.Module):
         C21, C22   = outputs[:, 2], outputs[:, 3]
         D11, D22   = self.get_d11(), self.get_d22()
         G1, G2     = outputs[:, 4], outputs[:, 5]
-
+        #M11, M12 = outputs[:, 6], outputs[:, 7]
+        
+        D11 = D11.expand_as(C11)
+        D22 = D22.expand_as(C22)
+        # print("D11 shape:", D11.shape)
+        # print("D22 shape:", D22.shape)
+        # print("D11:", D11)
+        # print("D22:", D22)
         # --- 3. Costruzione Matrici Stimate ---
         # Vettore Coriolis/Centrifuga C (nota: nel tuo codice dynamics era 'c')
         c = torch.stack([
@@ -1033,9 +1040,11 @@ class UDE_D_constant(nn.Module):
 
         # Combina le diagonali: [Batch, 2]
         d_diag = torch.stack([D11, D22], dim=1)
-
+        #print("d_diag shape:", d_diag.shape)
         # Crea la matrice [Batch, 2, 2]
         D = torch.diag_embed(d_diag)
+        #print("D shape:", D.shape)
+        #print("D:", D)
         # Vettore Gravità G
         #G = torch.stack([G1, G2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
         # --- 4. Calcolo della Dinamica (Forward Dynamics) ---
@@ -1044,6 +1053,7 @@ class UDE_D_constant(nn.Module):
         q2_dot = x[:, self.X_feature_positions_map['q2_dot']]
         q_dot = torch.stack([q1_dot, q2_dot], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
 
+        #print("q_dot shape:", q_dot.shape)
         C = torch.bmm(c, q_dot)  # Shape: [Batch, 2, 1]
         
         m1 = torch.tensor(2.2)
@@ -1058,13 +1068,14 @@ class UDE_D_constant(nn.Module):
             q2 = x[:, self.X_feature_positions_map['q2']]
             cosq2 = torch.cos(q2)
 
-        
-
         M = torch.stack([ 
             torch.stack([(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * cosq2, m2 * l2**2 + m2 * l1 * l2 * cosq2], dim=1),
              torch.stack([m2 * l2**2 + m2 *l1 *l2 * cosq2, m2 * l2**2 * torch.ones_like(cosq2)], dim=1)
         ], dim=1)  # Shape: [Batch, 2, 2]
-
+        #M = torch.stack([
+        #    torch.stack([M11, M12], dim=1),
+        #    torch.stack([M12, m2 * l2**2 * torch.ones_like(M11)], dim=1)
+        #], dim=1)  # Shape: [Batch, 2, 2]
         # G = np.array([
         #     [(m1+m2)*g*l1*np.sin(q1) +  m2*g*l2*np.sin(q1 + q2)], 
         #     [m2*g*l2*np.sin(q1 + q2)]
@@ -1131,6 +1142,7 @@ class UDE_D_constant(nn.Module):
         C21, C22   = outputs[:, 2], outputs[:, 3]
         D11, D22   = self.get_d11(), self.get_d22()
         G1, G2     = outputs[:, 4], outputs[:, 5]
+        #M11, M12 = outputs[:, 6], outputs[:, 7]
 
         # --- 3. Costruzione Matrici Stimate ---
         # Vettore Coriolis/Centrifuga C (nota: nel tuo codice dynamics era 'c')
@@ -1174,7 +1186,10 @@ class UDE_D_constant(nn.Module):
             torch.stack([(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * cosq2, m2 * l2**2 + m2 * l1 * l2 * cosq2], dim=1),
              torch.stack([m2 * l2**2 + m2 *l1 *l2 * cosq2, m2 * l2**2 * torch.ones_like(cosq2)], dim=1)
         ], dim=1)  # Shape: [Batch, 2, 2]
-
+        #M = torch.stack([
+        #    torch.stack([M11, M12], dim=1),
+        #    torch.stack([M12, m2 * l2**2 * torch.ones_like(M11)], dim=1)
+        #], dim=1)  # Shape: [Batch, 2, 2]
         # G = np.array([
         #     [(m1+m2)*g*l1*np.sin(q1) +  m2*g*l2*np.sin(q1 + q2)], 
         #     [m2*g*l2*np.sin(q1 + q2)]
@@ -1569,6 +1584,7 @@ class RK4Model(nn.Module):
         res = torch.stack(res, dim=1)
         
         return res, der
+    
 
     def forward(self, inputs):
         # inputs: (Batch, time_steps, features)

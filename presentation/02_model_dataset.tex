@@ -74,59 +74,59 @@
     \end{itemize}
 
     \vspace{10px}
-    The dynamic model of the double pendulum can be expressed in the following matrix form.\footnote{Explicit expression reported in the appendix \ref{subsec:appendixA}.}
+    The dynamic model of the double pendulum can be expressed in the following matrix form.\footnote{Explicit expression reported in the appendix A}
 
     \begin{block}{Dynamics in Matrix Form}
-        %\text{It can be expressed as:}
         \begin{equation}
             M(\mathbf{q})\ddot{\mathbf{q}} + \mathbf{c}(\mathbf{q}, \dot{\mathbf{q}}) + D\dot{\mathbf{q}} + G(\mathbf{q}) = \mathbf{\tau}
         \end{equation}
-
     \end{block}
 
 \end{frame}
 
-%\subsection{Physic Model} 
+%\subsection{Physical Model} 
 
 \begin{frame}{Data Generation}
 
-    
     Integration:
     \begin{itemize}
         \item \textbf{Forward Euler:}
         \begin{itemize}
-            \item[\textcolor{ForestGreen}{\checkmark}] simple
-            \item[\textcolor{red}{\times}] less accurate
+            % \checkmark works in text mode (requires amssymb)
+            \item[\textcolor{ForestGreen}{\checkmark}] simple 
+            % \times is a math symbol, it needs $ signs
+            \item[\textcolor{red}{$\times$}] less accurate 
         \end{itemize}
         \item \textbf{Runge-Kutta 4th Order (RK4):}
             \begin{itemize}
                 \item[\textcolor{ForestGreen}{\checkmark}] more accurate
-                \item[\textcolor{red}{\times}] computationally expensive
+                \item[\textcolor{red}{$\times$}] computationally expensive
             \end{itemize}
 
     \end{itemize}
 
-    \vspace{1px}
+    \vspace{1ex} % Changed px to ex or pt (px is not always standard in LaTeX)
 
     \begin{block}{Simulation Setting}
         \begin{itemize}
-        \item Duration $T = 10\,\text{s}$
-        \item Step size $\Delta t = 0.01\,\text{s}$
-        \item Initial state $q_0 \sim \mathcal{U}[-\pi, \pi], \dot{q_0} \sim \mathcal{U}[-2,2]$
-        \item Physical parameters $m_1, m_2, l_1, l_2, g \text{(gravity)}, b_1, b_2 \text{(friction)}$
+            \item Duration $T = 10 \text{ s}$
+            \item Step size $\Delta t = 0.01 \text{ s}$
+            \item Initial state $q_0 \sim \mathcal{U}[-\pi, \pi], \dot{q_0} \sim \mathcal{U}[-2,2]$
+            \item Physical parameters $m_1, m_2, l_1, l_2, g \text{(gravity)}, b_1, b_2 \text{(friction)}$
         \end{itemize}
     \end{block}
-    
 
-    \vspace{1px}
+
+    \vspace{1ex}
 
     \begin{block}{Generated datasets}
         \begin{itemize}
-            \item[\color{blue}\blacktriangleright] \textcolor{blue}{\textbf{No friction}} $b_1 = b_2 = 0$
+            % \bullet is a math symbol, needs $ signs
+            \item[\textcolor{blue}{$\bullet$}] \textcolor{blue}{\textbf{No friction}}: $b_1 = b_2 = 0$
         
-            \item[\color{orange}\blacktriangleright] \textcolor{orange}{\textbf{Low friction}} $b_1 = b_2 = 0.3$
+            \item[\textcolor{orange}{$\bullet$}] \textcolor{orange}{\textbf{Low friction}}: $b_1 = b_2 = 0.3$
             
-            \item[\color{red}\blacktriangleright] \textcolor{red}{\textbf{High friction}} $b_1 = b_2 \approx 3.0$ \quad \small \textit{\textcolor{red}{Excluded for rapid energy dissipation}}
+            \item[\textcolor{red}{$\bullet$}] \textcolor{red}{\textbf{High friction}}: $b_1 = b_2 \approx 3.0$ \quad \small \textit{\textcolor{red}{Excluded for rapid energy dissipation}}
         \end{itemize}
     \end{block}
 

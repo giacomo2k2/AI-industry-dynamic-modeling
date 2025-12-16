@@ -15,25 +15,24 @@ python -m %SCRIPT_NAME% ^
     --verbose ^
     --patience 20 ^
     --wd 1e-5 ^
-    --batch_size 32 ^
+    --batch_size 1024 ^
     --optimizer_type "adam" ^
     --scheduler_type "onecycle" ^
     --loss_type "mae" ^
-    --curriculum_steps 2 4 8 16 32 ^
-    --epochs_per_stage 80 60 40 20 10 ^
-    --lrs 5e-3 1e-3 5e-4 5e-4 1e-4 ^
+    --curriculum_steps 2 ^
+    --epochs_per_stage 2 ^
+    --lrs 5e-3 ^
     --integrator "rk4" ^
-    --dynlayer "more_informed_ude" ^
+    --dynlayer "nn" ^
     --activation "softplus" ^
     --fixed_l1 ^
     --fixed_l2 ^
     --fixed_m1 ^
     --fixed_m2 ^
     --fixed_b1 ^
-    --version "v_200" ^
+    --version "v169NN" ^
     --sin_cos_transform ^
-    --sample_weights ^
-    --training
+    --sample_weights
 
 REM Controllo errori
 if %errorlevel% neq 0 (

@@ -408,7 +408,7 @@ def main(
 
     # --- Evaluation comparing matrices ---
     
-    if dynlayer == 'ude' or dynlayer == 'informed_ude' or dynlayer == 'more_informed_ude':
+    if dynlayer == 'ude' or dynlayer == 'informed_ude' or dynlayer == 'more_informed_ude' or dynlayer == 'ude_d_constant':
 
         X_matrices_test, Y_matrices_test = pull_data_by_ids(
             data_path=test_path,
@@ -450,6 +450,7 @@ def main(
                 show_plot=show_plots
             )
 
+    print("\n--- Evaluating evolutions on test set ---\n")
     # --- Evaluating an evolution with predicted parameters ---
 
     if sin_cos_transform:           # use sin-cos transformation for angles 
@@ -548,8 +549,8 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--lr', type=float, default=1e-3)
 
-    parser.add_argument('--fixed_d11', action='store_true', default=False)
-    parser.add_argument('--fixed_d22', action='store_true', default=False)
+    parser.add_argument('--fixed_d11', action='store_true', default=None)
+    parser.add_argument('--fixed_d22', action='store_true', default=None)
 
     parser.add_argument('--d11_ref', type=float, default=0.5)
     parser.add_argument('--d22_ref', type=float, default=0.5)

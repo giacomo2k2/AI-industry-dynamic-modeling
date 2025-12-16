@@ -1,8 +1,7 @@
 \section{Appendix}
 
-\subsection{Appendix A - Double Pendulum Dynamics}
-\label{subsec:appendixA}
 \begin{frame}{Appendix A - Double Pendulum Dynamics}
+    \label{frame:appendixA}
     The dynamic model can be expressed in matrix form as:
     \begin{equation}
         \boxed{M(\mathbf{q})\ddot{\mathbf{q}} + \mathbf{c}(\mathbf{q}, \dot{\mathbf{q}}) + D\dot{\mathbf{q}} + G(\mathbf{q}) = \mathbf{\tau}}
@@ -41,8 +40,8 @@
             \textbf{Coriolis} $\mathbf{c}(\mathbf{q}, \dot{\mathbf{q}})$:
             \begin{equation*}
                 \begin{bmatrix}
-                    -m_2 \cdot l_1 \cdot l_2 \cdot s_2 \cdot (2 \cdot \dot{q}_1 + \dot{q}_2) \cdot \dot{q}_2 \\
-                    m_2 \cdot l_1 \cdot l_2 \cdot s_2 \cdot \dot{q}_1^2
+                    -m_2 l_1 l_2 s_2 (2 \dot{q}_1 + \dot{q}_2) \dot{q}_2 \\
+                    m_2 l_1 l_2 s_2 \dot{q}_1^2
                 \end{bmatrix}
             \end{equation*}
         \end{column}

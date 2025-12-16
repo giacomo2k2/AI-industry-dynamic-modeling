@@ -1,0 +1,20 @@
+tran_path: branch1/data_enhanced/training_EC_WN/train_lowfrict.csv
+val_path: branch1/data_enhanced/training_EC_WN/val_lowfrict.csv
+test_path: branch1/data_enhanced/training_EC_WN/test_lowfrict.csv
+sin_cos_transform: True
+normalization: False
+fourier_features: -1
+curriculum_steps: [4, 8, 16, 32]
+epochs_per_stage: [50, 40, 25, 15]
+lrs: [0.01, 0.005, 0.005, 0.001]
+batch_size: 64
+patience: 10
+wd: 1e-05
+optimizer_type: adam
+scheduler_type: onecycle
+loss_type: mae
+integrator: rk4
+dynlayer: nn
+activation: softplus
+fixed_physical_params: {'fixed_l1': False, 'fixed_l2': False, 'fixed_m1': False, 'fixed_m2': False, 'fixed_b1': False, 'fixed_b2': False}
+physical_params_ref: {'l1_ref': 1.0, 'l2_ref': 5.0, 'm1_ref': 1.0, 'm2_ref': 1.0, 'b1_ref': 0.1, 'b2_ref': 0.1}

@@ -12,20 +12,19 @@ python -m %SCRIPT_NAME% ^
     --val_path "branch1/data_enhanced/training_EC_WN/val_lowfrict.csv" ^
     --test_path "branch1/data_enhanced/training_EC_WN/test_lowfrict.csv" ^
     --verbose ^
-    --patience 20 ^
-    --wd 1e-5 ^
-    --batch_size 1024 ^
+    --patience 50 ^
+    --wd 1e-4 ^
+    --batch_size 256 ^
     --optimizer_type "adam" ^
     --scheduler_type "onecycle" ^
     --loss_type "mse" ^
-    --epochs 1000 ^
+    --epochs 2 ^
     --lr 1e-3 ^
     --integrator "rk4" ^
-    --dynlayer "more_informed_ude" ^
+    --dynlayer "ude_d_constant" ^
     --activation "softplus" ^
-    --version "v_200" ^
+    --version "vprova" ^
     --sin_cos_transform ^
-    --sample_weights ^
     --training
 
 REM Controllo errori

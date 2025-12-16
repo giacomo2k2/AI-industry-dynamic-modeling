@@ -398,13 +398,17 @@ def plot_evolutions_comparison(true_states,
                                predicted_states,
                                dt=0.01,
                                save_path = None,
-                               show_plot=False):
+                               show_plot=False,
+                               sin_cos_transform=False):
     
     """
     Confronta le traiettorie vere e predette (posizioni e velocità).
     true_states: (N, 4) -> [q1, q1_dot, q2, q2_dot]
     predicted_states: (N, 4) -> [q1, q1_dot, q2, q2_dot]
     """
+    if sin_cos_transform:
+        pass
+        
     
     steps = len(true_states)
     time_array = np.arange(0, steps * dt, dt)
@@ -414,24 +418,24 @@ def plot_evolutions_comparison(true_states,
     fig.suptitle('Predicted vs True Trajectories', fontsize=16)
     
     # --- Grafico 1: Posizione q1 (Indice 0) ---
-    axes[0, 0].plot(time_array, true_states[:, 0], label='True q1', color='orange', linestyle='--')
-    axes[0, 0].plot(time_array, predicted_states[:, 0], label='Predicted q1', color='blue')
+    axes[0, 0].plot(time_array, true_states[:, 1], label='True cos(q1)', color='cyan')
+    axes[0, 0].plot(time_array, predicted_states[:, 1], label='Predicted cos(q1)', color='orange', linestyle='--')
     axes[0, 0].set_ylabel('Angle q1 (rad)')
     axes[0, 0].set_title(r'Posizione $q_1$')
     axes[0, 0].legend()
     axes[0, 0].grid(True, alpha=0.3)
 
     # --- Grafico 2: Velocità q1_dot (Indice 1) ---
-    axes[0, 1].plot(time_array, true_states[:, 1], label='True q1_dot', color='purple', linestyle='--')
-    axes[0, 1].plot(time_array, predicted_states[:, 1], label='Predicted q1_dot', color='cyan')
+    axes[0, 1].plot(time_array, true_states[:, 2], label='True q1_dot', color='cyan')
+    axes[0, 1].plot(time_array, predicted_states[:, 2], label='Predicted q1_dot',  color='orange', linestyle='--')
     axes[0, 1].set_ylabel('Velocity q1_dot (rad/s)')
     axes[0, 1].set_title(r'Velocità $\dot{q}_1$')
     axes[0, 1].legend()
     axes[0, 1].grid(True, alpha=0.3)
 
     # --- Grafico 3: Posizione q2 (Indice 2) ---
-    axes[1, 0].plot(time_array, true_states[:, 2], label='True q2', color='red', linestyle='--')
-    axes[1, 0].plot(time_array, predicted_states[:, 2], label='Predicted q2', color='green')
+    axes[1, 0].plot(time_array, true_states[:, 4], label='True cos(q2)', color='cyan')
+    axes[1, 0].plot(time_array, predicted_states[:, 4], label='Predicted cos(q2)', color='orange', linestyle='--')
     axes[1, 0].set_ylabel('Angle q2 (rad)')
     axes[1, 0].set_xlabel('Time (s)')
     axes[1, 0].set_title(r'Posizione $q_2$')
@@ -439,8 +443,8 @@ def plot_evolutions_comparison(true_states,
     axes[1, 0].grid(True, alpha=0.3)
 
     # --- Grafico 4: Velocità q2_dot (Indice 3) ---
-    axes[1, 1].plot(time_array, true_states[:, 3], label='True q2_dot', color='magenta', linestyle='--')
-    axes[1, 1].plot(time_array, predicted_states[:, 3], label='Predicted q2_dot', color='lime')
+    axes[1, 1].plot(time_array, true_states[:, 5], label='True q2_dot', color='cyan')
+    axes[1, 1].plot(time_array, predicted_states[:, 5], label='Predicted q2_dot', color='orange', linestyle='--')
     axes[1, 1].set_ylabel('Velocity q2_dot (rad/s)')
     axes[1, 1].set_xlabel('Time (s)')
     axes[1, 1].set_title(r'Velocità $\dot{q}_2$')
@@ -456,3 +460,18 @@ def plot_evolutions_comparison(true_states,
     if show_plot:
         plt.show()
         plt.close()
+
+
+def from_sincos_to_angle(sin_theta, cos_theta):
+    """
+    Convert sine and cosine representations back to angles in radians.
+    
+    Args:
+        sin_theta: np.array of sine values
+        cos_theta: np.array of cosine values
+    
+    Returns:
+        angles: np.array of angles in radians
+    """
+    angles = np.arctan2(sin_theta, cos_theta)
+    return angles

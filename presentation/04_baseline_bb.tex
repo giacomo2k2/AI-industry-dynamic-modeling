@@ -7,12 +7,11 @@
 \begin{frame}{Black Box Approaches - Architecture}
     Standard Neural Network for setting a \textbf{baseline}. The objective is to learn the \textbf{dynamics} of the double pendulum. 
 
-    % TODO: add figure of the baseline neural network
     \begin{figure}[h]
         \centering
-        \includegraphics[width=0.3\linewidth]{stock.png} \\
+        \includegraphics[width=0.6\linewidth]{04_baseline_bb/DynNN.pdf} \\
         \vspace{0.3em}
-    \end{figure}    
+    \end{figure}    %
 
     The model takes as inputs the \textbf{states} and outputs the \textbf{derivatives}. 
 
@@ -24,6 +23,22 @@
             states is used to compute the loss. 
         \end{itemize}
     \end{block}
+\end{frame}
+
+\begin{frame}{Evolution Training}
+    
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{04_baseline_bb/integrator.pdf} \\
+        \vspace{0.3em}
+        \caption{Evolution training architecture using RK4}
+    \end{figure}
+
+    \begin{block}{Training Related Aspects}
+        \par\textbf{Curricular Learning}: progressively increasing the integration step $h$ during training
+        % \par\textbf{Patience} and \textbf{Early Stopping} on the validation loss
+    \end{block}
+     
 \end{frame}
 
 %\subsection{Training Recipe}
@@ -63,7 +78,7 @@
 
                 \begin{figure}[h]
                     \centering
-                    \includegraphics[width=0.5\linewidth]{stock.png} \\
+                    \includegraphics[width=0.8\linewidth]{Images/04_baseline_bb/Gaussian.png} \\
                     \vspace{0.3em}
                 \end{figure}    
 
@@ -79,18 +94,20 @@
 
                 \begin{figure}[h]
                     \centering
-                    \includegraphics[width=0.5\linewidth]{stock.png} \\
+                    \includegraphics[width=0.8\linewidth]{Images/04_baseline_bb/Laplacian.png} \\
                     \vspace{0.3em}
                 \end{figure}    
                 
                 \vspace{-3em}
             
-                $$\hat{\ddot{\theta}} = \frac{\ddot{\theta} - \mu}{\sqrt{2b}}$$
+                $$\hat{\ddot{\theta}} = \frac{\ddot{\theta} - \tilde{\mu}}{\sqrt{2b}}$$\footnote{with $b = E\bigl[|q - \tilde{\mu}|\bigr]$}
+                
                 
             \end{column}
         \end{columns}
+        
     \end{block}
-    
+
     
 \end{frame}
 
@@ -102,16 +119,34 @@
     % \begin{block} {Learning rate}
     %     A learning rate scheduler is used 
 
+    % \end{bloc
 
-    % \end{block}
+    \begin{columns}[T]
+            \begin{column}{0.5\textwidth}
+              \begin{block} {Sample weights}
+                    Computed using the 4D KDE of the input distribution. In particular: 
 
-    \begin{block} {Sample weights}
-        Computed using the 4D histogram of the input distribution. In particular: 
+                    % TODO: update max or total
+                    $$\sigma(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2) = \frac{h(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2)}{h_{max}}$$
 
-        % TODO: update max or total
-        $$\sigma(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2) = \frac{h(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2)}{h_{max}}$$
+                    It's important to use the multivariate distribution to capture any \textbf{coupling term} in the dynamics
 
-    \end{block}
+                \end{block}
+
+            \end{column}
+            
+            \begin{column}{0.3\textwidth}
+            \begin{figure}[h]
+                    \centering
+                    \includegraphics[width=0.6\linewidth]{stock.png} \\
+            \end{figure}   
+
+                
+            \end{column}
+        \end{columns}
+
+
+    
 
     \begin{block} {Curriculum learning}
         Used specifically for \textbf{evolution} learning. 

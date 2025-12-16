@@ -241,12 +241,7 @@ def main(
                                          ycols = Y_train_columns,
                                          modify_func = modify_func) 
     
-    # --- Test Data ---
-    X_test, Y_test =  pull_data_by_ids(data_path=test_path, 
-                                       data_splitter = 'id_pendulum',
-                                       xcols = X_train_columns,
-                                       ycols = Y_train_columns,
-                                       modify_func = modify_func)
+    
     
     # --- Dynamic Layer ---
 
@@ -574,6 +569,14 @@ def main(
             )
 
     # --- Evaluating an evolution with predicted parameters ---
+    #Y_test_columns = [ 'q1', 'q1_dot', 'q2', 'q2_dot']
+    # --- Test Data ---
+    X_test, Y_test =  pull_data_by_ids(data_path=test_path, 
+                                       data_splitter = 'id_pendulum',
+                                       xcols = X_train_columns,
+                                       ycols = Y_train_columns,
+                                       modify_func = modify_func)
+    
 
     for i in range(10):  # evaluate on 3 different sequences
 
@@ -583,6 +586,7 @@ def main(
         X_test_i = torch.Tensor(X_test_i_np).to(my_device)
         Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
 
+
         evolution_i_path = os.path.join(plots_folder, f'evolution_comparison_{i}.png')
         
         print(f"\nSaving evolution comparison plot for sequence {i} to path: ", plots_folder)
@@ -590,7 +594,8 @@ def main(
             true_states = Y_test_i_np,
             predicted_states = Y_pred_i,
             save_path = evolution_i_path,
-            show_plot = show_plots
+            show_plot = show_plots,
+            sin_cos_transform = sin_cos_transform
         )
 
 if __name__ == "__main__":

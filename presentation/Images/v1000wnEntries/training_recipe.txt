@@ -1,0 +1,16 @@
+train_path: branch1/data_enhanced/training_EC_WN/train_lowfrict.csv
+val_path: branch1/data_enhanced/training_EC_WN/val_lowfrict.csv
+test_path: branch1/data_enhanced/training_EC_WN/test_lowfrict.csv
+sin_cos_transform: True
+normalization: False
+fourier_features: -1
+epochs: 2000
+lr: 0.001
+batch_size: 32
+patience: 15
+wd: 1e-05
+optimizer_type: adam
+scheduler_type: plateau
+loss_type: mse
+activation: softplus
+version: v1000wn

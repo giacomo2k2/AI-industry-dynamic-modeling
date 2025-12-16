@@ -27,7 +27,7 @@ def main():
     for i in range(n_pendulums):
         print(f"Pendulum run: {i}")
 
-        pendulum.random_init()
+        pendulum.random_init(q1_max=2.0, q2_max=5.0)
 
         states = np.zeros((steps + 1, 4))
         states[0, :] = pendulum.initial_state
@@ -75,7 +75,7 @@ def main():
     df = pd.DataFrame(rows)
     #WARNING PAY ATTENTION TO THE DIRECTORY IT GOES TO: WE HAVE CHANGED IT TO OUR BRANCH
     #df.to_csv('branch1/data_enhanced/raw/double_pendulum_lowfrict.csv', index=False)
-    df.to_csv('data/raw/double_pendulum_highfrict.csv', index=False)
+    df.to_csv('data/raw/double_pendulum_nofrict.csv', index=False)
 
 if __name__ == '__main__':
     main()

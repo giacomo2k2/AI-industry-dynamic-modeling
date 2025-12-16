@@ -38,13 +38,13 @@
 
 % --- SLIDE 3: MATHEMATICAL FORMULATION ---
 \begin{frame}{Neuro Probabilistic Model: Probabilistic Formulation}
-    The model assumes the ground truth acceleration $\ddot{x}$ follows a Gaussian distribution conditioned on the state:
+    The model assumes the ground truth acceleration $\ddot{q}$ follows a Gaussian distribution conditioned on the state:
     
-    $$ p(\ddot{x} | x) = \mathcal{N}(\ddot{x} | \mu_\theta(x), \sigma^2_\theta(x)) $$
+    $$ p(\ddot{q} | \mathbf{q}) = \mathcal{N}(\ddot{x} | \mu_\theta(\mathbf{q}), \sigma^2_\theta(\mathbf{q})) $$
 
     \begin{block}{Training Objective: Negative Log-Likelihood (NLL)}
         Instead of MSE, we minimize the NLL to learn both the prediction and the uncertainty simultaneously:
-        $$ \mathcal{L}_{NLL} = \frac{1}{2} \log \sigma^2_\theta(x) + \frac{(\ddot{x}_{gt} - \mu_\theta(x))^2}{2 \sigma^2_\theta(x)} + C $$
+        $$ \mathcal{L}_{NLL} = \frac{1}{2} \log \sigma^2_\theta(\mathbf{q}) + \frac{(\ddot{q}_{gt} - \mu_\theta(\mathbf{q}))^2}{2 \sigma^2_\theta(\mathbf{q})} + C $$
     \end{block}
     
     \begin{block}{Intuition}

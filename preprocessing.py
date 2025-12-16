@@ -242,8 +242,8 @@ def process_data(
     if white_noise:
         processed_df = add_white_noise(processed_df)
 
-    if round_pi:
-        processed_df = round_to_pi(processed_df)
+    # if round_pi:
+    #     processed_df = round_to_pi(processed_df)
 
 
 
@@ -357,8 +357,8 @@ def main(
 if __name__ == '__main__':
 
     main(
-        raw_folder= 'branch1/data_enhanced/raw',
-        processed_folder= 'branch1/data_enhanced/processed_PROVA',
+        raw_folder= './data/raw/double_pendulum_nofrict.csv',
+        processed_folder= './data/processed/double_pendulum_nofrict.csv',
         energy_cut = True,
         white_noise=True,
         round_pi= False

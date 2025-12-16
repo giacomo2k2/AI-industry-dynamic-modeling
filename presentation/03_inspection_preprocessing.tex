@@ -51,14 +51,13 @@
 \end{frame}
 
 \begin{frame}{Energy Statistics (2)}
-    Energy statistics were also computed to assess the conservation properties of the simulated systems under different friction conditions.
     \centering
     \includegraphics[width=1.0\linewidth]{energy_stats_lowfrict.png}
     \vspace{0.2em}
     \scriptsize \textcolor{orange}{Friction}
 \end{frame}
 
-\begin{frame} {Heatmap (1)}
+\begin{frame}{Heatmap (1)}
 
     Heatmaps of the states distribution were created to visualize the density of states in the phase space for both friction scenarios.
 
@@ -70,9 +69,7 @@
 
 \end{frame}
 
-\begin{frame} {Heatmap (2)}
-
-    Heatmaps of the states distribution were created to visualize the density of states in the phase space for both friction scenarios.
+\begin{frame}{Heatmap (2)}
 
     %template per singola immagine centrata a centro pagina
     \centering
@@ -82,7 +79,8 @@
 
 \end{frame}
 
-\begin{frame}{Pre-processing phase}
+\begin{frame}{Pre-processing}
+    Based on the data inspection results, a preprocessing pipeline was designed to enhance data quality and model training effectiveness.
     \begin{itemize}
         \item \textbf{Filtering out evolution with increasing energy}: Removing unstable or numerically faulty simulations.
         \item \textbf{White Noise}: Added noise to simulate reality and add robustness to the system.
@@ -96,10 +94,33 @@
 
 
 
+\begin{frame}{Data Preprocessing: Dynamic Time Cut Inspection}
+    Following the KL Divergence analysis, the dataset was trimmed to exclude less representative dynamics, enhancing model training quality.
+    % --- UPPER ROW ---
+    \begin{columns}[T]
+        
+    % Up Left
+    \begin{column}{0.40\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{stock.png}
+        \vspace{0.2em}
+        \scriptsize \textcolor{blue}{No Friction}
+    \end{column}
+    
+    % Up Right
+    \begin{column}{0.40\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{stock.png}
+        \vspace{0.2em}
+        \scriptsize \textcolor{orange}{Friction}
+    \end{column}
+        
+    \end{columns}
+
+\end{frame}
 
 
-
-\begin{frame} {Data Inspection: States Distribution (1)}
+\begin{frame}{Pre-Processing: States Distribution (1)}
     %template per singola immagine centrata a centro pagina
     \centering
     \includegraphics[width=1.0\linewidth]{histogram_pendulum_nofrict.png}
@@ -107,7 +128,7 @@
     \scriptsize \textcolor{blue}{No Friction}
 \end{frame}
 
-\begin{frame} {Data Inspection: States Distribution (2)}
+\begin{frame}{Pre-Processing: States Distribution (2)}
     %template per singola immagine centrata a centro pagina
     \centering
     \includegraphics[width=1.0\linewidth]{histogram_pendulum_lowfrict.png}
@@ -119,70 +140,6 @@
 
 
 
-
-% \begin{frame}
-%     \frametitle{Data Preprocessing Pipeline}
-    
-%     \begin{itemize}
-%         \item \textbf{Energy Conservation Check:} 
-%         discard entire simulations where energy deviation exceeds tolerance ($\Delta E > 10^{-2}$).
-%     \end{itemize}
-
-%     \vspace{1em}
-
-%     \begin{itemize}
-%         \item \textbf{Dynamic Time Cut:} 
-%         truncate simulation duration $T$ to maximize uniformity of state distribution (via KL Divergence).
-%         \[ T^* = \arg\min_T D_{KL}(P_{\text{data}} || U_{\text{uniform}}) \]
-%     \end{itemize}
-
-%     \vspace{1em}
-
-%     \begin{itemize}
-%         \item \textbf{Noise Injection:} add Gaussian noise $\mathcal{N}(0, 0.01)$ to states.
-%         \item \textbf{Angle Wrapping:} map angles to $[-\pi, \pi]$ via modulo operation.
-%     \end{itemize}
-
-% \end{frame}
-
-
-
-% \begin{frame}
-%     \frametitle{Data Preprocessing: Dynamic Time Cut Inspection}
-    
-%     % --- UPPER ROW ---
-%     \begin{columns}[T] 
-        
-%         % Up Left
-%         \begin{column}{0.40\textwidth}
-%             \centering
-%             \includegraphics[width=\linewidth]{double_pendulum_highfrict_threshold.png}
-%             \vspace{0.2em}
-%             \scriptsize \textcolor{blue}{High Friction}
-%         \end{column}
-        
-%         % Up Right
-%         \begin{column}{0.40\textwidth}
-%             \centering
-%             \includegraphics[width=\linewidth]{double_pendulum_lowfrict_threshold.png}
-%             \vspace{0.2em}
-%             \scriptsize \textcolor{orange}{Low Friction}
-%         \end{column}
-        
-%     \end{columns}
-
-%     \vspace{0.5cm} 
-
-%     % --- LOWER ROW ---
-%     \centering
-%     \begin{minipage}{0.40\textwidth} 
-%         \centering
-%         \includegraphics[width=\linewidth]{double_pendulum_nofrict_threshold.png}
-%         \vspace{0.2em}
-%         \scriptsize \textcolor{red}{No Friction}
-%     \end{minipage}
-
-% \end{frame}
 
 
 

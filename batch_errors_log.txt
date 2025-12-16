@@ -4901,3 +4901,664 @@ Traceback (most recent call last):
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
 KeyError: 'time_step'
 ==============================
+
+==============================
+TIMESTAMP: 2025-12-16 10:56:27.430241
+CONFIG: Layer=more_informed_ude, Ver=v_200, BS=1024, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 581, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 511, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1577, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 11:39:35.097252
+CONFIG: Layer=more_informed_ude, Ver=v_201, BS=512, SinCos=True, Norm=False
+ERROR: DataLoader worker (pid(s) 31048, 28184, 30260, 21132) exited unexpectedly
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 1251, in _try_get_data
+    data = self._data_queue.get(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\queue.py", line 179, in get
+    raise Empty
+_queue.Empty
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 581, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 357, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 643, in train_nn_model
+    for xb, yb, _ in val_loader:
+                     ^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 708, in __next__
+    data = self._next_data()
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 1458, in _next_data
+    idx, data = self._get_data()
+                ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 1410, in _get_data
+    success, data = self._try_get_data()
+                    ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 1264, in _try_get_data
+    raise RuntimeError(
+RuntimeError: DataLoader worker (pid(s) 31048, 28184, 30260, 21132) exited unexpectedly
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 12:28:53.909397
+CONFIG: Layer=more_informed_ude, Ver=v_201, BS=512, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 581, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 511, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1577, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 12:32:26.410785
+CONFIG: Layer=ude_d_constant, Ver=v_201, BS=512, SinCos=True, Norm=False
+ERROR: Expected size for first two dimensions of batch2 tensor to be: [1, 2] but got: [512, 2].
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 581, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 357, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 602, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1083, in forward
+    b = - C - torch.bmm(D, q_dot) - G  # Shape
+              ^^^^^^^^^^^^^^^^^^^
+RuntimeError: Expected size for first two dimensions of batch2 tensor to be: [1, 2] but got: [512, 2].
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 12:35:01.547327
+CONFIG: Layer=ude_d_constant, Ver=v_201, BS=512, SinCos=True, Norm=False
+ERROR: Expected size for first two dimensions of batch2 tensor to be: [1, 2] but got: [512, 2].
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 581, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 357, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 602, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1086, in forward
+    b = - C - torch.bmm(D, q_dot) - G  # Shape
+              ^^^^^^^^^^^^^^^^^^^
+RuntimeError: Expected size for first two dimensions of batch2 tensor to be: [1, 2] but got: [512, 2].
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 12:39:19.735879
+CONFIG: Layer=ude_d_constant, Ver=v_201, BS=512, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 581, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 511, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1586, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 12:43:58.664299
+CONFIG: Layer=ude_d_constant, Ver=v_201, BS=512, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 512, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1586, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 12:46:02.702850
+CONFIG: Layer=informed_ude, Ver=v_202, BS=512, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 512, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1586, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 12:48:19.982500
+CONFIG: Layer=ude_d_constant, Ver=v_202, BS=512, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 512, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1586, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 14:15:01.593694
+CONFIG: Layer=ude_d_constant, Ver=v_202, BS=512, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 512, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1586, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 14:48:00.371780
+CONFIG: Layer=ude_d_constant, Ver=v_202, BS=512, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 513, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1589, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 14:54:43.567794
+CONFIG: Layer=ude_d_constant, Ver=v_203, BS=512, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 513, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1588, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 14:57:32.867119
+CONFIG: Layer=ude_d_constant, Ver=v_203, BS=512, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 513, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1588, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 15:02:22.102850
+CONFIG: Layer=ude_d_constant, Ver=v_203, BS=512, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 583, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 513, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1592, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 15:10:25.231474
+CONFIG: Layer=ude_d_constant, Ver=v_204_Matlearn, BS=512, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 512, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1592, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 15:38:27.698396
+CONFIG: Layer=ude_d_constant, Ver=v_204_Matlearn, BS=512, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 512, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1592, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 15:47:24.533094
+CONFIG: Layer=ude_d_constant, Ver=v_204_Matlearn, BS=256, SinCos=True, Norm=True
+ERROR: 'UDE_D_constant' object has no attribute 'denormalize'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 357, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 602, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1011, in forward
+    x = self.denormalize(x, self.X_feature_positions_map)
+        ^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1928, in __getattr__
+    raise AttributeError(
+AttributeError: 'UDE_D_constant' object has no attribute 'denormalize'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 15:47:46.839769
+CONFIG: Layer=ude_d_constant, Ver=v_204_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: expected Tensor as element 0 in argument 0, but got Softplus
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 357, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 602, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1082, in forward
+    torch.stack([M11, M12], dim=1),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: expected Tensor as element 0 in argument 0, but got Softplus
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 15:49:13.872640
+CONFIG: Layer=ude_d_constant, Ver=v_204_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu! (when checking argument for argument tensors in method wrapper_CUDA_cat)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 357, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 602, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1083, in forward
+    torch.stack([M12, self.m22_fixed.expand_as(M11)], dim=1)
+RuntimeError: Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu! (when checking argument for argument tensors in method wrapper_CUDA_cat)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 16:32:49.984605
+CONFIG: Layer=ude_d_constant, Ver=v_204_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 512, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1534, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 16:40:32.901972
+CONFIG: Layer=ude_d_constant, Ver=v_205_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: index 6 is out of bounds for dimension 1 with size 6
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 357, in main
+    hist = train_nn_model(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 602, in train_nn_model
+    y_pred = model(xb)
+             ^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1022, in forward
+    M11, M12 = outputs[:, 6], outputs[:, 7]
+               ~~~~~~~^^^^^^
+IndexError: index 6 is out of bounds for dimension 1 with size 6
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 16:41:56.593275
+CONFIG: Layer=ude_d_constant, Ver=v_205_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 512, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1592, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 16:47:03.730598
+CONFIG: Layer=ude_d_constant, Ver=v_205_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 512, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1592, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 17:56:56.146296
+CONFIG: Layer=ude_d_constant, Ver=v_205_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 512, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1592, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 18:24:14.168280
+CONFIG: Layer=nn, Ver=v_130, BS=32, SinCos=True, Norm=False
+ERROR: [Errno 2] No such file or directory: 'branch1/models\\integrator\\nn\\v_130\\rnn.pth'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 693, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 497, in main
+    model, history_full = load_model(model = model,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 958, in load_model
+    model.load_state_dict(torch.load(model_path))
+                          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\serialization.py", line 1425, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\serialization.py", line 751, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\serialization.py", line 732, in __init__
+    super().__init__(open(name, mode))
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'branch1/models\\integrator\\nn\\v_130\\rnn.pth'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 19:00:00.277838
+CONFIG: Layer=nn, Ver=vprova, BS=32, SinCos=True, Norm=False
+ERROR: [Errno 2] No such file or directory: 'branch1/models\\integrator\\nn\\vprova\\rnn.pth'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 693, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 497, in main
+    model, history_full = load_model(model = model,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 958, in load_model
+    model.load_state_dict(torch.load(model_path))
+                          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\serialization.py", line 1425, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\serialization.py", line 751, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\serialization.py", line 732, in __init__
+    super().__init__(open(name, mode))
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'branch1/models\\integrator\\nn\\vprova\\rnn.pth'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 19:11:45.441253
+CONFIG: Layer=ude_d_constant, Ver=vprova, BS=256, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 512, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1593, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
