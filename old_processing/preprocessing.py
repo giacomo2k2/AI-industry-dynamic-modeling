@@ -2,12 +2,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from data_inspection import show_bins, show_status_stats, show_energy_stats
+import os
 
 # Set global plot style
 plt.rc('font', family='serif')
 
 # Global plotting flag
-PLOT = True
+PLOT = False
 
 # ========================================================
 # ================== MODIFY THE DATASET ==================
@@ -92,68 +93,11 @@ def kullback_leibler(p, q, eps=1e-10, lambda_val=1.0, threshold_penalty = 0):
 
     return np.sum(p * np.log(p / q)) + lambda_val * threshold_penalty**2
 
-
-# def optimize_threshold(df:pd.DataFrame) -> float:
-#     """
-#     Optimize the threshold based on Kullback-Leibler divergence between the 
-#     distribution of binned angles and a uniform distribution.
-    
-#     ---
-#     Args:
-#         distr_bins (np.ndarray): Histogram bins of the angle distributions.
-#         uniform_bins (np.ndarray): Histogram bins of a uniform distribution.
-    
-#     ---
-#     Returns:
-#         float: Optimal threshold value that minimizes the KL divergence.
-#     """
-#     best_threshold = None
-#     best_kl_divergence = float('inf')
-#     kl_vector = []
-#     max_time = df['time_step'].to_numpy()[-1]
-#     thresholds_vec = np.linspace(0.0, max_time, num=100)
-
-
-
-#     for threshold in thresholds_vec:
-#         if threshold == 0.0:
-#             kl_vector.append(np.nan)
-#             continue
-        
-#         df_temp = cut_dataset(df, threshold=threshold)
-
-#         # produce bins
-#         states = df_temp[['q1', 'q2']].to_numpy()
-#         kl_divergence = 0
-
-#         for i in range(states.shape[1]):
-#             distr_bins, _ = np.histogram(states[:, i], bins=200, range=(-np.pi, np.pi), density=True)
-#             uniform_bins = np.ones_like(distr_bins) / distr_bins.size
-#             q = distr_bins / distr_bins.sum()
-#             kl_divergence += kullback_leibler(q = q, p = uniform_bins, lambda_val= 0.5, threshold_penalty= (max_time - threshold)/max_time)
-            
-#         kl_vector.append(kl_divergence)
-
-#         if kl_divergence < best_kl_divergence:
-#             best_kl_divergence = kl_divergence
-#             best_threshold = threshold
-
-
-
-#     plt.figure(figsize=(10, 6))
-#     plt.plot(thresholds_vec, kl_vector, label='KL Divergence')
-#     plt.scatter(best_threshold, best_kl_divergence, linestyle='', marker='o', color='red', label='Optimal Threshold')
-#     plt.title('Kullback-Leibler Divergence vs. Threshold')
-#     plt.xlabel('Threshold')
-#     plt.ylabel('Kullback-Leibler Divergence')
-#     plt.grid()
-#     plt.tight_layout()
-#     plt.show()
-
-#     return best_threshold
-
-
-def optimize_threshold(df: pd.DataFrame) -> float:
+def optimize_threshold(
+        df:pd.DataFrame,
+        save_path:str = None,
+        show_plot:bool = False
+    ) -> float:
     """
     Optimize the threshold based on Multivariate Kullback-Leibler divergence 
     on the full phase space (q1, q2, q1_dot, q2_dot).
@@ -222,21 +166,25 @@ def optimize_threshold(df: pd.DataFrame) -> float:
             best_kl_divergence = current_kl
             best_threshold = threshold
 
-    # Plotting
-    plt.figure(figsize=(10, 6))
-    plt.plot(thresholds_vec, kl_vector, label='Multivariate KL Divergence')
-    plt.scatter(best_threshold, best_kl_divergence, c='red', zorder=5, label=f'Optimal: {best_threshold:.2f}')
-    plt.title('Multivariate KL Divergence vs. Threshold')
-    plt.xlabel('Time Threshold')
-    plt.ylabel('KL Divergence (4D Phase Space)')
-    plt.grid(True, alpha=0.3)
-    plt.legend()
+
+
+    fig = plt.figure(figsize=(10, 6))
+    plt.plot(thresholds_vec, kl_vector, label='KL Divergence')
+    plt.scatter(best_threshold, best_kl_divergence, linestyle='', marker='o', color='red', label='Optimal Threshold')
+    plt.title('Kullback-Leibler Divergence vs. Threshold')
+    plt.xlabel('Threshold')
+    plt.ylabel('Kullback-Leibler Divergence')
+    plt.grid()
     plt.tight_layout()
-    plt.show()
+    if show_plot:
+        plt.show()
+    if save_path:
+        fig.savefig(save_path+'.png')
+        
 
     return best_threshold
 
-def add_white_noise(df: pd.DataFrame, std: float = 0.01) -> pd.DataFrame:
+def add_white_noise(df: pd.DataFrame, std: float = 0.1) -> pd.DataFrame:
     """
     Add white Gaussian noise to the state variables of the dataframe.
     
@@ -262,21 +210,41 @@ def add_white_noise(df: pd.DataFrame, std: float = 0.01) -> pd.DataFrame:
 # ================== MAIN PROCESSING =====================
 # ========================================================
 
-def process_data(path:str, 
-                 plot: bool = PLOT,
-                 raw_path: str = 'data/raw/',
-                 processed_path: str = 'data/processed/') -> pd.DataFrame:
+def process_data(
+        file_path:str, 
+        processed_folder: str,
+        plot: bool = PLOT,
+        energy_cut : bool = True,
+        white_noise: bool = False,
+        round_pi: bool = False
+    ) -> pd.DataFrame:
+
+    plot_folder = os.path.join('plots', processed_folder)
+    os.makedirs(plot_folder, exist_ok=True)
+    print("Plots folder: ", plot_folder)
+
+    print("Resulting datsets will be saved in: ", processed_folder)
+    os.makedirs(processed_folder, exist_ok=True)
+
+    file_name = os.path.basename(file_path).split('.csv')[0]
+    print(f"File name: {file_name}")
     
-    sim_type = path.split('_')[2].split('.')[0]
+    sim_type = file_path.split('_')[2].split('.')[0]
     print(f"Processing {sim_type} data...")
     
     # Read the csv in the data raw folder
-    df = pd.read_csv(f'{raw_path}{path}')
+    df = pd.read_csv(file_path)
 
+    if energy_cut:
+        processed_df, discarded = energy_check(df)
     
-    processed_df, discarded = energy_check(df)
-    processed_df = add_white_noise(processed_df)
-    
+
+    if white_noise:
+        processed_df = add_white_noise(processed_df)
+
+    if round_pi:
+        processed_df = round_to_pi(processed_df)
+
 
 
     status_cols = ['q1', 'q1_dot', 'q1_dot_dot', 'q2', 'q2_dot', 'q2_dot_dot']
@@ -292,7 +260,13 @@ def process_data(path:str,
 
         show_energy_stats(processed_df, filename=sim_type)
 
-    threshold = optimize_threshold(processed_df)
+    threshold_path = os.path.join(plot_folder, file_name+'_threshold')
+    print("Saving optmized threshold plot in : ", threshold_path)
+    threshold = optimize_threshold(
+        df = processed_df,
+        save_path= threshold_path,
+        show_plot= plot
+    )
 
     print(f"Optimal threshold for {sim_type}: {threshold}")
     processed_df = cut_dataset(processed_df, threshold=threshold)
@@ -303,7 +277,9 @@ def process_data(path:str,
         show_bins(processed_df, cols=status_cols, names=status_names, vlim=vlim, save=False)
 
     # Save processed dataframe to csv
-    processed_df.to_csv(f'{processed_path}{path}', index=False)
+    save_path = os.path.join(processed_folder, file_name)
+    os.makedirs(processed_folder, exist_ok=True)
+    processed_df.to_csv(save_path, index=False)
 
     # Print process terminated and number of pendulums kept
     n_total = df['id_pendulum'].nunique()
@@ -316,7 +292,13 @@ def process_data(path:str,
 # ================== RUN THE PROCESSING ==================
 # ========================================================
 
-def main():
+def main(
+        raw_folder: str,
+        processed_folder: str,
+        energy_cut : bool,
+        white_noise: bool,
+        round_pi: bool
+):
     
 
     # df_nof = process_data(path = 'double_pendulum_nofrict.csv', 
@@ -328,18 +310,57 @@ def main():
     # df_highf = process_data(path = 'double_pendulum_highfrict.csv',
     #                         raw_path= 'branch1/data_enhanced/raw/',
     #                         processed_path= 'branch1/data_enhanced/processed/')
-    
 
-    df_nof = process_data(path = 'double_pendulum_nofrict.csv', 
-                          raw_path= 'data/raw/',
-                          processed_path= 'data/processed/')
+    mode_string = ''
+
+
+    for i , mod in enumerate([energy_cut, white_noise, round_pi]):
+        if mod:
+            mode_string += '_' + ['EC', 'WN', 'RP'][i]
+
+
+    processed_folder = os.path.join(os.path.dirname(processed_folder), os.path.basename(processed_folder) + mode_string)
+
+
+    for f in os.listdir(raw_folder):
+        # Load processed data
+        file_path = os.path.join(raw_folder, f)
+
+        df = process_data(file_path = file_path, 
+                          processed_folder= processed_folder,
+                          energy_cut= energy_cut,
+                          white_noise= white_noise,
+                          round_pi= round_pi)
+
+
+    # df_nof = process_data(path = 'double_pendulum_nofrict.csv', 
+    #                       raw_path= raw_path,
+    #                       processed_path= processed_path,
+    #                       energy_cut= energy_cut,
+    #                       white_noise= white_noise,
+    #                       round_pi= round_pi)
+    
     # df_lowf = process_data(path = 'double_pendulum_lowfrict.csv',
-    #                        raw_path= 'data/raw/',
-    #                        processed_path= 'data/processed/')
+    #                        raw_path= raw_path,
+    #                        processed_path= processed_path,
+    #                        energy_cut= energy_cut,
+    #                        white_noise= white_noise,
+    #                        round_pi= round_pi)
+    
     # df_highf = process_data(path = 'double_pendulum_highfrict.csv',
-    #                         raw_path= 'data/raw/',
-    #                         processed_path= 'data/processed/')
+    #                         raw_path= raw_path,
+    #                         processed_path= processed_path,
+    #                         energy_cut= energy_cut,
+    #                         white_noise= white_noise,
+    #                         round_pi= round_pi)
 
 if __name__ == '__main__':
-    main()
+
+    main(
+        raw_folder= 'branch1/data_enhanced/raw',
+        processed_folder= 'branch1/data_enhanced/processed_PROVA',
+        energy_cut = True,
+        white_noise=True,
+        round_pi= False
+    )
   

@@ -1,0 +1,200 @@
+% --- MODELLAZIONE BLACK BOX ---
+
+\section{Black Box Approaches}
+
+
+%\subsection{Architecture*}
+\begin{frame}{Black Box Approaches - Architecture}
+    Standard Neural Network for setting a \textbf{baseline}. The objective is to learn the \textbf{dynamics} of the double pendulum. 
+
+    % TODO: add figure of the baseline neural network
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.3\linewidth]{stock.png} \\
+        \vspace{0.3em}
+    \end{figure}    
+
+    The model takes as inputs the \textbf{states} and outputs the \textbf{derivatives}. 
+
+    \begin{block}{Training methods}
+
+        \begin{itemize}
+            \item \textbf{Derivatives}: loss is computed directly on the derivatives.
+            \item \textbf{Evolution}: the derivatives are fed to a \textbf{solver} that outputs the next state. A sequential stream of predicted
+            states is used to compute the loss. 
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+%\subsection{Training Recipe}
+\begin{frame}{Black Box Approaches - Training recipe (1)}
+    
+
+    \begin{block}{Trigonometric Transformation}
+        Since $\theta \in \bigl[-\pi, \pi\bigr]$, it's impossible to use the angles directly as inputs without introducing \textbf{discontinuities}.
+        The solution is to transform the input space.
+
+        \[
+            \bigl[\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2\bigr]^{\top}
+            \rightarrow
+            \bigl[\cos{\theta_1}, \sin{\theta_1}, \cos{\theta_2}, \sin{\theta_2}, \dot{\theta}_1, \dot{\theta}_2\bigr]^{\top}
+        \]
+    \end{block}
+
+    % TODO: update velocities and acceleration fitted with gaussian and laplacian respectively
+    \begin{block}{Normalization}
+        \begin{columns}[T]
+            \begin{column}{0.33\textwidth}
+                \centering
+                \vspace{0.5em}
+                \textbf{Angles}
+                
+                \vspace{-1em}
+
+                $$-1 \le \cos{\theta} \le 1$$
+                $$-1 \le \sin{\theta} \le 1$$
+
+            \end{column}
+            
+            \begin{column}{0.33\textwidth}
+                \centering
+                \vspace{0.5em}
+                \textbf{Velocities}
+
+                \begin{figure}[h]
+                    \centering
+                    \includegraphics[width=0.5\linewidth]{stock.png} \\
+                    \vspace{0.3em}
+                \end{figure}    
+
+                \vspace{-3em}
+        
+                $$\hat{\dot{\theta}} = \frac{\dot{\theta} - \mu}{\sigma}$$
+            \end{column}
+            
+            \begin{column}{0.33\textwidth}
+                \centering
+                \vspace{0.5em}
+                \textbf{Accelerations}
+
+                \begin{figure}[h]
+                    \centering
+                    \includegraphics[width=0.5\linewidth]{stock.png} \\
+                    \vspace{0.3em}
+                \end{figure}    
+                
+                \vspace{-3em}
+            
+                $$\hat{\ddot{\theta}} = \frac{\ddot{\theta} - \mu}{\sqrt{2b}}$$
+                
+            \end{column}
+        \end{columns}
+    \end{block}
+    
+    
+\end{frame}
+
+
+
+
+\begin{frame}{Black Box Approaches - Training recipe (2)}
+    
+    % \begin{block} {Learning rate}
+    %     A learning rate scheduler is used 
+
+
+    % \end{block}
+
+    \begin{block} {Sample weights}
+        Computed using the 4D histogram of the input distribution. In particular: 
+
+        % TODO: update max or total
+        $$\sigma(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2) = \frac{h(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2)}{h_{max}}$$
+
+    \end{block}
+
+    \begin{block} {Curriculum learning}
+        Used specifically for \textbf{evolution} learning. 
+
+        \par The \textbf{window size} of training is increased periodically during training, usually by doubling. 
+
+        Starting with a window size large from the start is infeasible  due to high gradients. 
+
+
+        
+    \end{block}
+
+\end{frame}
+
+
+
+%\subsection{Results}
+
+\begin{frame}{Black Box Approaches - Results}
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \centering
+            \textbf{Derivatives Training}
+            
+            \begin{figure}[h]
+                    \centering
+                    \includegraphics[width=0.4\linewidth]{stock.png} \\
+                    \vspace{-1em}
+                    \caption{derivatives testing}
+            \end{figure}   
+
+            \begin{figure}[h]
+                    \centering
+                    \includegraphics[width=0.4\linewidth]{stock.png} \\
+                    \vspace{-1em}
+                    \caption{evolution testing}
+            \end{figure}   
+        
+        \end{column}
+
+        \begin{column}{0.5\textwidth}
+            \centering
+            \textbf{Evolution Training}
+            
+            \begin{figure}[T]
+                    \centering
+                    \includegraphics[width=0.4\linewidth]{stock.png} \\
+                    \vspace{-1em}
+                    \caption{evolution testing}
+            \end{figure} 
+            
+        \end{column}
+    \end{columns}
+
+\end{frame}
+
+
+%\subsection{Considerations}
+
+\begin{frame}{Black Box Approaches - Considerations}
+   
+    \begin{itemize}
+        \item \textbf{Drift Energy} over long horizons
+
+        \begin{figure}[T]
+                \centering
+                \includegraphics[width=0.3\linewidth]{stock.png} \\
+                \vspace{-1em}
+                \caption{energy drift}
+        \end{figure} 
+
+        \item Low \textbf{expressivity} of the model 
+        \item Very low \textbf{sensitivity} to broken physics
+    \end{itemize}
+
+    \begin{block}{Further developments}
+        \begin{itemize}
+            \item Introduce \textbf{Energy conservation}
+            \item Improve \textbf{expressivity} and \textbf{parameter identification}.
+        \end{itemize}
+    \end{block}
+    
+    
+
+\end{frame}
+

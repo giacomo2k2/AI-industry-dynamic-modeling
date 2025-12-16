@@ -1,30 +1,46 @@
-@echo off
 
-python -m branch1.main.rnn ^
-    --train_path "branch1/data_enhanced/training/train_lowfrict.csv" ^
-    --val_path "branch1/data_enhanced/training/val_lowfrict.csv" ^
-    --test_path "branch1/data_enhanced/training/test_lowfrict.csv" ^
-    --model_path "branch1/models/integrator/" ^
-    --model_name "integrator_model.pth" ^
-    --version "v_learning_m2_b1_b2_lowfrict" ^
-    --epochs 10 ^
-    --patience 15 ^
-    --lr 0.01 ^
-    --wd 0.0 ^
-    --batch_size 512 ^
-    --optimizer "adam" ^
-    --l1_ref 1.0 ^
-    --l2_ref 5.0 ^
-    --m1_ref 1.0 ^
-    --m2_ref 1.0 ^
-    --b1_ref 0.1 ^
-    --b2_ref 0.1 ^
-    --training ^
+@echo off
+REM ==========================================
+REM  Windows Launcher
+REM ==========================================
+
+set SCRIPT_NAME=branch1.main.rnn
+
+echo Avvio rnn.py ...
+
+python -m %SCRIPT_NAME% ^
+    --train_path "branch1/data_enhanced/training_EC_WN/train_lowfrict.csv" ^
+    --val_path "branch1/data_enhanced/training_EC_WN/val_lowfrict.csv" ^
+    --test_path "branch1/data_enhanced/training_EC_WN/test_lowfrict.csv" ^
     --verbose ^
-    --show_plots ^
+    --patience 20 ^
+    --wd 1e-5 ^
+    --batch_size 32 ^
+    --optimizer_type "adam" ^
+    --scheduler_type "onecycle" ^
+    --loss_type "mae" ^
+    --curriculum_steps 2 4 8 16 32 ^
+    --epochs_per_stage 80 60 40 20 10 ^
+    --lrs 5e-3 1e-3 5e-4 5e-4 1e-4 ^
+    --integrator "rk4" ^
+    --dynlayer "more_informed_ude" ^
+    --activation "softplus" ^
     --fixed_l1 ^
     --fixed_l2 ^
-    --fixed_m1 
+    --fixed_m1 ^
+    --fixed_m2 ^
+    --fixed_b1 ^
+    --version "v_200" ^
+    --sin_cos_transform ^
+    --sample_weights ^
+    --training
 
+REM Controllo errori
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERRORE] Lo script ha riscontrato un problema.
+    exit /b %errorlevel%
+)
 
-pause
+echo.
+echo [SUCCESS] Script terminato correttamente.

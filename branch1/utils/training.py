@@ -11,8 +11,9 @@ import numpy as np
 from tqdm import tqdm
 from torch import nn
 from models import DoublePendulum
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.lr_scheduler import ReduceLROnPlateau, OneCycleLR
 import os
+import torch.nn.functional as F
 
 
 # ===============================================
@@ -124,46 +125,155 @@ def pull_data_by_ids(data_path: str = '',
 
     return X, Y
 
+def get_dominant_frequencies(signal_data, dt, top_k=32):
+        """
+        signal_data: array numpy delle posizioni (es. theta1) [N_samples]
+        dt: passo temporale (es. 0.01s)
+        top_k: quante frequenze vogliamo estrarre
+        """
+        n = len(signal_data)
+        
+        # 1. Calcola la FFT
+        freqs = np.fft.rfftfreq(n, d=dt)
+        fft_vals = np.abs(np.fft.rfft(signal_data))
+        
+        # 2. Ignora la frequenza 0 (il bias/media statica)
+        freqs = freqs[1:]
+        fft_vals = fft_vals[1:]
+        
+        # 3. Trova gli indici delle frequenze con ampiezza maggiore
+        #argsort ordina crescente, quindi prendiamo gli ultimi k e invertiamo
+        top_indices = np.argsort(fft_vals)[-top_k:][::-1]
+        
+        dominant_freqs = freqs[top_indices]
+        
+        return torch.tensor(dominant_freqs, dtype=torch.float32)
+
 class KNGLDataset(Dataset):
 
     '''
     Docstring for KNGLDataset
-    Custom Dataset for loading pendulum data for training neural networks.
+    Custom Dataset for loading double pendulum data for training neural networks.
     Inputs:
     - inputs: np.ndarray
-        Array of input features with shape (n_pendulums, evolution_length, 5).
+        Input data of shape (n_pendulums, evolution_length, n_features).
     - targets: np.ndarray
-        Array of target values with shape (n_pendulums, evolution_length, 4).
-    - time_steps: int
-        Number of time steps to consider for each sample.
-    - transform: callable, optional
+        Target data of shape (n_pendulums, evolution_length, n_target_features).
+    - horizon: int
+        Length of the input sequences to be used for training.
+    - transform: callable or None
         Optional transform to be applied on a sample.
-    Outputs:
-    - sample: torch.FloatTensor
-        Tensor of input features for a given sample.
-    - target: torch.FloatTensor
-        Tensor of target values for a given sample.
-    
-    Methods:
-    - __len__: returns the total number of samples in the dataset.
-    - __getitem__: retrieves a sample and its corresponding target based on the index.
-
-    
+    - X_feature_positions_map: dict
+        Mapping of feature names to their positions in the input data.
+    - Y_feature_position_map: dict
+        Mapping of feature names to their positions in the target data.
+    - normalization_map: dict or None
+        Normalization parameters for input and target features.
+    - fourier_features: int
+        Number of Fourier features to add for angular variables. If -1, no Fourier features are added.
+    - weights: np.ndarray or None
+        Sample weights of shape (n_pendulums, evolution_length)
     '''
-    def __init__(self, 
-                 inputs, # (pendulums, evolution_length, 5)
-                 targets, # (pendulums, evolution_length, 4)
-                 horizon=32,
-                 transform=None):
+    def __init__(
+            self, 
+            inputs, # (pendulums, evolution_length, 5)
+            targets, # (pendulums, evolution_length, 4)
+            horizon=32,
+            transform=None,
+            X_feature_positions_map=None,
+            Y_feature_position_map=None,
+            normalization_map=None,
+            fourier_features=-1,
+            weights=None
+        ):
    
         self.inputs = torch.FloatTensor(inputs)  # Converti in tensor
         self.targets = torch.FloatTensor(targets)
-        
+
+        self.X_feature_positions_map = X_feature_positions_map
+        self.Y_feature_position_map = Y_feature_position_map
+        self.normalization_map = normalization_map
+
         self.transform = transform
+
         self.horizon = horizon
         
         self.evolution_length = self.inputs.shape[1]
         self.n_pendulums = self.inputs.shape[0]
+
+        # Sample weights
+        if weights is not None:
+
+            self.weights = torch.FloatTensor(weights)
+            
+            if self.weights.shape[0] != self.n_pendulums or self.weights.shape[1] != self.evolution_length:
+                raise ValueError(f"Shape mismatch: Weights flat size {self.weights.shape[0]} != Data size {self.n_pendulums * self.evolution_length}")
+        else:
+            # if no weights provided, set all to 1
+            self.weights = torch.ones(self.n_pendulums, self.evolution_length)
+
+        # Normalize input and output if normalization map is provided
+        if self.normalization_map:
+
+            # normalize inputs
+            for feature, pos in X_feature_positions_map.items():
+                if feature in normalization_map: # normalize only what has been normalized
+                    self.inputs[:, :, pos] = (self.inputs[:, :, pos] - normalization_map[feature]['mean']) / (normalization_map[feature]['std'] + 1e-8)
+
+            # normalize targets
+            for feature, pos in Y_feature_position_map.items():
+                if feature in normalization_map: # normalize only what has been normalized
+                    self.targets[:, :, pos] = (self.targets[:, :, pos] - normalization_map[feature]['mean']) / (normalization_map[feature]['std'] + 1e-8)
+
+        # Add Fourier features if specified (only on inputs)
+        if fourier_features>0:
+
+            if 'q1' in X_feature_positions_map:
+                
+                q1_pos = X_feature_positions_map['q1']
+                q1_np = self.inputs[:, :, q1_pos].numpy()
+                q1_freqs = get_dominant_frequencies(q1_np.flatten(), dt=0.01, top_k=fourier_features)
+
+                self.inputs = torch.cat([self.inputs,
+                                         torch.sin(2 * np.pi * q1_freqs.unsqueeze(0).unsqueeze(0) * self.inputs[:, :, q1_pos].unsqueeze(-1)),
+                                         torch.cos(2 * np.pi * q1_freqs.unsqueeze(0).unsqueeze(0) * self.inputs[:, :, q1_pos].unsqueeze(-1))], dim=-1)
+            
+            elif 'q1_sin' in X_feature_positions_map and 'q1_cos' in X_feature_positions_map:
+
+                q1_sin_pos = X_feature_positions_map['q1_sin']
+                q1_cos_pos = X_feature_positions_map['q1_cos']
+                q1_angles = torch.atan2(self.inputs[:, :, q1_sin_pos], self.inputs[:, :, q1_cos_pos]).numpy()
+                q1_freqs = get_dominant_frequencies(q1_angles.flatten(), dt=0.01, top_k=fourier_features)
+
+                q1_angles_tensor = torch.atan2(self.inputs[:, :, q1_sin_pos], self.inputs[:, :, q1_cos_pos]).unsqueeze(-1)
+                
+                self.inputs = torch.cat([self.inputs,
+                                         torch.sin(2 * np.pi * q1_freqs.unsqueeze(0).unsqueeze(0) * q1_angles_tensor),
+                                         torch.cos(2 * np.pi * q1_freqs.unsqueeze(0).unsqueeze(0) * q1_angles_tensor)], dim=-1)
+
+            if 'q2' in X_feature_positions_map:
+                
+                q2_pos = X_feature_positions_map['q2']
+                q2_np = self.inputs[:, :, q2_pos].numpy()
+                q2_freqs = get_dominant_frequencies(q2_np.flatten(), dt=0.01, top_k=fourier_features)
+
+                self.inputs = torch.cat([self.inputs,
+                                         torch.sin(2 * np.pi * q2_freqs.unsqueeze(0).unsqueeze(0) * self.inputs[:, :, q2_pos].unsqueeze(-1)),
+                                         torch.cos(2 * np.pi * q2_freqs.unsqueeze(0).unsqueeze(0) * self.inputs[:, :, q2_pos].unsqueeze(-1))], dim=-1)
+            
+            elif 'q2_sin' in X_feature_positions_map and 'q2_cos' in X_feature_positions_map:
+
+                q2_sin_pos = X_feature_positions_map['q2_sin']
+                q2_cos_pos = X_feature_positions_map['q2_cos']
+                q2_angles = torch.atan2(self.inputs[:, :, q2_sin_pos], self.inputs[:, :, q2_cos_pos]).numpy()
+                q2_freqs = get_dominant_frequencies(q2_angles.flatten(), dt=0.01, top_k=fourier_features)
+
+                q2_angles_tensor = torch.atan2(self.inputs[:, :, q2_sin_pos], self.inputs[:, :, q2_cos_pos]).unsqueeze(-1)
+                
+                self.inputs = torch.cat([self.inputs,
+                                         torch.sin(2 * np.pi * q2_freqs.unsqueeze(0).unsqueeze(0) * q2_angles_tensor),
+                                         torch.cos(2 * np.pi * q2_freqs.unsqueeze(0).unsqueeze(0) * q2_angles_tensor)], dim=-1)
+                
     
     def __len__(self): # il data loader con __len__ sa che può chiamare len-1 volte  
         return self.n_pendulums * (self.evolution_length - self.horizon)  # Numero totale di campioni (size 0)
@@ -175,6 +285,8 @@ class KNGLDataset(Dataset):
 
         sample = self.inputs[pendulum_idx, time_idx:time_idx+self.horizon]
         target = self.targets[pendulum_idx, time_idx:time_idx+self.horizon]
+
+        weight_seq = self.weights[pendulum_idx, time_idx : time_idx + self.horizon]
         
         if self.transform:
             sample = self.transform(sample)
@@ -185,8 +297,14 @@ class KNGLDataset(Dataset):
         #print(sample)
         #print("\nTARGET")
         #print(target)
+
+        if self.horizon == 1:
+            # if horizon is 1, squeeze the second dimension
+            # from (1, features) to (features,)
+            sample = sample.squeeze(0)
+            target = target.squeeze(0)
         
-        return sample, target  # Ritorna tupla (input, target)
+        return sample, target, weight_seq  # Ritorna tupla (input, target, weights)
     
 # ===============================================
 # ============= Modify  data ====================
@@ -230,6 +348,20 @@ def turn_to_cosine_sine(X_dataset, cols=['q1', 'q2']):
     
     return X_transformed
 
+def fourier_features(X_dataset, cols=['q1', 'q2'], top_k=16, dt=0.01):
+    '''
+    Adds Fourier features for specified angular columns in the dataset.
+    '''
+    X_transformed = X_dataset.copy()
+    for col in cols:
+        angles = X_transformed[col].values
+        dominant_freqs = get_dominant_frequencies(angles, dt=dt, top_k=top_k).numpy()
+        
+        for i, freq in enumerate(dominant_freqs):
+            X_transformed[f'{col}_fourier_sin_{i}'] = np.sin(2 * np.pi * freq * angles)
+            X_transformed[f'{col}_fourier_cos_{i}'] = np.cos(2 * np.pi * freq * angles)
+
+    return X_transformed
 # ===============================================
 # ================= Metrics =====================
 # ===============================================
@@ -363,62 +495,117 @@ def get_adam_effective_lr(optimizer, param):
     effective_lr = lr / bias_correction1 / (torch.sqrt(exp_avg_sq) + eps)
     return effective_lr
 
+@torch.jit.script
+def weighted_mse_loss(input: torch.Tensor, target: torch.Tensor, weights: torch.Tensor) -> torch.Tensor:
+    
+    loss = F.mse_loss(input, target, reduction='none')
+
+    w_expanded = weights.unsqueeze(-1)
+
+    return (loss * w_expanded).mean()
+
+@torch.jit.script
+def weighted_mae_loss(input: torch.Tensor, target: torch.Tensor, weights: torch.Tensor) -> torch.Tensor:
+    
+    loss = F.l1_loss(input, target, reduction='none')
+    
+    w_expanded = weights.unsqueeze(-1)
+    
+    return (loss * w_expanded).mean()
+
 def train_nn_model(
     model,
+    device,
+    
     ds_train,
     ds_val,
+
     early_stopper, 
-    loss_fn,
-    custom_loss = None,
-    verbose=False,
-    patience=10,
-    batch_size=32,
     epochs=100,
     lr=1e-3,
     weight_decay=0.0,
-    shuffle=True,
-    device="cpu",
-    horizon = 1,
-    show_grad = False,
-    show_lrs = False,
-    lambda_c = 0.0,
-    clipping_value = 1.0,
+    batch_size=32,
     optimizer_type = 'adam',
+    scheduler_type = 'plateau',
+    loss_type = 'mse',
+    
+    verbose=False,
+
+    show_grad = False,
+    show_lrs = False,   
     **fit_params,
 ):
+    # --- Model to device ---
     model.to(device)
+
+    # --- Data Loaders ---
+    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True, persistent_workers=True)
+    val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
     
+    # --- Optimizer and Scheduler ---
     if optimizer_type == 'adam':
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     elif optimizer_type == 'adamw':
         optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
-        
-    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10, verbose=True, min_lr=1e-6)
+    else:
+        print(f"[ERROR] Optimizer '{optimizer_type}' not recognized")
+        print("\tAvailable: \n\t -'adam' \n\t -'adamw'")
+        exit()
+    
+    scheduler = None
+    if scheduler_type == 'plateau':
+        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10, verbose=True, min_lr=1e-6)
+    elif scheduler_type == 'onecycle':
+        scheduler = OneCycleLR(
+            optimizer, 
+            max_lr=lr, 
+            steps_per_epoch=len(train_loader), 
+            epochs=epochs, 
+            pct_start=0.3, 
+            div_factor=25.0, 
+            final_div_factor=1e4
+        )
+    else:
+        print(f"[ERROR] Scheduler '{scheduler_type}' not recognized")
+        print("\tAvailable: \n\t -'plateau' \n\t -'onecycle'")
+        exit()
 
-    early_stopping = early_stopper
-    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
-    val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False)
+    # --- Loss Function ---
+    if loss_type == 'mse':
+        loss_train = weighted_mse_loss
+        loss_val = nn.MSELoss()
+    elif loss_type == 'physics':
+        raise NotImplementedError("Physics loss is not implemented yet.")
+        loss_fn = physics_loss
+    elif loss_type == 'mae':
+        loss_train = weighted_mae_loss
+        loss_val = nn.L1Loss() 
+    else:
+        print(f"[ERROR] Loss function '{loss_type}' not recognized")
+        print("\tAvailable: \n\t -'mse' \n\t -'physics'")
+        exit()
 
+    # --- Training Loop ---
     history = {"loss": [], "val_loss": []}
-
-    # tqdm solo sulle EPOCHE
     with tqdm(total=epochs, desc="Training", unit="epoch", disable=not verbose) as pbar:
         for epoch in range(epochs):
+            
             model.train()
             running_loss = 0.0
             n_batches = 0
 
-            for i, (xb, yb) in enumerate(train_loader):
+            for i, (xb, yb, weights_b) in enumerate(train_loader):
                 
-                xb, yb = xb.to(device), yb.to(device)
+                xb, yb, weights_b = xb.to(device), yb.to(device), weights_b.to(device)
+                
                 optimizer.zero_grad()
-                #print(xb.shape)
-                #print(yb.shape)
                 y_pred = model(xb)
-                loss = loss_fn(y_pred, yb) 
+               
+                loss = loss_train(y_pred, yb, weights_b)
+
                 loss.backward()
-                # print the gradients and lr of the model parameters
-                if show_grad:
+
+                if show_grad: # debug on gradients
                     if i == 0:
                         print(f"Gradients for batch {i}:")
                         for name, param in model.named_parameters():
@@ -426,7 +613,7 @@ def train_nn_model(
                                 print(f"{name}: {param.grad.norm().item()}")
                             else:
                                 print(f"{name}: None")
-                if show_lrs:
+                if show_lrs: # debug on effective learning rates
                     if i == 0:
                         print(f"Effective Learing Rates for batch {i}:")
                         for name, param in model.named_parameters():
@@ -436,10 +623,10 @@ def train_nn_model(
                             else:
                                 print(f"{name}: None")
                             
-                #CLIPPING, ATTENTION
-                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=clipping_value)
-                
                 optimizer.step()
+
+                if scheduler_type == 'onecycle':
+                    scheduler.step()
 
                 running_loss += loss.item()
                 n_batches += 1
@@ -447,22 +634,27 @@ def train_nn_model(
             epoch_loss = running_loss / max(n_batches, 1)
             history["loss"].append(epoch_loss)
 
-            # Validazione
+            # Validation
             if val_loader is not None:
                 model.eval()
                 val_running_loss = 0.0
                 val_batches = 0
                 with torch.no_grad():
-                    for xb, yb in val_loader:
+                    for xb, yb, _ in val_loader:
+                        
                         xb, yb = xb.to(device), yb.to(device)
                         y_pred = model(xb)
-                        vloss = loss_fn(y_pred, yb)
+
+                        vloss = loss_val(y_pred, yb)
+
                         val_running_loss += vloss.item()
                         val_batches += 1
+
                 val_loss = val_running_loss / max(val_batches, 1)
                 history["val_loss"].append(val_loss)
 
-                scheduler.step(val_loss)
+                if scheduler_type == 'plateau':
+                    scheduler.step(val_loss)
 
                 # Early stopping
                 stop = early_stopper.step(val_loss, model)
@@ -475,7 +667,7 @@ def train_nn_model(
                     early_stopper.restore_best_weights(model)
                     break
 
-                # Aggiorna tqdm con loss corrente
+                # Update progress bar
                 pbar.set_postfix({
                     'loss': f'{epoch_loss:.4f}',
                     'val_loss': f'{val_loss:.4f}'
@@ -483,130 +675,12 @@ def train_nn_model(
             else:
                 pbar.set_postfix({'loss': f'{epoch_loss:.4f}'})
 
-            pbar.update(1)  # Avanza la barra
+            pbar.update(1)
             pbar.set_description(f"Epoch {epoch+1}/{epochs}")
 
     return history
 
-def train_lagrangian_nn_model(
-    model,
-    ds_train,
-    ds_val,
-    early_stopper, 
-    loss_fn,
-    verbose=False,
-    batch_size=32,
-    epochs=100,
-    lr=1e-3,
-    weight_decay=0.0,
-    device="cpu",
-    show_grad = False,
-    show_lrs = False,
-    lagrangian_loss = None,
-    lambda_c = 0.0,
-    **fit_params,
-):
-    model.to(device)
-    if lagrangian_loss is not None:
-        lagrangian_loss.to(device)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay = weight_decay)
-
-    early_stopping = early_stopper
-    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=False)
-    val_loader = DataLoader(ds_val, batch_size=batch_size, shuffle=False)
-    
-    history = {"loss": [], "val_loss": []}
-
-    # tqdm solo sulle EPOCHE
-    with tqdm(total=epochs, desc="Training", unit="epoch", disable=not verbose) as pbar:
-        for epoch in range(epochs):
-            model.train()
-            running_loss = 0.0
-            n_batches = 0
-
-            for i, (xb, yb) in enumerate(train_loader):
-                
-                xb, yb = xb.to(device), yb.to(device)
-                optimizer.zero_grad()
-                #print(xb.shape)
-                #print(yb.shape)
-                y_pred, x_pred = model(xb)
-                
-                loss = loss_fn(y_pred, yb)
-                if lagrangian_loss is not None:
-                    loss += lambda_c * lagrangian_loss(xb, x_pred[:, :, 2:])
-
-                loss.backward()
-                # print the gradients and lr of the model parameters
-                if show_grad:
-                    if i == 0:
-                        print("Gradients for batch 0:")
-                        for name, param in model.named_parameters():
-                            if param.grad is not None:
-                                print(f"{name}: {param.grad.norm().item()}")
-                            else:
-                                print(f"{name}: None")
-                if show_lrs:
-                    if i == 0:
-                        print("Effective Learing Rates for batch 0:")
-                        for name, param in model.named_parameters():
-                            eff_lr = get_adam_effective_lr(optimizer, param)
-                            if eff_lr is not None:
-                                print(f"{name}: {eff_lr.mean()}")
-                            else:
-                                print(f"{name}: None")
-                            
-                #CLIPPING, ATTENTION
-                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-                
-                optimizer.step()
-                running_loss += loss.item()
-                n_batches += 1
-
-            epoch_loss = running_loss / max(n_batches, 1)
-            history["loss"].append(epoch_loss)
-
-            # Validazione
-            if val_loader is not None:
-                model.eval()
-                val_running_loss = 0.0
-                val_batches = 0
-                with torch.no_grad():
-                    for xb, yb in val_loader:
-                        xb, yb = xb.to(device), yb.to(device)
-                        y_pred, x_pred = model(xb)
-                        vloss = loss_fn(y_pred, yb)
-                        if lagrangian_loss is not None:
-                            vloss += lambda_c * lagrangian_loss(xb, x_pred[:,:, 2:])
-                        val_running_loss += vloss.item()
-                        val_batches += 1
-                val_loss = val_running_loss / max(val_batches, 1)
-                history["val_loss"].append(val_loss)
-
-                # Early stopping
-                stop = early_stopper.step(val_loss, model)
-                if stop:
-                    pbar.set_postfix({
-                        'status': 'Early Stopped',
-                        'loss': f'{epoch_loss:.4f}',
-                        'val_loss': f'{val_loss:.4f}'
-                    })
-                    early_stopper.restore_best_weights(model)
-                    break
-
-                # Aggiorna tqdm con loss corrente
-                pbar.set_postfix({
-                    'loss': f'{epoch_loss:.4f}',
-                    'val_loss': f'{val_loss:.4f}'
-                })
-            else:
-                pbar.set_postfix({'loss': f'{epoch_loss:.4f}'})
-
-            pbar.update(1)  # Avanza la barra
-            pbar.set_description(f"Epoch {epoch+1}/{epochs}")
-
-    return history
 
 def plot_training_history(history=None,
                           figsize=None, 
@@ -723,7 +797,7 @@ def predict_model(model,
 # ===================== Losses ================================
 # =============================================================
 
-def physics_loss(y_pred, y_true, model = None): 
+def physics_loss(y_pred, y_true, model = None, horizon = 1): 
     
     #eliminate cosine jump
     q_pred = y_pred[:, :, [0, 2]]
@@ -742,17 +816,21 @@ def physics_loss(y_pred, y_true, model = None):
 
     if model is not None:
         dyn = model.f 
-        print("I am here")
+        #print("I am here")
         # Regolarizzazione L2 sui parametri (corretto per tensori)
         reg_friction = torch.exp(dyn.logb1**2).mean() + torch.exp(dyn.logb2**2).mean()
         reg_length   = torch.exp(dyn.logl1**2).mean() + torch.exp(dyn.logl2**2).mean()
         reg_masses   = torch.exp(dyn.logm1**2).mean() + torch.exp(dyn.logm2**2).mean()
 
         # Pesi della regolarizzazione (lambda)
-        lambda_frict = 0.01  
-        lambda_len   = 0.1 
-        lambda_masses = 0.01
-
+        if horizon < 10:
+            lambda_frict = 1  
+            lambda_len   = 1
+            lambda_masses = 1
+        else:
+            lambda_frict = 0.01  
+            lambda_len   = 0.01 
+            lambda_masses = 0.01
         #print(f"Regularization terms: Friction: {reg_friction.item():.6f}, Length: {reg_length.item():.6f}, Masses: {reg_masses.item():.6f}")
         #print(f"Parameters: b1: {torch.exp(dyn.logb1).item():.4f}, b2: {torch.exp(dyn.logb2).item():.4f}, l1: {torch.exp(dyn.logl1).item():.4f}, l2: {torch.exp(dyn.logl2).item():.4f}, m1: {torch.exp(dyn.logm1).item():.4f}, m2: {torch.exp(dyn.logm2).item():.4f}")
 
@@ -860,6 +938,8 @@ class LagrangianLoss(nn.Module):
         loss_physics = torch.mean(res_1_norm**2) + torch.mean(res_2_norm**2)
         
         return loss_physics
+
+
     
 # ============================================================
 # ================ Loading and Saving Models =================

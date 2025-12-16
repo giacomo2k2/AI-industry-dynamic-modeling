@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 import math
+import torch.autograd as autograd
 
 
 # =====================================================
@@ -24,15 +25,28 @@ def device_setup():
 
 class DynLayer(nn.Module):
     
-    def __init__(self,
-                 b1_ref: float = 0.5, fixed_b1: float = None,
-                 b2_ref: float = 0.5, fixed_b2: float = None, 
-                 l1_ref: float = 1.0, fixed_l1: float = None, 
-                 l2_ref: float = 1.0, fixed_l2: float = None, 
-                 m1_ref: float = 2.0, fixed_m1: float = None, 
-                 m2_ref: float = 2.0, fixed_m2: float = None):
+    def __init__(
+            self,
+            sin_cos_transform,
+            X_feature_positions_map,
+            Y_feature_position_map,
+            normalization,
+            normalization_map,
+            b1_ref: float = 1.5, fixed_b1: float = None,
+            b2_ref: float = 0.8, fixed_b2: float = None, 
+            l1_ref: float = 0.1, fixed_l1: float = None, 
+            l2_ref: float = 5.0, fixed_l2: float = None, 
+            m1_ref: float = 2.2, fixed_m1: float = None, 
+            m2_ref: float = 0.5, fixed_m2: float = None
+        ):
         
         super().__init__()
+
+        self.sin_cos_transform = sin_cos_transform
+        self.X_feature_positions_map = X_feature_positions_map
+        self.Y_feature_position_map = Y_feature_position_map
+        self.normalization = normalization
+        self.normalization_map = normalization_map
 
         self.b1_ref, self.b2_ref = b1_ref, b2_ref
         self.l1_ref, self.l2_ref = l1_ref, l2_ref
@@ -40,7 +54,7 @@ class DynLayer(nn.Module):
         
         def init_param(fixed_val, ref_val):
             if fixed_val is None:
-                return nn.Parameter( torch.randn(1) )
+                return nn.Parameter( torch.randn(1) * 0.1)
             else:
                 val = math.log(fixed_val / ref_val)
                 return torch.tensor([val], dtype=torch.float32)
@@ -71,10 +85,39 @@ class DynLayer(nn.Module):
     def get_l1(self): return torch.exp(self.logl1) * self.l1_ref   
     def get_l2(self): return torch.exp(self.logl2) * self.l2_ref   
     def get_m1(self): return torch.exp(self.logm1) * self.m1_ref   
-    def get_m2(self): return torch.exp(self.logm2) * self.m2_ref   
+    def get_m2(self): return torch.exp(self.logm2) * self.m2_ref
+
+    def denormalize(self, states, features_position_map):
+        # states: (Batch, state_dim)
+        device = states.device
+        denorm_states = torch.zeros_like(states, device=device)
+
+        for feature, pos in features_position_map.items():
+            if pos < states.shape[1]:
+                if feature in self.normalization_map:
+                    mean = self.normalization_map[feature]['mean']
+                    std = self.normalization_map[feature]['std']
+                    denorm_states[:, pos] = states[:, pos] * std + mean
+                else:
+                    denorm_states[:, pos] = states[:, pos]
+
+        return denorm_states
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        # inputs: [Batch, 4] -> [q1, q1_dot, q2, q2_dot]
+
+        """
+        inputs: 
+            if self.sin_cos_transform:
+                [Batch, 6] -> [q1_sin, q1_cos, q1_dot, q2_sin, q2_cos, q2_dot]
+            else:
+                [Batch, 4] -> [q1, q1_dot, q2, q2_dot]
+        """
+
+        # If the input is normalized, denormalization required to compute dynamics correctly
+        if self.normalization:
+            inputs = self.denormalize(inputs, self.X_feature_positions_map)
+
+        inputs = inputs.requires_grad_(True) 
         
         # Recupero parametri (scalari broadcastati automaticamente)
         m1, m2 = self.get_m1(), self.get_m2()
@@ -84,10 +127,24 @@ class DynLayer(nn.Module):
         
         # Unpack input lungo la dimensione 1. 
         # q1 sarà di shape [Batch]
-        q1 = inputs[:, 0]
-        q1_dot = inputs[:, 1]
-        q2 = inputs[:, 2]
-        q2_dot = inputs[:, 3]
+        if self.sin_cos_transform:
+            q1_sin = inputs[:, self.X_feature_positions_map['q1_sin']]
+            q1_cos = inputs[:, self.X_feature_positions_map['q1_cos']]
+            q1 = torch.atan2(q1_sin, q1_cos)
+
+            q1_dot = inputs[:, self.X_feature_positions_map['q1_dot']]
+
+            q2_sin = inputs[:, self.X_feature_positions_map['q2_sin']]
+            q2_cos = inputs[:, self.X_feature_positions_map['q2_cos']]
+            q2 = torch.atan2(q2_sin, q2_cos)
+
+            q2_dot = inputs[:, self.X_feature_positions_map['q2_dot']]
+            
+        else:
+            q1 = inputs[:, self.X_feature_positions_map['q1']]
+            q1_dot = inputs[:, self.X_feature_positions_map['q1_dot']]
+            q2 = inputs[:, self.X_feature_positions_map['q2']]
+            q2_dot = inputs[:, self.X_feature_positions_map['q2_dot']]
 
         # Termini trigonometrici [Batch]
         c2 = torch.cos(q2)
@@ -156,11 +213,980 @@ class DynLayer(nn.Module):
         # Remove last dim -> [Batch, 2]
         q_ddot = q_ddot_batched.squeeze(-1) 
 
+
         # Concatena [q_dot, q_ddot] -> [Batch, 4]
         # q_dot_vec spremuto è [Batch, 2]
-        next_states = torch.cat([q_dot_vec.squeeze(-1), q_ddot], dim=1)
+        
+        
+        # I OUTPUT ORDINAMENTO: [q1_dot, q1_ddot, q2_dot, q2_ddot]
+        next_states = torch.stack([q_dot_vec.squeeze(-1)[:,0], q_ddot[:, 0], q_dot_vec.squeeze(-1)[:,1], q_ddot[:, 1]], dim=1)
         
         return next_states
+    
+class DynNN(nn.Module):
+    '''
+    same as DynLayer but for UDE but with NN instead of physical parameters
+    there are no physical parameters, but a NN that learns the dynamics
+    '''
+    def __init__(
+            self,
+            X_feature_positions_map,
+            Y_feature_position_map,
+            Y_feature_DynLayer_positions_map,
+            sin_cos_transform,
+            normalization,
+            normalization_map,
+            input_dim, 
+            output_dim, 
+            hidden_dim=256, 
+            activation='softplus', 
+            residual=False
+        ):
+
+        super().__init__()
+
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+
+        self.sin_cos_transform = sin_cos_transform
+
+        self.X_feature_positions_map = X_feature_positions_map
+        self.Y_feature_position_map = Y_feature_position_map
+        self.Y_feature_DynLayer_positions_map = Y_feature_DynLayer_positions_map
+        self.normalization = normalization
+        self.normalization_map = normalization_map
+
+        self.residual = (residual and input_dim == output_dim)
+
+        if activation == 'tanh':
+            self.activation_func = nn.Tanh()
+        elif activation == 'softplus':
+            self.activation_func = nn.Softplus()
+        elif activation == 'silu':
+            self.activation_func = nn.SiLU()
+        elif activation == 'relu':
+            self.activation_func = nn.ReLU()
+        elif activation == 'gelu':
+            self.activation_func = nn.GELU()
+        else:
+            print(f"\n\t[ERROR] '{activation}' not recognized as a valid input for activation function \n")
+            exit()
+        
+        # --- LAYER & PROFONDITÀ ---
+        # 3 Layer Nascosti sono il "Sweet Spot" per la fisica.
+        # Hidden Dim: 256 o 512 è sufficiente.
+        
+        # --- ACTIVATION FUNCTION ---
+        # Usiamo Tanh o Softplus. 
+        # MAI usare ReLU per la fisica HNN.
+        # Motivo: ReLU ha derivata seconda zero ovunque (o indefinita). 
+        # La fisica richiede derivate seconde continue (liscie).
+        
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            self.activation_func, 
+            nn.Linear(hidden_dim, hidden_dim),
+            self.activation_func,
+            nn.Linear(hidden_dim, hidden_dim),
+            self.activation_func,
+            nn.Linear(hidden_dim, output_dim)  # Output: Scalare (L'Hamiltoniana / Energia)
+        )
+
+    def denormalize(self, states, features_position_map):
+        # states: (Batch, state_dim)
+        device = states.device
+        denorm_states = torch.zeros_like(states, device=device)
+
+        for feature, pos in features_position_map.items():
+            if pos < states.shape[1]:
+                if feature in self.normalization_map:
+                    mean = self.normalization_map[feature]['mean']
+                    std = self.normalization_map[feature]['std']
+                    denorm_states[:, pos] = states[:, pos] * std + mean
+                else:
+                    denorm_states[:, pos] = states[:, pos]
+
+        return denorm_states
+
+    def forward(self, x):
+
+        
+        if self.residual:
+            outputs = x + self.net(x)
+        else:
+            outputs = self.net(x)
+
+        if self.output_dim == 2: #TODO checking output dim
+            # outputs: -> [q1_dot, q2_dot]
+            # stack also q1, q2 from input
+            #if self.sin_cos_transform:
+            #    q1_sin = x[:, self.X_feature_positions_map['q1_sin']]
+            #    q1_cos = x[:, self.X_feature_positions_map['q1_cos']]
+            #    q1 = torch.atan2(q1_sin, q1_cos)
+
+            #    q2_sin = x[:, self.X_feature_positions_map['q2_sin']]
+            #    q2_cos = x[:, self.X_feature_positions_map['q2_cos']]
+            #    q2 = torch.atan2(q2_sin, q2_cos)
+            #else:
+            #    q1 = x[:, self.X_feature_positions_map['q1']]
+            #    q2 = x[:, self.X_feature_positions_map['q2']]
+            #outputs = torch.stack([q1, outputs[:, 0], q2, outputs[:, 1]], dim=1)
+            q1_dot = x[:, self.X_feature_positions_map['q1_dot']]
+            q2_dot = x[:, self.X_feature_positions_map['q2_dot']]
+
+            # I OUTPUT ORDINAMENTO: [q1_dot, q1_ddot, q2_dot, q2_ddot]
+            outputs = torch.stack([q1_dot, outputs[:, 0], q2_dot,  outputs[:, 1]], dim=1)
+
+
+        if self.normalization:
+            outputs = self.denormalize(outputs, self.Y_feature_DynLayer_positions_map)
+
+        return outputs
+    
+class DynUDE(nn.Module):
+    '''
+    same as DynLayer but for UDE but with NN instead of physical parameters
+    there are no physical parameters, but a NN that learns the dynamics
+    '''
+    def __init__(
+            self,
+            sin_cos_transform,
+            X_feature_positions_map,
+            Y_feature_position_map,
+            Y_feature_DynLayer_positions_map,
+            normalization,
+            normalization_map,
+            input_dim=4, 
+            hidden_dim=256, 
+            output_dim=10, 
+            activation='softplus'
+        ):
+
+        super().__init__()
+
+        self.sin_cos_transform = sin_cos_transform
+        self.X_feature_positions_map = X_feature_positions_map
+        self.Y_feature_position_map = Y_feature_position_map
+        self.Y_feature_DynLayer_positions_map = Y_feature_DynLayer_positions_map
+        self.normalization = normalization
+        self.normalization_map = normalization_map
+        
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.Softplus(), 
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Softplus(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Softplus(),
+            nn.Linear(hidden_dim, output_dim)  # Output: Scalare (L'Hamiltoniana / Energia)
+        )
+
+    def forward(self, x):
+        """
+        x: 
+            if self.sin_cos_transform:
+                [Batch, 6] -> [q1_sin, q1_cos, q1_dot, q2_sin, q2_cos, q2_dot]
+            else:
+                [Batch, 4] -> [q1, q1_dot, q2, q2_dot]
+        
+        the forward pass predicts the next states given the current states and inputs
+        outputs: [Batch, 10] -> [M11, M12, M21, M22, c1, c2, D11, D22, G1, G2]
+
+        then dynamics are computed
+        returns: [Batch, 4] -> [q1_dot, q1_ddot, q2_dot, q2_ddot]
+        """
+
+
+        if self.normalization:
+            x = self.denormalize(x, self.X_feature_positions_map)
+        
+        # 1. La rete predice l'Energia Totale (H) in quello stato
+        outputs = self.net(x)
+
+        if self.normalization:
+            raise NotImplementedError("Denormalization not implemented for DynUDE_Informed yet.")
+
+        M11, M12 = outputs[:, 0], outputs[:, 1]
+        M21, M22 = outputs[:, 2], outputs[:, 3]
+        c1, c2   = outputs[:, 4], outputs[:, 5]
+        D11, D22 = outputs[:, 6], outputs[:, 7]
+        G1, G2   = outputs[:, 8], outputs[:, 9]
+
+        # --- 3. Costruzione Matrici Stimate ---
+        # Matrice di Inerzia M
+        M = torch.stack([
+            torch.stack([M11, M12], dim=1),
+            torch.stack([M21, M22], dim=1)
+        ], dim=1)  # Shape: [Batch, 2, 2]
+        
+        # Vettore Coriolis/Centrifuga C (nota: nel tuo codice dynamics era 'c')
+        C = torch.stack([c1, c2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+        
+        # Matrice Damping D
+        D = torch.stack([
+            torch.stack([D11, torch.zeros_like(D11)], dim=1),
+            torch.stack([torch.zeros_like(D22), D22], dim=1)
+        ], dim=1)  # Shape: [Batch, 2, 2]
+        
+        # Vettore Gravità G
+        G = torch.stack([G1, G2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+
+        # --- 4. Calcolo della Dinamica (Forward Dynamics) ---
+        # Estraiamo le velocità dallo stato attuale [q1, q1_dot, q2, q2_dot]
+        q1_dot = x[:, self.X_feature_positions_map['q1_dot']]
+        q2_dot = x[:, self.X_feature_positions_map['q2_dot']]
+        
+        q_dot = torch.stack([q1_dot, q2_dot], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+        
+        # Equazione del moto: M * q_ddot + C + D*q_dot + G = u
+        # Quindi: M * q_ddot = u - C - D*q_dot - G
+        # Termine noto b:
+        b = - C - torch.bmm(D, q_dot) - G  # Shape: [Batch, 2, 1]
+        
+        # Risolviamo per le accelerazioni (q_ddot)
+        # Gestiamo eventuali matrici singolari con un try-except o pseudo-inversa
+        try:
+            q_ddot_est = torch.linalg.solve(M, b)  # Shape: [Batch, 2, 1]
+        except RuntimeError:
+            q_ddot_est = torch.matmul(torch.linalg.pinv(M), b)  # Shape: [Batch, 2, 1]
+
+        q_ddot = q_ddot_est.squeeze(-1)  # Shape: [Batch, 2]
+
+        # --- 5. Costruzione del Vettore di Output ---
+        # Concatenazione di [q1_dot, q1_ddot, q2_dot, q2_ddot]
+        #print("q_dot shape:", q_dot.squeeze(-1).shape)
+        #print("q_ddot shape:", q_ddot.shape)
+
+        derivatives = torch.stack([q_dot.squeeze(-1)[:, 0], q_ddot[:, 0], q_dot.squeeze(-1)[:, 1], q_ddot[:, 1]], dim=1)  # Shape: [Batch, 4]
+        
+        return derivatives
+    
+    def predict_matrices(self, x):
+        """
+        x: 
+            if self.sin_cos_transform:
+                [Batch, 6] -> [q1_sin, q1_cos, q1_dot, q2_sin, q2_cos, q2_dot]
+            else:
+                [Batch, 4] -> [q1, q1_dot, q2, q2_dot]
+        
+        the forward pass predicts the next states given the current states and inputs
+        outputs: [Batch, 10] -> [M11, M12, M21, M22, c1, c2, D11, D22, G1, G2]
+        """
+
+
+        if self.normalization:
+            x = self.denormalize(x, self.X_feature_positions_map)
+        
+        # 1. La rete predice l'Energia Totale (H) in quello stato
+        outputs = self.net(x)
+
+        if self.normalization:
+            raise NotImplementedError("Denormalization not implemented for DynUDE_Informed yet.")
+
+        M11, M12 = outputs[:, 0], outputs[:, 1]
+        M21, M22 = outputs[:, 2], outputs[:, 3]
+        c1, c2   = outputs[:, 4], outputs[:, 5]
+        D11, D22 = outputs[:, 6], outputs[:, 7]
+        G1, G2   = outputs[:, 8], outputs[:, 9]
+
+        # --- 3. Costruzione Matrici Stimate ---
+        # Matrice di Inerzia M
+        M = torch.stack([
+            torch.stack([M11, M12], dim=1),
+            torch.stack([M21, M22], dim=1)
+        ], dim=1)  # Shape: [Batch, 2, 2]
+        
+        # Vettore Coriolis/Centrifuga C (nota: nel tuo codice dynamics era 'c')
+        C = torch.stack([c1, c2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+        
+        # Matrice Damping D
+        D = torch.stack([
+            torch.stack([D11, torch.zeros_like(D11)], dim=1),
+            torch.stack([torch.zeros_like(D22), D22], dim=1)
+        ], dim=1)  # Shape: [Batch, 2, 2]
+        
+        # Vettore Gravità G
+        G = torch.stack([G1, G2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+
+        return M, C, D, G
+    
+class DynUDE_Informed(nn.Module):
+    def __init__(
+            self,
+            sin_cos_transform,
+            X_feature_positions_map,
+            Y_feature_position_map,
+            Y_feature_DynLayer_positions_map,
+            normalization,
+            normalization_map,
+            input_dim=4, 
+            hidden_dim=256, 
+            output_dim=9, 
+            activation='softplus'
+        ):
+
+        super().__init__()
+
+        self.sin_cos_transform = sin_cos_transform
+        self.X_feature_positions_map = X_feature_positions_map
+        self.Y_feature_position_map = Y_feature_position_map
+        self.Y_feature_DynLayer_positions_map = Y_feature_DynLayer_positions_map
+        self.normalization = normalization
+        self.normalization_map = normalization_map 
+        
+        # M (Simmetrica): serve L11, L21, L22 -> 3 parametri
+        # C (Coriolis): c1, c2 -> 2 parametri
+        # D (Damping diagonale): d1, d2 -> 2 parametri
+        # G (Gravity): g1, g2 -> 2 parametri
+        # TOTALE: 9 parametri
+
+        self.softplus = nn.Softplus() # Per garantire positività dove necessario
+
+        if activation == 'tanh':
+            self.activation_func = nn.Tanh()
+        elif activation == 'softplus':
+            self.activation_func = nn.Softplus()
+        elif activation == 'silu':
+            self.activation_func = nn.SiLU()
+        elif activation == 'relu':
+            self.activation_func = nn.ReLU()
+        elif activation == 'gelu':
+            self.activation_func = nn.GELU()
+        else:
+            print(f"\n\t[ERROR] '{activation}' not recognized as a valid input for activation function \n")
+            exit()
+
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            self.activation_func,
+            nn.Linear(hidden_dim, hidden_dim),
+            self.activation_func,
+            nn.Linear(hidden_dim, hidden_dim),
+            self.activation_func,
+            nn.Linear(hidden_dim, output_dim)
+        )
+
+    def forward(self, x):
+        # x: [Batch, 4] -> [q1, q1_dot, q2, q2_dot]
+        
+        
+        # Predizione parametri grezzi
+        raw_out = self.net(x)
+
+        if self.normalization:
+            raise NotImplementedError("Denormalization not implemented for DynUDE_Informed yet.")
+        
+        # --- 1. Costruzione Matrice M (Metodo Cholesky) ---
+        # M deve essere definita positiva. Costruiamo L tale che M = L * L^T
+        # L = [[l11, 0], [l21, l22]]
+        
+        l11 = self.softplus(raw_out[:, 0]) + 1e-4  # Deve essere > 0
+        l21 = raw_out[:, 1]                        # Può essere negativo
+        l22 = self.softplus(raw_out[:, 2]) + 1e-4  # Deve essere > 0
+        
+        # Costruiamo L batch-wise
+        zeros = torch.zeros_like(l11)
+        row1 = torch.stack([l11, zeros], dim=1)
+        row2 = torch.stack([l21, l22], dim=1)
+        L = torch.stack([row1, row2], dim=1) # [Batch, 2, 2]
+        
+        # M = L @ L.transpose
+        M = torch.bmm(L, L.transpose(1, 2)) # [Batch, 2, 2]
+        # Ora M è garantita simmetrica e invertibile! Niente più try-except.
+
+        # --- 2. Damping D (Diagonale e Positivo) ---
+        d1 = self.softplus(raw_out[:, 3])
+        d2 = self.softplus(raw_out[:, 4])
+        
+        D = torch.stack([
+            torch.stack([d1, zeros], dim=1),
+            torch.stack([zeros, d2], dim=1)
+        ], dim=1)
+
+        # --- 3. Coriolis C ---
+        c1 = raw_out[:, 5]
+        c2 = raw_out[:, 6]
+        C = torch.stack([c1, c2], dim=1).unsqueeze(-1)
+
+        # --- 4. Gravity G ---
+        g1 = raw_out[:, 7]
+        g2 = raw_out[:, 8]
+        G = torch.stack([g1, g2], dim=1).unsqueeze(-1)
+
+        # --- 5. Risoluzione Dinamica ---
+        q1_dot = x[:, self.X_feature_positions_map['q1_dot']]
+        q2_dot = x[:, self.X_feature_positions_map['q2_dot']]
+        q_dot = torch.stack([q1_dot, q2_dot], dim=1).unsqueeze(-1)
+        
+        # Termine noto: b = -C - D*q_dot - G
+        b = -C - torch.bmm(D, q_dot) - G
+        
+        # Risolviamo M * q_ddot = b
+        # Essendo M definita positiva per costruzione, solve è stabile.
+        q_ddot_est = torch.linalg.solve(M, b) 
+        
+        q_ddot = q_ddot_est.squeeze(-1)
+        # I OUTPUT ORDINAMENTO: [q1_dot, q1_ddot, q2_dot, q2_ddot]
+        derivatives = torch.stack([q_dot.squeeze(-1)[:, 0], q_ddot[:, 0], q_dot.squeeze(-1)[:, 1], q_ddot[:, 1]], dim=1)  # Shape: [Batch, 4]
+        
+        return derivatives
+    
+    def predict_matrices(self, x):
+
+        x = x.requires_grad_(True)
+        
+        # Predizione parametri grezzi
+        
+        raw_out = self.net(x)
+
+        if self.normalization:
+            raise NotImplementedError("Denormalization not implemented for DynUDE_Informed yet.")
+        
+        # --- 1. Costruzione Matrice M (Metodo Cholesky) ---
+        # M deve essere definita positiva. Costruiamo L tale che M = L * L^T
+        # L = [[l11, 0], [l21, l22]]
+        
+        l11 = self.softplus(raw_out[:, 0]) + 1e-4  # Deve essere > 0
+        l21 = raw_out[:, 1]                        # Può essere negativo
+        l22 = self.softplus(raw_out[:, 2]) + 1e-4  # Deve essere > 0
+        
+        # Costruiamo L batch-wise
+        zeros = torch.zeros_like(l11)
+        row1 = torch.stack([l11, zeros], dim=1)
+        row2 = torch.stack([l21, l22], dim=1)
+        L = torch.stack([row1, row2], dim=1) # [Batch, 2, 2]
+        
+        # M = L @ L.transpose
+        M = torch.bmm(L, L.transpose(1, 2)) # [Batch, 2, 2]
+        # Ora M è garantita simmetrica e invertibile! Niente più try-except.
+
+        # --- 2. Damping D (Diagonale e Positivo) ---
+        d1 = self.softplus(raw_out[:, 3])
+        d2 = self.softplus(raw_out[:, 4])
+        
+        D = torch.stack([
+            torch.stack([d1, zeros], dim=1),
+            torch.stack([zeros, d2], dim=1)
+        ], dim=1)
+
+        # --- 3. Coriolis C ---
+        c1 = raw_out[:, 5]
+        c2 = raw_out[:, 6]
+        C = torch.stack([c1, c2], dim=1).unsqueeze(-1)
+
+        # --- 4. Gravity G ---
+        g1 = raw_out[:, 7]
+        g2 = raw_out[:, 8]
+        G = torch.stack([g1, g2], dim=1).unsqueeze(-1)
+
+        return M, C, D, G
+
+class UDE_More_Informed(nn.Module):
+
+    def __init__(
+            self,
+            sin_cos_transform,
+            X_feature_positions_map,
+            Y_feature_position_map,
+            Y_feature_DynLayer_positions_map,
+            normalization,
+            normalization_map,
+            input_dim=4, 
+            hidden_dim=256, 
+            output_dim=6, 
+            activation='softplus'
+        ):
+
+        super().__init__()
+
+        self.sin_cos_transform = sin_cos_transform
+        self.X_feature_positions_map = X_feature_positions_map
+        self.Y_feature_position_map = Y_feature_position_map
+        self.Y_feature_DynLayer_positions_map = Y_feature_DynLayer_positions_map
+        self.normalization = normalization
+        self.normalization_map = normalization_map
+        
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.Softplus(), 
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Softplus(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Softplus(),
+            nn.Linear(hidden_dim, output_dim)  # Output: Scalare (L'Hamiltoniana / Energia)
+        )
+
+    def forward(self, x):
+        """
+        x: 
+            if self.sin_cos_transform:
+                [Batch, 6] -> [q1_sin, q1_cos, q1_dot, q2_sin, q2_cos, q2_dot]
+            else:
+                [Batch, 4] -> [q1, q1_dot, q2, q2_dot]
+        
+        the forward pass predicts the next states given the current states and inputs
+        outputs: [Batch, 6] -> [C1, C2, D11, D22, G1, G2]
+
+        then dynamics are computed
+        returns: [Batch, 4] -> [q1_dot, q1_ddot, q2_dot, q2_ddot]
+        """
+        
+
+        if self.normalization:
+            x = self.denormalize(x, self.X_feature_positions_map)
+        
+        # M = np.array([
+        #     [(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * np.cos(q2), m2 * l2**2 + m2 * l1 * l2 * np.cos(q2)],
+        #     [m2 * l2**2 + m2 *l1 *l2 * np.cos(q2), m2 * l2**2]
+        # ])
+
+        # 1. La rete predice l'Energia Totale (H) in quello stato
+        outputs = self.net(x)
+
+        if self.normalization:
+            raise NotImplementedError("Denormalization not implemented for UDE_More_Informed yet.")
+
+        C11, C12   = outputs[:, 0], outputs[:, 1]
+        C21, C22   = outputs[:, 2], outputs[:, 3]
+        D11, D22   = outputs[:, 4], outputs[:, 5]
+        G1, G2     = outputs[:, 6], outputs[:, 7]
+
+        # --- 3. Costruzione Matrici Stimate ---
+        # Vettore Coriolis/Centrifuga C (nota: nel tuo codice dynamics era 'c')
+        c = torch.stack([
+            torch.stack([C11, C12], dim=1),
+            torch.stack([C21, C22], dim=1)
+                        ], dim=1)  # Shape: [Batch, 2, 1]
+        
+        # Matrice Damping D
+        #d1 = (outputs[:, 2])
+        #d2 = (outputs[:, 3])
+
+        # Combina le diagonali: [Batch, 2]
+        d_diag = torch.stack([D11, D22], dim=1)
+
+        # Crea la matrice [Batch, 2, 2]
+        D = torch.diag_embed(d_diag)
+        # Vettore Gravità G
+        #G = torch.stack([G1, G2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+        # --- 4. Calcolo della Dinamica (Forward Dynamics) ---
+        # Estraiamo le velocità dallo stato attuale [q1, q1_dot, q2, q2_dot]
+        q1_dot = x[:, self.X_feature_positions_map['q1_dot']]
+        q2_dot = x[:, self.X_feature_positions_map['q2_dot']]
+        q_dot = torch.stack([q1_dot, q2_dot], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+
+        C = torch.bmm(c, q_dot)  # Shape: [Batch, 2, 1]
+        
+        m1 = torch.tensor(2.2)
+        m2 = torch.tensor(1.8)
+        l1 = torch.tensor(1.2)
+        l2 = torch.tensor(1.0)
+
+        if self.sin_cos_transform:
+            cosq2 = x[:, self.X_feature_positions_map['q2_cos']]
+        else:
+            # If input is raw angles, compute cos here
+            q2 = x[:, self.X_feature_positions_map['q2']]
+            cosq2 = torch.cos(q2)
+
+        
+
+        M = torch.stack([ 
+            torch.stack([(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * cosq2, m2 * l2**2 + m2 * l1 * l2 * cosq2], dim=1),
+             torch.stack([m2 * l2**2 + m2 *l1 *l2 * cosq2, m2 * l2**2 * torch.ones_like(cosq2)], dim=1)
+        ], dim=1)  # Shape: [Batch, 2, 2]
+
+        # G = np.array([
+        #     [(m1+m2)*g*l1*np.sin(q1) +  m2*g*l2*np.sin(q1 + q2)], 
+        #     [m2*g*l2*np.sin(q1 + q2)]
+        # ])
+        # G1 = (m1 + m2) * 9.81 * l1 * sinq1 + m2 * 9.81 * l2 * torch.sin(torch.atan2(sinq1, cosq1) + torch.atan2(sinq2, cosq2))
+        # G2 = m2 * 9.81 * l2 * torch.sin(torch.atan2(sinq1, cosq1) + torch.atan2(sinq2, cosq2))
+        G = torch.stack([G1, G2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]  
+
+        # print("C shape:", C.shape)
+        # print("D shape:", D.shape)
+        # print("G shape:", G.shape)
+        # print("M shape:", M.shape)
+        # Equazione del moto: M * q_ddot + C + D*q_dot + G = u
+        # Quindi: M * q_ddot = u - C - D*q_dot - G
+        # Termine noto b:
+        b = - C - torch.bmm(D, q_dot) - G  # Shape
+        # Risolviamo per le accelerazioni (q_ddot)
+        # Gestiamo eventuali matrici singolari con un try-except o pseudo-inversa
+        try:
+            q_ddot_est = torch.linalg.solve(M, b)  # Shape: [Batch, 2, 1]
+        except RuntimeError:
+            q_ddot_est = torch.matmul(torch.linalg.pinv(M), b)  # Shape: [Batch, 2, 1]
+        q_ddot = q_ddot_est.squeeze(-1)  # Shape: [Batch, 2]
+        # --- 5. Costruzione del Vettore di Output ---
+        # Concatenazione di [q1_dot, q1_ddot, q2_dot, q2_ddot]
+        # print("q_dot shape:", q_dot.squeeze(-1).shape)
+        # print("q_ddot shape:", q_ddot.shape)
+        derivatives = torch.stack([q_dot.squeeze(-1)[:, 0], q_ddot[:, 0], q_dot.squeeze(-1)[:, 1], q_ddot[:, 1]], dim=1)  # Shape: [Batch, 4]
+        return derivatives
+    
+    def predict_matrices(self, x):
+        """
+        x: 
+            if self.sin_cos_transform:
+                [Batch, 6] -> [q1_sin, q1_cos, q1_dot, q2_sin, q2_cos, q2_dot]
+            else:
+                [Batch, 4] -> [q1, q1_dot, q2, q2_dot]
+        
+        the forward pass predicts the next states given the current states and inputs
+        outputs: [Batch, 6] -> [C1, C2, D11, D22, G1, G2]
+
+        then dynamics are computed
+        returns: [Batch, 4] -> [q1_dot, q1_ddot, q2_dot, q2_ddot]
+        """
+
+        # Importante: abilitiamo il gradiente sull'input per calcolare le derivate parziali
+        x = x.requires_grad_(True)
+
+        if self.normalization:
+            x = self.denormalize(x, self.X_feature_positions_map)
+        
+        # M = np.array([
+        #     [(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * np.cos(q2), m2 * l2**2 + m2 * l1 * l2 * np.cos(q2)],
+        #     [m2 * l2**2 + m2 *l1 *l2 * np.cos(q2), m2 * l2**2]
+        # ])
+
+        # 1. La rete predice l'Energia Totale (H) in quello stato
+        outputs = self.net(x)
+
+        if self.normalization:
+            raise NotImplementedError("Denormalization not implemented for UDE_More_Informed yet.")
+
+        C11, C12   = outputs[:, 0], outputs[:, 1]
+        C21, C22   = outputs[:, 2], outputs[:, 3]
+        D11, D22   = outputs[:, 4], outputs[:, 5]
+        G1, G2     = outputs[:, 6], outputs[:, 7]
+
+        # --- 3. Costruzione Matrici Stimate ---
+        # Vettore Coriolis/Centrifuga C (nota: nel tuo codice dynamics era 'c')
+        c = torch.stack([
+            torch.stack([C11, C12], dim=1),
+            torch.stack([C21, C22], dim=1)
+                        ], dim=1)  # Shape: [Batch, 2, 1]
+        
+        # Matrice Damping D
+        #d1 = (outputs[:, 2])
+        #d2 = (outputs[:, 3])
+
+        # Combina le diagonali: [Batch, 2]
+        d_diag = torch.stack([D11, D22], dim=1)
+
+        # Crea la matrice [Batch, 2, 2]
+        D = torch.diag_embed(d_diag)
+        # Vettore Gravità G
+        #G = torch.stack([G1, G2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+        # --- 4. Calcolo della Dinamica (Forward Dynamics) ---
+        # Estraiamo le velocità dallo stato attuale [q1, q1_dot, q2, q2_dot]
+        q1_dot = x[:, self.X_feature_positions_map['q1_dot']]
+        q2_dot = x[:, self.X_feature_positions_map['q2_dot']]
+        q_dot = torch.stack([q1_dot, q2_dot], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+
+        C = torch.bmm(c, q_dot)  # Shape: [Batch, 2, 1]
+        
+        m1 = torch.tensor(2.2)
+        m2 = torch.tensor(1.8)
+        l1 = torch.tensor(1.2)
+        l2 = torch.tensor(1.0)
+
+        if self.sin_cos_transform:
+            cosq2 = x[:, self.X_feature_positions_map['q2_cos']]
+        else:
+            # If input is raw angles, compute cos here
+            q2 = x[:, self.X_feature_positions_map['q2']]
+            cosq2 = torch.cos(q2)
+
+        
+
+        M = torch.stack([ 
+            torch.stack([(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * cosq2, m2 * l2**2 + m2 * l1 * l2 * cosq2], dim=1),
+             torch.stack([m2 * l2**2 + m2 *l1 *l2 * cosq2, m2 * l2**2 * torch.ones_like(cosq2)], dim=1)
+        ], dim=1)  # Shape: [Batch, 2, 2]
+
+        # G = np.array([
+        #     [(m1+m2)*g*l1*np.sin(q1) +  m2*g*l2*np.sin(q1 + q2)], 
+        #     [m2*g*l2*np.sin(q1 + q2)]
+        # ])
+        # G1 = (m1 + m2) * 9.81 * l1 * sinq1 + m2 * 9.81 * l2 * torch.sin(torch.atan2(sinq1, cosq1) + torch.atan2(sinq2, cosq2))
+        # G2 = m2 * 9.81 * l2 * torch.sin(torch.atan2(sinq1, cosq1) + torch.atan2(sinq2, cosq2))
+        G = torch.stack([G1, G2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]  
+
+        return M, C, D, G
+    
+class UDE_D_constant(nn.Module):
+
+    def __init__(
+            self,
+            sin_cos_transform,
+            X_feature_positions_map,
+            Y_feature_position_map,
+            Y_feature_DynLayer_positions_map,
+            normalization,
+            normalization_map,
+            input_dim=4, 
+            hidden_dim=256, 
+            output_dim=6, 
+            activation='softplus',
+            d11_ref: float = 0.5, fixed_d11: float = None,
+            d22_ref: float = 0.5, fixed_d22: float = None, 
+
+        ):
+
+        super().__init__()
+
+        self.sin_cos_transform = sin_cos_transform
+        self.X_feature_positions_map = X_feature_positions_map
+        self.Y_feature_position_map = Y_feature_position_map
+        self.Y_feature_DynLayer_positions_map = Y_feature_DynLayer_positions_map
+        self.normalization = normalization
+        self.normalization_map = normalization_map
+
+        self.d11_ref, self.d22_ref = d11_ref, d22_ref
+        
+        def init_param(fixed_val, ref_val):
+            if fixed_val is None:
+                return nn.Parameter( torch.randn(1) * 0.1)
+            else:
+                val = math.log(fixed_val / ref_val)
+                return torch.tensor([val], dtype=torch.float32)
+
+        # Funzione helper per assegnare correttamente Parametri o Buffer
+        def setup_variable(name, fixed_val, ref_val):
+            val = init_param(fixed_val, ref_val)
+            if fixed_val is None:
+                # Se è None, è un nn.Parameter: lo assegnamo all'attributo
+                setattr(self, name, val)
+            else:
+                # Se è fisso, lo registriamo come buffer.
+                # NOTA: Non assegniamo il risultato a self.name! 
+                # PyTorch renderà il buffer accessibile via self.name automaticamente.
+                self.register_buffer(name, val)
+
+        # Ora inizializza le variabili usando l'helper
+        setup_variable("logd11", fixed_d11, d11_ref)
+        setup_variable("logd22", fixed_d22, d22_ref)
+        
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.Softplus(), 
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Softplus(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Softplus(),
+            nn.Linear(hidden_dim, output_dim)  # Output: Scalare (L'Hamiltoniana / Energia)
+        )
+
+
+    # Helper getters
+    def get_d11(self): return torch.exp(self.logd11) * self.d11_ref   
+    def get_d22(self): return torch.exp(self.logd22) * self.d22_ref   
+
+    def forward(self, x):
+        """
+        x: 
+            if self.sin_cos_transform:
+                [Batch, 6] -> [q1_sin, q1_cos, q1_dot, q2_sin, q2_cos, q2_dot]
+            else:
+                [Batch, 4] -> [q1, q1_dot, q2, q2_dot]
+        
+        the forward pass predicts the next states given the current states and inputs
+        outputs: [Batch, 6] -> [C1, C2, D11, D22, G1, G2]
+
+        then dynamics are computed
+        returns: [Batch, 4] -> [q1_dot, q1_ddot, q2_dot, q2_ddot]
+        """
+        
+        if self.normalization:
+            x = self.denormalize(x, self.X_feature_positions_map)
+        
+        # M = np.array([
+        #     [(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * np.cos(q2), m2 * l2**2 + m2 * l1 * l2 * np.cos(q2)],
+        #     [m2 * l2**2 + m2 *l1 *l2 * np.cos(q2), m2 * l2**2]
+        # ])
+
+        # 1. La rete predice l'Energia Totale (H) in quello stato
+        outputs = self.net(x)
+
+        if self.normalization:
+            raise NotImplementedError("Denormalization not implemented for UDE_More_Informed yet.")
+
+        C11, C12   = outputs[:, 0], outputs[:, 1]
+        C21, C22   = outputs[:, 2], outputs[:, 3]
+        D11, D22   = self.get_d11(), self.get_d22()
+        G1, G2     = outputs[:, 4], outputs[:, 5]
+
+        # --- 3. Costruzione Matrici Stimate ---
+        # Vettore Coriolis/Centrifuga C (nota: nel tuo codice dynamics era 'c')
+        c = torch.stack([
+            torch.stack([C11, C12], dim=1),
+            torch.stack([C21, C22], dim=1)
+                        ], dim=1)  # Shape: [Batch, 2, 1]
+        
+        # Matrice Damping D
+        #d1 = (outputs[:, 2])
+        #d2 = (outputs[:, 3])
+
+        # Combina le diagonali: [Batch, 2]
+        d_diag = torch.stack([D11, D22], dim=1)
+
+        # Crea la matrice [Batch, 2, 2]
+        D = torch.diag_embed(d_diag)
+        # Vettore Gravità G
+        #G = torch.stack([G1, G2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+        # --- 4. Calcolo della Dinamica (Forward Dynamics) ---
+        # Estraiamo le velocità dallo stato attuale [q1, q1_dot, q2, q2_dot]
+        q1_dot = x[:, self.X_feature_positions_map['q1_dot']]
+        q2_dot = x[:, self.X_feature_positions_map['q2_dot']]
+        q_dot = torch.stack([q1_dot, q2_dot], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+
+        C = torch.bmm(c, q_dot)  # Shape: [Batch, 2, 1]
+        
+        m1 = torch.tensor(2.2)
+        m2 = torch.tensor(1.8)
+        l1 = torch.tensor(1.2)
+        l2 = torch.tensor(1.0)
+
+        if self.sin_cos_transform:
+            cosq2 = x[:, self.X_feature_positions_map['q2_cos']]
+        else:
+            # If input is raw angles, compute cos here
+            q2 = x[:, self.X_feature_positions_map['q2']]
+            cosq2 = torch.cos(q2)
+
+        
+
+        M = torch.stack([ 
+            torch.stack([(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * cosq2, m2 * l2**2 + m2 * l1 * l2 * cosq2], dim=1),
+             torch.stack([m2 * l2**2 + m2 *l1 *l2 * cosq2, m2 * l2**2 * torch.ones_like(cosq2)], dim=1)
+        ], dim=1)  # Shape: [Batch, 2, 2]
+
+        # G = np.array([
+        #     [(m1+m2)*g*l1*np.sin(q1) +  m2*g*l2*np.sin(q1 + q2)], 
+        #     [m2*g*l2*np.sin(q1 + q2)]
+        # ])
+        # G1 = (m1 + m2) * 9.81 * l1 * sinq1 + m2 * 9.81 * l2 * torch.sin(torch.atan2(sinq1, cosq1) + torch.atan2(sinq2, cosq2))
+        # G2 = m2 * 9.81 * l2 * torch.sin(torch.atan2(sinq1, cosq1) + torch.atan2(sinq2, cosq2))
+        G = torch.stack([G1, G2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]  
+
+        # print("C shape:", C.shape)
+        # print("D shape:", D.shape)
+        # print("G shape:", G.shape)
+        # print("M shape:", M.shape)
+        # Equazione del moto: M * q_ddot + C + D*q_dot + G = u
+        # Quindi: M * q_ddot = u - C - D*q_dot - G
+        # Termine noto b:
+        b = - C - torch.bmm(D, q_dot) - G  # Shape
+        # Risolviamo per le accelerazioni (q_ddot)
+        # Gestiamo eventuali matrici singolari con un try-except o pseudo-inversa
+        try:
+            q_ddot_est = torch.linalg.solve(M, b)  # Shape: [Batch, 2, 1]
+        except RuntimeError:
+            q_ddot_est = torch.matmul(torch.linalg.pinv(M), b)  # Shape: [Batch, 2, 1]
+        q_ddot = q_ddot_est.squeeze(-1)  # Shape: [Batch, 2]
+        # --- 5. Costruzione del Vettore di Output ---
+        # Concatenazione di [q1_dot, q1_ddot, q2_dot, q2_ddot]
+        # print("q_dot shape:", q_dot.squeeze(-1).shape)
+        # print("q_ddot shape:", q_ddot.shape)
+        derivatives = torch.stack([q_dot.squeeze(-1)[:, 0], q_ddot[:, 0], q_dot.squeeze(-1)[:, 1], q_ddot[:, 1]], dim=1)  # Shape: [Batch, 4]
+        return derivatives
+    
+    def predict_matrices(self, x):
+        """
+        x: 
+            if self.sin_cos_transform:
+                [Batch, 6] -> [q1_sin, q1_cos, q1_dot, q2_sin, q2_cos, q2_dot]
+            else:
+                [Batch, 4] -> [q1, q1_dot, q2, q2_dot]
+        
+        the forward pass predicts the next states given the current states and inputs
+        outputs: [Batch, 6] -> [C1, C2, D11, D22, G1, G2]
+
+        then dynamics are computed
+        returns: [Batch, 4] -> [q1_dot, q1_ddot, q2_dot, q2_ddot]
+        """
+
+        # Importante: abilitiamo il gradiente sull'input per calcolare le derivate parziali
+        x = x.requires_grad_(True)
+
+        if self.normalization:
+            x = self.denormalize(x, self.X_feature_positions_map)
+        
+        # M = np.array([
+        #     [(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * np.cos(q2), m2 * l2**2 + m2 * l1 * l2 * np.cos(q2)],
+        #     [m2 * l2**2 + m2 *l1 *l2 * np.cos(q2), m2 * l2**2]
+        # ])
+
+        # 1. La rete predice l'Energia Totale (H) in quello stato
+        outputs = self.net(x)
+
+        if self.normalization:
+            raise NotImplementedError("Denormalization not implemented for UDE_More_Informed yet.")
+
+        C11, C12   = outputs[:, 0], outputs[:, 1]
+        C21, C22   = outputs[:, 2], outputs[:, 3]
+        D11, D22   = self.get_d11(), self.get_d22()
+        G1, G2     = outputs[:, 4], outputs[:, 5]
+
+        # --- 3. Costruzione Matrici Stimate ---
+        # Vettore Coriolis/Centrifuga C (nota: nel tuo codice dynamics era 'c')
+        c = torch.stack([
+            torch.stack([C11, C12], dim=1),
+            torch.stack([C21, C22], dim=1)
+                        ], dim=1)  # Shape: [Batch, 2, 1]
+        
+        # Matrice Damping D
+        #d1 = (outputs[:, 2])
+        #d2 = (outputs[:, 3])
+
+        # Combina le diagonali: [Batch, 2]
+        d_diag = torch.stack([D11, D22], dim=1)
+
+        # Crea la matrice [Batch, 2, 2]
+        D = torch.diag_embed(d_diag)
+        # Vettore Gravità G
+        #G = torch.stack([G1, G2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+        # --- 4. Calcolo della Dinamica (Forward Dynamics) ---
+        # Estraiamo le velocità dallo stato attuale [q1, q1_dot, q2, q2_dot]
+        q1_dot = x[:, self.X_feature_positions_map['q1_dot']]
+        q2_dot = x[:, self.X_feature_positions_map['q2_dot']]
+        q_dot = torch.stack([q1_dot, q2_dot], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]
+
+        C = torch.bmm(c, q_dot)  # Shape: [Batch, 2, 1]
+        
+        m1 = torch.tensor(2.2)
+        m2 = torch.tensor(1.8)
+        l1 = torch.tensor(1.2)
+        l2 = torch.tensor(1.0)
+
+        if self.sin_cos_transform:
+            cosq2 = x[:, self.X_feature_positions_map['q2_cos']]
+        else:
+            # If input is raw angles, compute cos here
+            q2 = x[:, self.X_feature_positions_map['q2']]
+            cosq2 = torch.cos(q2)  
+
+        M = torch.stack([ 
+            torch.stack([(m1 + m2) * l1**2 + m2 * l2**2 + 2 * m2 * l1 * l2 * cosq2, m2 * l2**2 + m2 * l1 * l2 * cosq2], dim=1),
+             torch.stack([m2 * l2**2 + m2 *l1 *l2 * cosq2, m2 * l2**2 * torch.ones_like(cosq2)], dim=1)
+        ], dim=1)  # Shape: [Batch, 2, 2]
+
+        # G = np.array([
+        #     [(m1+m2)*g*l1*np.sin(q1) +  m2*g*l2*np.sin(q1 + q2)], 
+        #     [m2*g*l2*np.sin(q1 + q2)]
+        # ])
+        # G1 = (m1 + m2) * 9.81 * l1 * sinq1 + m2 * 9.81 * l2 * torch.sin(torch.atan2(sinq1, cosq1) + torch.atan2(sinq2, cosq2))
+        # G2 = m2 * 9.81 * l2 * torch.sin(torch.atan2(sinq1, cosq1) + torch.atan2(sinq2, cosq2))
+        G = torch.stack([G1, G2], dim=1).unsqueeze(-1)  # Shape: [Batch, 2, 1]  
+
+        return M, C, D, G
+
+
+
 
 # =====================================================
 # ==========       Numerical Integrators      =========
@@ -180,9 +1206,29 @@ class EulerModel(nn.Module):
         forward method returns the integrated states over time of shape (Batch, time_steps, state_dim
     '''
 
-    def __init__(self, f, auxiliary_input=False):
+    def __init__(
+            self, 
+            f,
+            sin_cos_transform,
+            X_feature_positions_map,
+            Y_feature_position_map,
+            Y_feature_DynLayer_positions_map,
+            physical_state_positions_map,
+            normalization,
+            normalization_map,
+            auxiliary_input=False
+        ):
         super().__init__()
+
         self.f = f 
+        self.sin_cos_transform = sin_cos_transform
+        self.X_feature_positions_map = X_feature_positions_map
+        self.Y_feature_position_map = Y_feature_position_map
+        self.Y_feature_DynLayer_positions_map = Y_feature_DynLayer_positions_map
+        self.physical_state_positions_map = physical_state_positions_map
+        self.normalization = normalization
+        self.normalization_map = normalization_map
+
         self.auxiliary_input = auxiliary_input
 
     def integration(self, y0, T, aux=None):
@@ -220,6 +1266,26 @@ class EulerModel(nn.Module):
             
             # Step di Eulero
             curr_y = curr_y + dt * dy
+
+            if self.sin_cos_transform:
+                # trasformiamo [q1,q1_dot,q2,q2_dot] in [sin(q1),cos(q1),q1_dot,sin(q2),cos(q2),q2_dot]
+                q1 = curr_y[:, 0]
+                q1_dot = curr_y[:, 1]
+                q2 = curr_y[:, 2]
+                q2_dot = curr_y[:, 3]
+
+                q1_sin = torch.sin(q1)
+                q1_cos = torch.cos(q1)
+                q2_sin = torch.sin(q2)
+                q2_cos = torch.cos(q2)
+
+                curr_y = torch.zeros((curr_y.shape[0], 6), device=device)
+                curr_y[:, self.X_feature_positions_map['q1_sin']] = q1_sin
+                curr_y[:, self.X_feature_positions_map['q1_cos']] = q1_cos
+                curr_y[:, self.X_feature_positions_map['q1_dot']] = q1_dot
+                curr_y[:, self.X_feature_positions_map['q2_sin']] = q2_sin
+                curr_y[:, self.X_feature_positions_map['q2_cos']] = q2_cos
+                curr_y[:, self.X_feature_positions_map['q2_dot']] = q2_dot
             
             res.append(curr_y)
 
@@ -230,14 +1296,19 @@ class EulerModel(nn.Module):
 
     def forward(self, inputs):
         # inputs: (Batch, time_steps, features)
+
+        print("SHAPE INPUTS EULER:", inputs.shape)
+
+
+        T_pos = self.X_feature_positions_map['time_step']
         
         if self.auxiliary_input:
-            y0 = inputs[:, 0, :4]      # Stato iniziale al tempo t=0 (Batch, 4)
-            T =  inputs[:, :, 4:5]     # Tempi (Batch, Time, 1)
-            aux = inputs[:, :, 5:]
+            y0 = inputs[:, 0, :T_pos]      # Stato iniziale al tempo t=0 (Batch, 4)
+            T =  inputs[:, :, T_pos:T_pos+1]     # Tempi (Batch, Time, 1)
+            aux = inputs[:, :, T_pos:]
         else:
-            y0 = inputs[:, 0, :4]      # Stato iniziale (Batch, 4)
-            T = inputs[:, :, 4:]       # Tempi (Batch, Time, 1)
+            y0 = inputs[:, 0, :T_pos]      # Stato iniziale (Batch, 4)
+            T = inputs[:, :, T_pos:]       # Tempi (Batch, Time, 1)
             aux = None
 
         # Niente più ciclo sul batch size!
@@ -260,15 +1331,135 @@ class RK4Model(nn.Module):
         if additional_derivatives is True, also returns derivatives of shape (Batch, time_steps, state_dim)
     '''
 
-    def __init__(self, f, auxiliary_input=False, additional_derivatives=False):
+    def __init__(
+            self, 
+            f,
+            sin_cos_transform,
+            normalization,
+            normalization_map,
+            X_feature_positions_map,
+            Y_feature_position_map,
+            Y_feature_DynLayer_positions_map,
+            physical_state_positions_map,
+            auxiliary_input=False, 
+            additional_derivatives=False
+
+        ):
+
         super().__init__()
-        self.f = f 
+        self.f = f
+        self.sin_cos_transform = sin_cos_transform
+        self.normalization = normalization
+        self.normalization_map = normalization_map
+        self.X_feature_positions_map = X_feature_positions_map
+        self.Y_feature_position_map = Y_feature_position_map
+        self.Y_feature_DynLayer_positions_map = Y_feature_DynLayer_positions_map
+        self.physical_state_positions_map = physical_state_positions_map
         self.auxiliary_input = auxiliary_input
         self.additional_derivatives = additional_derivatives
 
+    def to_sin_cos(self, states, device):
+        
+        q1 = states[:, self.physical_state_positions_map['q1']]
+        q1_dot = states[:,  self.physical_state_positions_map['q1_dot']]
+        q2 = states[:, self.physical_state_positions_map['q2']]
+        q2_dot = states[:,  self.physical_state_positions_map['q2_dot']]
+
+        q1_sin = torch.sin(q1)
+        q1_cos = torch.cos(q1)
+        q2_sin = torch.sin(q2)
+        q2_cos = torch.cos(q2)
+
+        sin_cos_states = torch.zeros((states.shape[0], 6), device=device)
+        sin_cos_states[:, self.X_feature_positions_map['q1_sin']] = q1_sin
+        sin_cos_states[:, self.X_feature_positions_map['q1_cos']] = q1_cos
+        sin_cos_states[:, self.X_feature_positions_map['q1_dot']] = q1_dot
+        sin_cos_states[:, self.X_feature_positions_map['q2_sin']] = q2_sin
+        sin_cos_states[:, self.X_feature_positions_map['q2_cos']] = q2_cos
+        sin_cos_states[:, self.X_feature_positions_map['q2_dot']] = q2_dot
+
+        return sin_cos_states
+    
+    def from_sin_cos(self, sin_cos_states, device):
+        # trasformiamo [sin(q1),cos(q1),q1_dot,sin(q2),cos(q2),q2_dot] in [q1,q1_dot,q2,q2_dot]
+        q1_sin = sin_cos_states[:, self.X_feature_positions_map['q1_sin']]
+        q1_cos = sin_cos_states[:, self.X_feature_positions_map['q1_cos']]
+        q1 = torch.atan2(q1_sin, q1_cos)
+
+        q1_dot = sin_cos_states[:, self.X_feature_positions_map['q1_dot']]
+
+        q2_sin = sin_cos_states[:, self.X_feature_positions_map['q2_sin']]
+        q2_cos = sin_cos_states[:, self.X_feature_positions_map['q2_cos']]
+        q2 = torch.atan2(q2_sin, q2_cos)
+
+        q2_dot = sin_cos_states[:, self.X_feature_positions_map['q2_dot']]
+
+        states = torch.zeros((sin_cos_states.shape[0], 4), device=device)        
+        states[:, self.physical_state_positions_map['q1']] = q1
+        states[:, self.physical_state_positions_map['q1_dot']] = q1_dot
+        states[:, self.physical_state_positions_map['q2']] = q2
+        states[:, self.physical_state_positions_map['q2_dot']] = q2_dot
+
+        return states
+
+    def normalize(self, denorm_states, features_position_map, device):
+        # denorm_states: (Batch, state_dim)
+        norm_states = torch.zeros_like(denorm_states, device=device)
+
+        # create a list with unique features from both maps
+        for feature, pos in features_position_map.items():
+            if pos < denorm_states.shape[1]:
+                if feature in self.normalization_map: 
+                    mean = self.normalization_map[feature]['mean']
+                    std = self.normalization_map[feature]['std']
+                    norm_states[:, pos] = (denorm_states[:, pos] - mean) / std
+                else:
+                    norm_states[:, pos] = denorm_states[:, pos]
+
+        return norm_states
+    
+    def denormalize(self, norm_states,features_position_map, device):
+        # norm_states: (Batch, state_dim)
+        denorm_states = torch.zeros_like(norm_states, device=device)
+
+        for feature, pos in features_position_map.items():
+            if pos < norm_states.shape[1]:
+                if feature in self.normalization_map:
+                    mean = self.normalization_map[feature]['mean']
+                    std = self.normalization_map[feature]['std']
+                    denorm_states[:, pos] = norm_states[:, pos] * std + mean
+                else:
+                    denorm_states[:, pos] = norm_states[:, pos]
+
+        return denorm_states
+
+    def from_training_to_physical(self, states, features_position_map, device):
+
+        # states: (Batch, state_dim)
+        physical_states = states
+
+        if self.normalization:
+            physical_states = self.denormalize(physical_states, features_position_map, device)
+        if self.sin_cos_transform:
+            physical_states = self.from_sin_cos(physical_states, device)
+
+        return physical_states
+
+    def from_physical_to_training(self, states, features_position_map, device):
+        # states: (Batch, state_dim)
+        training_states = states
+
+        if self.normalization:
+            training_states = self.normalize(training_states, features_position_map, device)
+        if self.sin_cos_transform:
+            training_states = self.to_sin_cos(training_states, device)
+
+        return training_states
+
     def integration(self, y0, T, aux=None):
-        # y0: (Batch, state_dim) -> (Batch, 4)
+        # y0: (Batch, state_dim) -> (Batch, triaining_space_dim_without_aux)
         # T:  (Batch, time_steps, 1)
+        # aux: (Batch, time_steps, aux_dim) or None
         
         device = y0.device
         
@@ -289,67 +1480,109 @@ class RK4Model(nn.Module):
             dt = (t_next - t_curr).unsqueeze(-1) # (Batch, 1)
             h = dt # alias per notazione RK4 classica
             
-            # Gestione input ausiliari (es. forze esterne)
-            # Nota: per rigore, k2 e k3 dovrebbero usare aux interpolato a t+h/2
-            # Qui usiamo l'aux allo step 'i' per semplicità, compatibile con dataset discreti.
+            # Auxiliary input at current time step (fixed for all RK4 sub-steps)
             current_aux = aux[:, i, :] if self.auxiliary_input else None
             
-            #ydd = self.f(torch.cat([curr_y, current_aux], dim=1))
-            # --- Passaggio RK4 ---
-            
-            # k1 = f(tn, yn)
-            if self.auxiliary_input:
-                k1 = self.f(torch.cat([curr_y, current_aux], dim=1))
-            else:
-                #print(f"curr y :{curr_y.shape}")
-                k1 = self.f(curr_y)
-            
-            # k2 = f(tn + h/2, yn + h*k1/2)
-            y_k2 = curr_y + h * 0.5 * k1
-            if self.auxiliary_input:
-                k2 = self.f(torch.cat([y_k2, current_aux], dim=1))
-            else:
-                k2 = self.f(y_k2)
-                
-            # k3 = f(tn + h/2, yn + h*k2/2)
-            y_k3 = curr_y + h * 0.5 * k2
-            if self.auxiliary_input:
-                k3 = self.f(torch.cat([y_k3, current_aux], dim=1))
-            else:
-                k3 = self.f(y_k3)
-            
-            # k4 = f(tn + h, yn + h*k3)
-            y_k4 = curr_y + h * k3
-            if self.auxiliary_input:
-                k4 = self.f(torch.cat([y_k4, current_aux], dim=1))
-            else:
-                k4 = self.f(y_k4)
-            
-            # Aggiornamento stato
-            # y_{n+1} = y_n + h/6 * (k1 + 2k2 + 2k3 + k4)
-            curr_y = curr_y + (h / 6.0) * (k1 + 2*k2 + 2*k3 + k4)
-            
-            der.append(k1)
-            res.append(curr_y)
+            # Converting current state to physical space (remove sin/cos and denormalize if needed)
+            curr_y_physical = self.from_training_to_physical(curr_y, self.X_feature_positions_map, device)
 
-        der.append(self.f(curr_y))
-        # Stack lungo la dimensione temporale -> [Batch, Time, 4]
-        res = torch.stack(res, dim=1)
+            
+            # ===========================================
+            # ============= Integration RK4 =============
+            # ===========================================
+            
+
+            # --------- 1)  k1 = f(tn, yn) ---------
+            
+            # prepare input for f
+            if self.auxiliary_input:
+                k1_input = torch.cat([curr_y, current_aux], dim=1)
+            else:
+                k1_input = curr_y
+            # compute k1 (q_dot, q_dot_dot) 
+            #print("calling f for k1 with input shape:", k1_input.shape)
+            k1 = self.f(k1_input) # NB: we assume f returns derivatives in physical space
+
+            # --------- 2) k2 = f(tn + h/2, yn + h*k1/2) ---------
+            
+            # compute y_k2
+            y_k2_physical = curr_y_physical + h * 0.5 * k1
+            # convert back to training space (add sin/cos and normalize if needed)
+            y_k2 = self.from_physical_to_training(y_k2_physical, self.X_feature_positions_map, device)
+            # prepare input for f
+            if self.auxiliary_input:
+                k2_input = torch.cat([y_k2, current_aux], dim=1)
+            else:
+                k2_input = y_k2
+            # compute k2
+            #print("calling f for k2 with input shape:", k2_input.shape)
+            k2 = self.f(k2_input) # NB: we assume f returns derivatives in physical space
+
+            # --------- 3) k3 = f(tn + h/2, yn + h*k2/2) ---------
+
+            # compute y_k3
+            y_k3_physical = curr_y_physical + h * 0.5 * k2
+            # convert back to training space (add sin/cos and normalize if needed)
+            y_k3 = self.from_physical_to_training(y_k3_physical, self.X_feature_positions_map, device)   
+            # prepare input for f
+            if self.auxiliary_input:
+                k3_input = torch.cat([y_k3, current_aux], dim=1)
+            else:
+                k3_input = y_k3
+            # compute k3
+            #print("calling f for k3 with input shape:", k3_input.shape)
+            k3 = self.f(k3_input) # NB: we assume f returns derivatives in physical space
+
+            # --------- 4) k4 = f(tn + h, yn + h*k3) ---------
+
+            # compute y_k4
+            y_k4_physical = curr_y_physical + h * k3
+            # convert back to training space (add sin/cos and normalize if needed)
+            y_k4 = self.from_physical_to_training(y_k4_physical, self.X_feature_positions_map, device)
+            # prepare input for f
+            if self.auxiliary_input:
+                k4_input = torch.cat([y_k4, current_aux], dim=1)
+            else:
+                k4_input = y_k4
+            # compute k4
+            #print("calling f for k4 with input shape:", k4_input.shape)
+            k4 = self.f(k4_input) # NB: we assume f returns derivatives in physical space
+
+            # --------- Update yn to yn+1 ---------
+            # y_{n+1} = y_n + h/6 * (k1 + 2k2 + 2k3 + k4)
+            curr_y_physical = curr_y_physical + (h / 6.0) * (k1 + 2*k2 + 2*k3 + k4)
+            # convert back to training space (add sin/cos and normalize if needed)
+            curr_y = self.from_physical_to_training(curr_y_physical, self.X_feature_positions_map, device)
+
+            # --------- Append results ---------
+            der.append(k1) # 1st derivative k1 for custom loss functions
+            res.append(curr_y) # append integrated state in training space (with sin/cos and normalization if needed)
+
+        # Append last 1st derivative k1 for custom loss functions
+        if self.auxiliary_input:
+            der.append(self.f(torch.cat([curr_y, aux[:, -1, :]], dim=1)))
+        else:
+            der.append(self.f(curr_y))
         der = torch.stack(der, dim=1)
+
+        # Stack lungo la dimensione temporale -> [Batch, Time, training_space_dim_without_aux]
+        res = torch.stack(res, dim=1)
         
         return res, der
 
     def forward(self, inputs):
         # inputs: (Batch, time_steps, features)
         # La logica di slicing è identica a prima
+
+        T_pos = self.X_feature_positions_map['time_step']
         
         if self.auxiliary_input:
-            y0 = inputs[:, 0, :4]      
-            T =  inputs[:, :, 4:5]     
-            aux = inputs[:, :, 5:]
+            y0 = inputs[:, 0, :T_pos] # Shape (Batch, state_dim)
+            T =  inputs[:, :, T_pos:T_pos+1]  
+            aux = inputs[:, :, T_pos+1:]
         else:
-            y0 = inputs[:, 0, :4]      
-            T = inputs[:, :, 4:]     
+            y0 = inputs[:, 0, :T_pos]      
+            T = inputs[:, :, T_pos:]     
             aux = None
 
         #print(f"y0: {y0.shape}")
@@ -392,7 +1625,7 @@ class DeepNN(nn.Module):
         prev_dim = input_dim
         
         for hdim in hidden_dims:
-            layers.append(nn.Linear(prev_dim, hdim))
+            layers.append(nn.Linear(prev_dim, hdim)) # TODO aggiungere skip connection
             layers.append(nn.ReLU())
             prev_dim = hdim
         

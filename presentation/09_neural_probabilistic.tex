@@ -1,0 +1,83 @@
+% --- NEURO PROBABILISTIC MODEL ---
+\section{Neuro Probabilistic Model}
+
+% --- SLIDE 1: MOTIVATION (Provided by you) ---
+\begin{frame}{Neuro Probabilistic Model: Motivation}
+    \begin{block}{Observation}
+        Standard architectures provide \textbf{deterministic} predictions, lacking a \textbf{stochastic} explanation of confidence.
+    \end{block}
+
+    \begin{itemize}
+        \item \textbf{Goal}: Model the next state \textbf{distribution}, assuming a \textbf{Gaussian} process.
+        \item \textbf{Confidence Prediction}:
+        \begin{itemize}
+            \item Prediction is associated with a \textbf{confidence contour}.
+            \item \textbf{Diagnosis}: Enables anomaly detection (alarm triggers) when observations fall outside the predicted variance.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+% --- SLIDE 2: ARCHITECTURE (Based on ProbabilisticBaselineFNN) ---
+\begin{frame}{Neuro Probabilistic Model: Architecture}
+    To capture aleatoric uncertainty, we modify the Feed-Forward Network (FNN) to output parameters of a probability distribution rather than a single value.
+
+
+    \begin{itemize}
+        \item \textbf{Mean} ($\mu$): The expected acceleration.
+        \item \textbf{Log-Variance} ($\log \sigma^2$): The estimated uncertainty. Note that we use log for stability. 
+    \end{itemize}
+
+
+    \begin{figure}[T]
+            \centering
+            \includegraphics[width=0.4\linewidth]{stock.png} \\
+            \vspace{-1em}
+    \end{figure}
+    
+\end{frame}
+
+% --- SLIDE 3: MATHEMATICAL FORMULATION ---
+\begin{frame}{Neuro Probabilistic Model: Probabilistic Formulation}
+    The model assumes the ground truth acceleration $\ddot{x}$ follows a Gaussian distribution conditioned on the state:
+    
+    $$ p(\ddot{x} | x) = \mathcal{N}(\ddot{x} | \mu_\theta(x), \sigma^2_\theta(x)) $$
+
+    \begin{block}{Training Objective: Negative Log-Likelihood (NLL)}
+        Instead of MSE, we minimize the NLL to learn both the prediction and the uncertainty simultaneously:
+        $$ \mathcal{L}_{NLL} = \frac{1}{2} \log \sigma^2_\theta(x) + \frac{(\ddot{x}_{gt} - \mu_\theta(x))^2}{2 \sigma^2_\theta(x)} + C $$
+    \end{block}
+    
+    \begin{block}{Intuition}
+        The model can reduce the penalty of a high error $(\ddot{x} - \mu)^2$ by increasing its uncertainty $\sigma^2$, effectively "admitting" it doesn't know the answer.
+    \end{block}
+    
+    
+\end{frame}
+
+
+\begin{frame}{Neuro Probabilistic Model: Results}
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \centering
+            \textbf{Derivatives testing}
+            \begin{figure}[h]
+                    \centering
+                    \includegraphics[width=0.4\linewidth]{stock.png} \\
+                    \vspace{-1em}
+            \end{figure}    
+        
+        \end{column}
+
+        \begin{column}{0.5\textwidth}
+            \centering
+            \textbf{Evolution testing}
+            \begin{figure}[T]
+                    \centering
+                    \includegraphics[width=0.4\linewidth]{stock.png} \\
+                    \vspace{-1em}
+            \end{figure} 
+            
+        \end{column}
+    \end{columns}
+\end{frame}
+
