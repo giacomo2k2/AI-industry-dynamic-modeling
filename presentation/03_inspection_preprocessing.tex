@@ -26,13 +26,13 @@
         \item \textbf{KL Divergence + Cut}:
         \begin{itemize}
             \item Calculation of the \textbf{Kullback-Leibler Divergence} between actual distribution and uniform distribution. Cut of the dataset at the optimum threshold $K^*$ that minimizes the divergence
-            \item Identification and removal of the part of the dataset in which the dynamics is less representative
+            \item Identification and removal of the part of the dataset in which the dynamics is less informative
         \end{itemize}
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Data Preprocessing: Dynamic Time Cut Inspection}
-    Following the KL Divergence analysis, the dataset was trimmed to exclude less representative dynamics, enhancing model training quality
+    Following the KL Divergence analysis, the dataset was trimmed to exclude less informative dynamics, enhancing model training quality
    
     \begin{block}{Kullback-Leibler Divergence Definition}
         The Kullback-Leibler Divergence between two probability distributions $P$ and $Q$ is defined as:
@@ -53,10 +53,10 @@
 
 
 \begin{frame}{Adaptive Dataset Truncation (1)}
-    \textbf{Problem:} In high-friction scenarios, the system eventually settles into a static equilibrium. Including these static frames would bias the model towards zero-velocity predictions.
+    \textbf{Problem:} In high-friction scenarios, the system eventually settles into a static equilibrium. Including these static frames would bias the model towards zero-velocity predictions
     
     \vspace{0.2cm}
-    \textbf{Solution:} We treat truncation as an optimization problem to find the optimal cutoff time $T^*$.
+    \textbf{Solution:} We treat truncation as an optimization problem to find the optimal cutoff time $T^*$
     
     \begin{block}{The Objective Function}
         We minimize a custom loss function combining \textbf{distribution quality} and \textbf{data retention}:
@@ -80,16 +80,16 @@
     \end{itemize}
     
     \vspace{0.2cm}
-    \small{\textbf{Result:} The algorithm automatically identifies the exact moment the system loses its ergodic properties.}
+    \small{\textbf{Result:} The algorithm automatically identifies the exact moment the system loses its ergodic properties}
     
     \begin{block}{Recall: Ergodicity Hypothesis}
-    A dynamical system is \textbf{Ergodic} if it visits every point in the phase space with equal probability over a long period.
+    A dynamical system is \textbf{Ergodic} if it visits every point in the phase space with equal probability over a long period
     
     \vspace{0.1cm}
     $$ \text{Time Average} \equiv \text{Space Average} $$
     
     \vspace{0.1cm}
-    \footnotesize{\textbf{In our context:} Ideally, a frictionless pendulum explores all possible angles and velocities allowed by its energy, resulting in a \textbf{Uniform Distribution} ($P$).}
+    \footnotesize{\textbf{In our context:} Ideally, a frictionless pendulum explores all possible angles and velocities allowed by its energy, resulting in a \textbf{Uniform Distribution} ($P$)}
 \end{block}
 
 \end{frame}

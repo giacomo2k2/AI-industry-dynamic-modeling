@@ -66,8 +66,9 @@
     \textbf{Why do we use a TrigLayer?}
     
     \begin{itemize}
-        \item \textbf{Hard-Coding Physics (Inductive Bias):} We prevent wasting the Universal Approximator's capacity on learning basic periodic functions.
-        \item \textbf{Intrinsic Normalization:} The angular inputs are naturally bounded within the range $[-1, 1]$. This eliminates scaling issues and resolves the discontinuity problem at the boundaries $\pm \pi$.
+        \item \textbf{Hard-Coding Physics (Inductive Bias):} we prevent wasting the Universal Approximator's capacity on learning basic periodic functions
+        \item \textbf{Intrinsic Scaling:} the angular inputs are naturally bounded within the range $[-1, 1]$
+        \item \textbf{Continuity:} the transformation ensures continuity at the angle wrap-around points (e.g., $-\pi$ to $\pi$), avoiding discontinuities that may confuse the model during training
     \end{itemize}
     
 \end{frame}
@@ -94,7 +95,7 @@
 
 \begin{frame}{Black Box Approaches - Training recipe (3)}
     % TODO: update velocities and acceleration fitted with gaussian and laplacian respectively
-    \begin{block}{Normalization}
+    \begin{block}{Standardization}
         \begin{columns}[T]
             
             \begin{column}{0.5\textwidth}
@@ -110,7 +111,7 @@
 
                 \vspace{-3em}
         
-                $$\hat{\dot{q}}_i = \frac{\dot{\q_i} - \mu_{\dot{q}_i}}{\sigma_{\dot{q}_i}}$$
+                $$\hat{\dot{q}}_i = \frac{\dot{q_i} - \mu_{\dot{q}_i}}{\sigma_{\dot{q}_i}}$$
                 $$i = 1, 2$$
             \end{column}
             
@@ -140,7 +141,7 @@
 
 
 
-\begin{frame}{Black Box Approaches - Training recipe (3)}
+\begin{frame}{Black Box Approaches - Training recipe (4)}
     
     % \begin{block} {Learning rate}
     %     A learning rate scheduler is used 
@@ -149,21 +150,22 @@
 
     \begin{columns}[c] %
 
-        \begin{column}{0.3\textwidth}
+        \begin{column}{0.35\textwidth}
             \begin{block}{Sample weights}
                 Computed using the 4D KDE of the input distribution. In particular: 
 
                 % TODO: update max or total
                 $$\sigma(q_1, q_2, \dot{q}_1, \dot{q}_2) = $$
-                $$ = \frac{h(q_1, q_2, \dot{q}_1, \dot{q}_2)}{h_{max}}$$
+                $$ = \frac{h_{tot}}{h(q_1, q_2, \dot{q}_1, \dot{q}_2)}$$
+                then normalized such that $\sum \sigma_i = 1$
 
-                It's important to use the multivariate distribution to capture any \textbf{coupling term} in the dynamics
+                Important: multivariate distribution capture any \textbf{coupling term} in the dynamics
             \end{block}
         \end{column}
         
         \begin{column}{0.6\textwidth} 
             \centering
-            \includegraphics[width=0.9\linewidth]{04_baseline_bb/sample_weights.png}
+            \includegraphics[width=0.85\linewidth]{04_baseline_bb/sample_weights.png}
         \end{column}
     
         
@@ -192,13 +194,31 @@
 
 
 \begin{frame}{Black Box Approaches - Results (2)}
-    
-    \begin{figure}[T]
+
+     \begin{figure}[T]
         \centering
         \includegraphics[width=0.8\linewidth]{04_baseline_bb/Deep_hard.png} \\
     \end{figure} 
+    
+     
 
 \end{frame}
+
+
+
+\begin{frame}{Black Box Approaches - Energy drift}
+    \centering Energy evolution over time with \textbf{no friction}
+    \textbf{}
+    
+    \begin{figure}[T]
+        \centering
+        \includegraphics[width=0.8\linewidth]{04_baseline_bb/energy_drift.png} \\
+    \end{figure}
+
+    The system is \textbf{not able to conserve energy}. 
+
+\end{frame}
+
 
 
 

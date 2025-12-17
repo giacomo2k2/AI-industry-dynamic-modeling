@@ -8,12 +8,19 @@
     \end{block}
 
     \begin{itemize}
-        \item \textbf{Goal}: Model the next state \textbf{distribution}, assuming a \textbf{Gaussian} distribution.
+        \item \textbf{Goal}: Model not only acceleration but also it's variance. 
         \item \textbf{Confidence Prediction}:
         \begin{itemize}
             \item Prediction is associated with a \textbf{confidence contour}.
-            \item \textbf{Diagnosis}: Enables anomaly detection (alarm triggers) when observations fall outside the predicted variance.
+            \item A \textbf{$95\%$ confidence region} around the expected value computed using the interval: $\ddot{q}_i \in [-2\sigma_i, 2\sigma_i]$
         \end{itemize}
+        \item \textbf{Applications}: 
+        \begin{itemize}
+            \item \textbf{Diagnosis}: Enables anomaly detection (alarm triggers) when observations fall outside the predicted variance.
+            \item \textbf{Trajectory generation}: Generate trajectory with an input and evaluate the confidence
+            \item \textbf{Model Predictive Control}: Used to predict the next sliding window with safety margins
+        \end{itemize}
+        
     \end{itemize}
 \end{frame}
 
@@ -36,11 +43,12 @@
     
 \end{frame}
 
+
 % --- SLIDE 3: MATHEMATICAL FORMULATION ---
 \begin{frame}{Neuro Probabilistic Model: Probabilistic Formulation}
     The model assumes the ground truth acceleration $\ddot{q}$ follows a Gaussian distribution conditioned on the state:
     
-    $$ p(\ddot{q} | \mathbf{q}) = \mathcal{N}(\ddot{x} | \mu_\theta(\mathbf{q}), \sigma^2_\theta(\mathbf{q})) $$
+    $$ p(\ddot{q} | \mathbf{q}) = \mathcal{N}(\ddot{q} | \mu_\theta(\mathbf{q}), \sigma^2_\theta(\mathbf{q})) $$
 
     \begin{block}{Training Objective: Negative Log-Likelihood (NLL)}
         Instead of MSE, we minimize the NLL to learn both the prediction and the uncertainty simultaneously:

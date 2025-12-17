@@ -21,9 +21,9 @@ python -m %SCRIPT_NAME% ^
     --epochs 500 ^
     --lr 1e-3 ^
     --integrator "rk4" ^
-    --dynlayer "ude_d_constant" ^
+    --dynlayer "informed_ude" ^
     --activation "softplus" ^
-    --version "v_220_Matlearn" ^
+    --version "v_500plus" ^
     --sin_cos_transform ^
     --sample_weights ^
     --training

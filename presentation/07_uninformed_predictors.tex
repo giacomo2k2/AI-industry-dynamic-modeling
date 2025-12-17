@@ -1,8 +1,8 @@
 
 \begin{frame}{UDE – Uninformed}
-    \begin{block}{Can we plug in even more knowledge?}
+    \begin{block}{Idea}
         \par\textbf{Universal Differential Equations}. 
-        \par\textbf{Model Layers}: Can we exploit past Architecture?.
+        \par\textbf{Model Layers}: Can we exploit Evolution Learning architecture.
     \end{block}
         \begin{figure}
             \centering
@@ -81,7 +81,7 @@
         \item positive definiteness of \textbf{Hessian} is not guaranteed being $\mathcal{L}$ black box, causing \textbf{instability}
         \item \textbf{Batch Size}: Very small $\rightarrow$ need for \textbf{noisy gradients} to escape shallow loss regions (as suggested in literature).
         \item \textbf{Speed Issues}: Hessian computation is expensive.
-        \item \textbf{Anomaly}: Difficulty learning \textbf{non-conservative systems} or systems with \textbf{broken physics}.
+        \item \textbf{Anomaly}: Difficulty learning \textbf{non-conservative systems}, including dynamic models with mistakes.
 
         \begin{columns}[T]
             \begin{column}{0.5\textwidth}
@@ -90,7 +90,7 @@
                         \centering
                         \includegraphics[width=1.1\linewidth]{07_uninformed_predictors/loss_physics_ok.png} \\
                         \vspace{-1em}
-                        \caption{loss descent - correct physics}
+                        \caption{loss descent - conservative}
                 \end{figure}    
             
             \end{column}
@@ -101,7 +101,7 @@
                         \centering
                         \includegraphics[width=1.1\linewidth]{07_uninformed_predictors/loss_physics_broken.png} \\
                         \vspace{-1em}
-                        \caption{loss descent - broken physics}
+                        \caption{loss descent - non-conservative}
                 \end{figure} 
                 
             \end{column}

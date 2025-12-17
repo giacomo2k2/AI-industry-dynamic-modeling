@@ -32,7 +32,7 @@
 
     Given the \textbf{Hamiltonian} as $\mathcal{H}$, it's possible to find the dynamics with: 
 
-    $$\frac{dq}{dt} = \frac{d\mathcal{H}}{dp}, \frac{dp}{dt} = -\frac{d\mathcal{H}}{dq}$$
+    $$\frac{dq}{dt} = \frac{d\mathcal{H}}{dp} \hspace{2em} \frac{dp}{dt} = -\frac{d\mathcal{H}}{dq}$$
     
     It's possible to use an MLP neural network that learns the Hamiltonian $\mathcal{H}_\theta$ and a loss that enforces the dynamics: 
 
@@ -70,7 +70,7 @@
 
 \begin{frame}{Entries Prediction - Considerations}
     \begin{itemize} 
-        \item \textbf{Advantages}:Quick training, very good results.
+        \item \textbf{Advantages}: Quick training, very good results.
         \item \textbf{Disadvantages}: Requires GT values for matrices entries.
         \item We would like to obtain the same results \textbf{without} knowing the entries.
     \end{itemize}

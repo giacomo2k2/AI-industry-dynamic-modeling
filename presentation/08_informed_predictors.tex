@@ -7,7 +7,7 @@
         
     \begin{block}{\textbf{Exploiting All Physical Knowledge}:}
         \begin{itemize}
-            \item Mass matrix $\mathbf{M}$: \textbf{Positive definite} and \textbf{symmetric}.
+            \item Inertia matrix $\mathbf{M}$: \textbf{Positive definite} and \textbf{symmetric}.
             \item Friction: \textbf{Positive definite}, \textbf{diagonal/constant} matrix.
             \item Last term in $\mathbf{M}(\mathbf{q})$ matrix is constant as well as $\mathbf{d_{11}}$ and $\mathbf{d_{22}}$ in $\mathbf{D}$ which is diagonal.
             \item \textbf{Implementation}: Use of \textbf{Cholesky decomposition} to guarantee $\mathbf{M}$ positive definite.
@@ -24,14 +24,14 @@
 \begin{frame} {Informed UDE - Results}
     \begin{figure}
         \centering
-        \includegraphics[width=0.6\linewidth]{08_informed_predictors/v150/plots/evolution_comparison_4.png} \\
+        \includegraphics[width=0.6\linewidth]{08_informed_predictors/evolution_comparison_8.png} \\
         \vspace{-1em}
     \end{figure}
 
     \begin{itemize}      
-        \item \textbf{Implementation}: Use of \textbf{Cholesky decomposition} to guarantee $\mathbf{M}$ positive definite.
-        \item \textbf{Better} takes less to converge, more stable.
-        \item \textbf{Troubles} in estimating entries in highly chaotic regions.
+        \item \textbf{Implementation}: Parameters now make \textbf{physical sense} for sure.
+        \item Takes less time to converge 
+        \item the system is \textbf{stable}
     \end{itemize}
     \vspace{1em}
     \begin{block}{Question}
@@ -43,14 +43,14 @@
 \begin{frame}
     \begin{figure}
         \centering
-        \includegraphics[width=1.0\linewidth]{08_informed_predictors/v150/plots/mat_comp_8.png.png} \\
+        \includegraphics[width=1.0\linewidth]{08_informed_predictors/mat_comp_8.png.png} \\
         \vspace{-1em}
     \end{figure}
 \end{frame}
 
 \begin{frame} {"More" Informed UDE}
     \begin{block}{Idea}      
-        If we somehow could give the matrix M to the system, so as to avoid inversion problems...
+        If we somehow could give the matrix M to the system, we would give an anchor to the learning.
     \end{block}
 
     \begin{figure}
@@ -83,23 +83,29 @@
 
 \begin{frame} {Informed UDE - Drawing Conclusions}
     \begin{itemize}      
-        \item \textbf{Better} takes less to converge, more stable.
-        \item \textbf{Troubles} in estimating entries in highly chaotic regions.
+        \item Almost perfect \textbf{identification} of physical parameters.
+        \item Informed UDE and  Phase Portraits.
+        \item Brute force controllers vs Adaptive controllers.
+        \item We could do even better : $\dot{M}(q) - 2C(q, \dot{q})$ should be \textbf{skew-symmetric}. 
     \end{itemize}
     \vspace{1em}
     \begin{table}[h]
         \centering
         \caption{Comparison of the three UDE methods}
         \label{tab: metodi}
-        \begin{tabular}{ l c c p{2.5cm} }
+        \begin{tabular}{ p{3cm} p{2cm} p{2cm} p{4cm} }
             \toprule
-            \textbf{Metodo} & \textbf{Time to converge} & \textbf{Informations} & \textbf{Comments} \\
+            \textbf{Method} & \textbf{Time} & \textbf{Informations} & \textbf{Comments} \\
             \midrule
                 Uninformed      & High                  & None                       & Unstable, Dumb    \\
-                Informed      & Medium                 & Structural properties           & Stable, Complicated Identification             \\
-                More Informed       & Medium                 & M matrix                    & Easier Identification, Unrealistic       \\
+                Informed      & Medium                 & Structural            & Stable, Gauge            \\
+                M. Informed       & Medium                 & M matrix                    & Identifiable, Difficult       \\
             \bottomrule
         \end{tabular}
+        
+        \begin{block}{Metric}
+            \textbf{Maximum Parameter Difference}: respectively not assigned, 24.02, 6.94.
+        \end{block}
     \end{table}
 \end{frame}
 
@@ -195,9 +201,10 @@
             \midrule
             Energy conservation         & \xmark & \cmark & \cmark \\
             Friction                    & \cmark & \xmark & \cmark \\
-            Broken physics sensitivity  & \xmark & \cmark & \cmark \\
-            Stable                      & \cmark & \xmark & \cmark \\
+            correct physics sensitivity & \xmark & \cmark & \cmark \\
+            stability                   & \cmark & \xmark & \cmark \\
             Not-only mechanical systems & \cmark & \cmark & \xmark \\
+            Possibility of real inputs  & \xmark & \cmark & \cmark \\
             MSE Evolution               & 21.6   & 22.9   & 23.8   \\
             MSE Energy                  & 0.7    & 0.17   &  0.13  \\
             \bottomrule
