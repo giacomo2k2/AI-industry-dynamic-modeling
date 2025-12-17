@@ -5,7 +5,7 @@
 
 %\subsection{Architecture*}
 \begin{frame}{Black Box Approaches - Architecture}
-    Standard Neural Network for setting a \textbf{baseline}. The objective is to learn the \textbf{dynamics} of the double pendulum. 
+    Standard Neural Network for setting a \textbf{baseline} for learning the double pendulum dynamics
 
     \begin{figure}[h]
         \centering
@@ -13,14 +13,14 @@
         \vspace{0.3em}
     \end{figure}    %
 
-    The model takes as inputs the \textbf{states} and outputs the \textbf{derivatives}. 
+    %The model takes as inputs the \textbf{states} and outputs the \textbf{derivatives}
 
     \begin{block}{Training methods}
 
         \begin{itemize}
-            \item \textbf{Derivatives}: loss is computed directly on the derivatives.
+            \item \textbf{Derivatives}: loss is computed directly on the derivatives
             \item \textbf{Evolution}: the derivatives are fed to a \textbf{solver} that outputs the next state. A sequential stream of predicted
-            states is used to compute the loss. 
+            states is used to compute the loss
         \end{itemize}
     \end{block}
 \end{frame}
@@ -33,48 +33,74 @@
         \vspace{0.3em}
         \caption{Evolution training architecture using RK4}
     \end{figure}
-
-    \begin{block}{Training Related Aspects}
-        \par\textbf{Curricular Learning}: progressively increasing the integration step $h$ during training
-        % \par\textbf{Patience} and \textbf{Early Stopping} on the validation loss
-    \end{block}
      
 \end{frame}
 
 %\subsection{Training Recipe}
+
 \begin{frame}{Black Box Approaches - Training recipe (1)}
     
 
     \begin{block}{Trigonometric Transformation}
-        Since $\theta \in \bigl[-\pi, \pi\bigr]$, it's impossible to use the angles directly as inputs without introducing \textbf{discontinuities}.
-        The solution is to transform the input space.
-
         \[
-            \bigl[\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2\bigr]^{\top}
-            \rightarrow
-            \bigl[\cos{\theta_1}, \sin{\theta_1}, \cos{\theta_2}, \sin{\theta_2}, \dot{\theta}_1, \dot{\theta}_2\bigr]^{\top}
+            \begin{bmatrix}
+                    q_1 \\
+                    q_2 \\
+                    \dot{q}_1 \\
+                    \dot{q}_2 \\
+            \end{bmatrix} \in \mathbb{R}^4
+            \mapsto 
+            \begin{bmatrix}
+                \cos(q_1) \\
+                \sin(q_1) \\
+                \cos(q_2) \\
+                \sin(q_2) \\
+                \dot{q}_1 \\
+                \dot{q}_2 \\
+            \end{bmatrix}
+            \in \mathbb{R}^6
         \]
     \end{block}
 
+    \vspace{0.3cm}
+    \textbf{Why do we use a TrigLayer?}
+    
+    \begin{itemize}
+        \item \textbf{Hard-Coding Physics (Inductive Bias):} We prevent wasting the Universal Approximator's capacity on learning basic periodic functions.
+        \item \textbf{Intrinsic Normalization:} The angular inputs are naturally bounded within the range $[-1, 1]$. This eliminates scaling issues and resolves the discontinuity problem at the boundaries $\pm \pi$.
+    \end{itemize}
+    
+\end{frame}
+
+\begin{frame}{Black Box Approaches - Training recipe (2)}
+
+    \begin{block}{Curriculum learning}
+
+        Essential for \textbf{trajectory evolution} (long-term prediction)
+        
+        \vspace{1em}
+        \textbf{Method:} start with small horizon $H$, then increase progressively
+        $ H_{k+1} \leftarrow 2 \cdot H_k $
+        
+        \vspace{0.5em}
+        \textbf{Why:} 
+        \begin{itemize}
+            \item prevents \alert{gradient explosion} caused by long horizons at early training stages
+            \item helps the model to gradually learn long-term dependencies
+        \end{itemize}
+    \end{block}
+    
+\end{frame}
+
+\begin{frame}{Black Box Approaches - Training recipe (3)}
     % TODO: update velocities and acceleration fitted with gaussian and laplacian respectively
     \begin{block}{Normalization}
         \begin{columns}[T]
-            \begin{column}{0.33\textwidth}
-                \centering
-                \vspace{0.5em}
-                \textbf{Angles}
-                
-                \vspace{-1em}
-
-                $$-1 \le \cos{\theta} \le 1$$
-                $$-1 \le \sin{\theta} \le 1$$
-
-            \end{column}
             
-            \begin{column}{0.33\textwidth}
+            \begin{column}{0.5\textwidth}
                 \centering
                 \vspace{0.5em}
-                \textbf{Velocities}
+                \textbf{Velocities - Gaussian distribution}
 
                 \begin{figure}[h]
                     \centering
@@ -84,13 +110,14 @@
 
                 \vspace{-3em}
         
-                $$\hat{\dot{\theta}} = \frac{\dot{\theta} - \mu}{\sigma}$$
+                $$\hat{\dot{q}}_i = \frac{\dot{\q_i} - \mu_{\dot{q}_i}}{\sigma_{\dot{q}_i}}$$
+                $$i = 1, 2$$
             \end{column}
             
-            \begin{column}{0.33\textwidth}
+            \begin{column}{0.5\textwidth}
                 \centering
                 \vspace{0.5em}
-                \textbf{Accelerations}
+                \textbf{Accelerations - Laplacian distribution}
 
                 \begin{figure}[h]
                     \centering
@@ -100,64 +127,51 @@
                 
                 \vspace{-3em}
             
-                $$\hat{\ddot{\theta}} = \frac{\ddot{\theta} - \tilde{\mu}}{\sqrt{2b}}$$\footnote{with $b = E\bigl[|q - \tilde{\mu}|\bigr]$}
+                $$\hat{\ddot{q}}_i = \frac{\ddot{q}_i - \mu_{\ddot{q}_i}}{\sqrt{2b}}$$ 
+                
+                with $b = \mathbb{E}\bigl[|q - \tilde{\mu}|\bigr]$
                 
                 
             \end{column}
         \end{columns}
         
     \end{block}
-
-    
 \end{frame}
 
 
 
-
-\begin{frame}{Black Box Approaches - Training recipe (2)}
+\begin{frame}{Black Box Approaches - Training recipe (3)}
     
     % \begin{block} {Learning rate}
     %     A learning rate scheduler is used 
 
     % \end{bloc
 
-    \begin{columns}[T]
-            \begin{column}{0.5\textwidth}
-              \begin{block} {Sample weights}
-                    Computed using the 4D KDE of the input distribution. In particular: 
+    \begin{columns}[c] %
 
-                    % TODO: update max or total
-                    $$\sigma(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2) = \frac{h(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2)}{h_{max}}$$
+        \begin{column}{0.3\textwidth}
+            \begin{block}{Sample weights}
+                Computed using the 4D KDE of the input distribution. In particular: 
 
-                    It's important to use the multivariate distribution to capture any \textbf{coupling term} in the dynamics
+                % TODO: update max or total
+                $$\sigma(q_1, q_2, \dot{q}_1, \dot{q}_2) = $$
+                $$ = \frac{h(q_1, q_2, \dot{q}_1, \dot{q}_2)}{h_{max}}$$
 
-                \end{block}
+                It's important to use the multivariate distribution to capture any \textbf{coupling term} in the dynamics
+            \end{block}
+        \end{column}
+        
+        \begin{column}{0.6\textwidth} 
+            \centering
+            \includegraphics[width=0.9\linewidth]{04_baseline_bb/sample_weights.png}
+        \end{column}
+    
+        
 
-            \end{column}
-            
-            \begin{column}{0.3\textwidth}
-            \begin{figure}[h]
-                    \centering
-                    \includegraphics[width=0.6\linewidth]{stock.png} \\
-            \end{figure}   
-
-                
-            \end{column}
-        \end{columns}
-
+    \end{columns}
 
     
 
-    \begin{block} {Curriculum learning}
-        Used specifically for \textbf{evolution} learning. 
-
-        \par The \textbf{window size} of training is increased periodically during training, usually by doubling. 
-
-        Starting with a window size large from the start is infeasible  due to high gradients. 
-
-
-        
-    \end{block}
 
 \end{frame}
 
@@ -165,71 +179,26 @@
 
 %\subsection{Results}
 
-\begin{frame}{Black Box Approaches - Results}
-    \begin{columns}[T]
-        \begin{column}{0.5\textwidth}
+\begin{frame}{Black Box Approaches - Results (1)}
+    
+    \begin{figure}[h]
             \centering
-            \textbf{Derivatives Training}
-            
-            \begin{figure}[h]
-                    \centering
-                    \includegraphics[width=0.4\linewidth]{stock.png} \\
-                    \vspace{-1em}
-                    \caption{derivatives testing}
-            \end{figure}   
-
-            \begin{figure}[h]
-                    \centering
-                    \includegraphics[width=0.4\linewidth]{stock.png} \\
-                    \vspace{-1em}
-                    \caption{evolution testing}
-            \end{figure}   
+            \includegraphics[width=0.8\linewidth]{04_baseline_bb/deep_ez.png} \\
+    \end{figure}   
         
-        \end{column}
-
-        \begin{column}{0.5\textwidth}
-            \centering
-            \textbf{Evolution Training}
-            
-            \begin{figure}[T]
-                    \centering
-                    \includegraphics[width=0.4\linewidth]{stock.png} \\
-                    \vspace{-1em}
-                    \caption{evolution testing}
-            \end{figure} 
-            
-        \end{column}
-    \end{columns}
+     
 
 \end{frame}
 
 
-%\subsection{Considerations}
-
-\begin{frame}{Black Box Approaches - Considerations}
-   
-    \begin{itemize}
-        \item \textbf{Drift Energy} over long horizons
-
-        \begin{figure}[T]
-                \centering
-                \includegraphics[width=0.3\linewidth]{stock.png} \\
-                \vspace{-1em}
-                \caption{energy drift}
-        \end{figure} 
-
-        \item Low \textbf{expressivity} of the model 
-        \item Very low \textbf{sensitivity} to broken physics
-    \end{itemize}
-
-    \begin{block}{Further developments}
-        \begin{itemize}
-            \item Introduce \textbf{Energy conservation}
-            \item Improve \textbf{expressivity} and \textbf{parameter identification}.
-        \end{itemize}
-    \end{block}
+\begin{frame}{Black Box Approaches - Results (2)}
     
-    
+    \begin{figure}[T]
+        \centering
+        \includegraphics[width=0.8\linewidth]{04_baseline_bb/Deep_hard.png} \\
+    \end{figure} 
 
 \end{frame}
+
+
 

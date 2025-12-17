@@ -22,13 +22,30 @@
 \end{frame}
 
 \begin{frame} {Informed UDE - Results}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.6\linewidth]{08_informed_predictors/v150/plots/evolution_comparison_4.png} \\
+        \vspace{-1em}
+    \end{figure}
+
     \begin{itemize}      
         \item \textbf{Implementation}: Use of \textbf{Cholesky decomposition} to guarantee $\mathbf{M}$ positive definite.
         \item \textbf{Better} takes less to converge, more stable.
         \item \textbf{Troubles} in estimating entries in highly chaotic regions.
     \end{itemize}
+    \vspace{1em}
+    \begin{block}{Question}
+        \textbf{Can we plug in even more knowledge?}
+    \end{block}
+    
+\end{frame}
 
-    \textbf{Can we plug in even more knowledge?}
+\begin{frame}
+    \begin{figure}
+        \centering
+        \includegraphics[width=1.0\linewidth]{08_informed_predictors/v150/plots/mat_comp_8.png.png} \\
+        \vspace{-1em}
+    \end{figure}
 \end{frame}
 
 \begin{frame} {"More" Informed UDE}
@@ -39,6 +56,28 @@
     \begin{figure}
         \centering
         \includegraphics[width=0.8\textwidth]{08_informed_predictors/Dyn_More_informed.pdf}
+    \end{figure}
+\end{frame}
+
+\begin{frame} {"More" Informed UDE - Results}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.8\linewidth]{08_informed_predictors/v_220_Matlearn/plots/mat_comp_4.png.png} \\
+        \vspace{-1em}
+    \end{figure}
+
+    \begin{itemize}      
+        \item \textbf{Easier} identification of entries.
+        \item Somehow more determinate: less degrees of freedom.
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame} {"More" Informed UDE - Evolution}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.8\linewidth]{08_informed_predictors/v_220_Matlearn/plots/evolution_comparison_6.png} \\
+        \vspace{-1em}
     \end{figure}
 \end{frame}
 
@@ -122,7 +161,17 @@
 \begin{frame} {Structured Lagrangian Neural Network (SLNN) - Architecture (2)}
     \begin{figure}[h]
         \centering
-        \includegraphics[width=0.5\linewidth]{stock.png} \\
+        \includegraphics[width=1\linewidth]{08_informed_predictors/LNN_structured.pdf} \\
+        \vspace{-1em}
+    \end{figure}
+
+\end{frame}
+
+
+\begin{frame} {Structured Lagrangian Neural Network (SLNN) - Results}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.8\linewidth]{08_informed_predictors/slnn_evo.png} \\
         \vspace{-1em}
     \end{figure}
 
@@ -149,6 +198,8 @@
             Broken physics sensitivity  & \xmark & \cmark & \cmark \\
             Stable                      & \cmark & \xmark & \cmark \\
             Not-only mechanical systems & \cmark & \cmark & \xmark \\
+            MSE Evolution               & 21.6   & 22.9   & 23.8   \\
+            MSE Energy                  & 0.7    & 0.17   &  0.13  \\
             \bottomrule
     \end{tabular}
 

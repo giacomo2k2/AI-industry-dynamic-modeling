@@ -8,7 +8,7 @@
     \end{block}
 
     \begin{itemize}
-        \item \textbf{Goal}: Model the next state \textbf{distribution}, assuming a \textbf{Gaussian} process.
+        \item \textbf{Goal}: Model the next state \textbf{distribution}, assuming a \textbf{Gaussian} distribution.
         \item \textbf{Confidence Prediction}:
         \begin{itemize}
             \item Prediction is associated with a \textbf{confidence contour}.
@@ -30,7 +30,7 @@
 
     \begin{figure}[T]
             \centering
-            \includegraphics[width=0.4\linewidth]{stock.png} \\
+            \includegraphics[width=0.8\linewidth]{09_Neuro_Prob/neuro_prob_pred.pdf} \\
             \vspace{-1em}
     \end{figure}
     
@@ -54,30 +54,34 @@
     
 \end{frame}
 
+\begin{frame}{Neuro Probabilistic Model: Evolution}
 
-\begin{frame}{Neuro Probabilistic Model: Results}
-    \begin{columns}[T]
-        \begin{column}{0.5\textwidth}
+    \begin{block}{Monte Carlo simulation}
+        It's possible to use a \textbf{Monte Carlo} simulation to predict the confidence region during evolution. Given a \textbf{set of pendulums} at every time step the acceleration is sampled according to the model output distribution $\mu$ and $\sigma$.
+    \end{block}
+
+    \begin{figure}[h]
             \centering
-            \textbf{Derivatives testing}
-            \begin{figure}[h]
-                    \centering
-                    \includegraphics[width=0.4\linewidth]{stock.png} \\
-                    \vspace{-1em}
-            \end{figure}    
+            \includegraphics[width=0.6\linewidth]{09_Neuro_Prob/neuro_no_dropout.png} \\
+            \vspace{-1em}
+    \end{figure} 
+    
         
-        \end{column}
+\end{frame}
 
-        \begin{column}{0.5\textwidth}
+
+\begin{frame}{Neuro Probabilistic Model: Evolution with dropout}
+    
+    \begin{block}{Use of dropout}
+        It is possible to use \textbf{dropout} to differentiate the model, so to have an ensamble of models. Note that dropout must remain active also during testing. 
+    \end{block}
+
+    \centering
+    \begin{figure}[h]
             \centering
-            \textbf{Evolution testing}
-            \begin{figure}[T]
-                    \centering
-                    \includegraphics[width=0.4\linewidth]{stock.png} \\
-                    \vspace{-1em}
-            \end{figure} 
-            
-        \end{column}
-    \end{columns}
+            \includegraphics[width=0.6\linewidth]{09_Neuro_Prob/neuro_dropout.png} \\
+            \vspace{-1em}
+    \end{figure}    
+             
 \end{frame}
 

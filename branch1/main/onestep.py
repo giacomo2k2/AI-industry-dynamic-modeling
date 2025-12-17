@@ -104,6 +104,7 @@ def main(
     d11_gt = tr_data['D11'].iloc[0]
     d22_gt = tr_data['D22'].iloc[0]
 
+    print(f"\nGround truth physical parameters from training set: D11 = {d11_gt}, D22 = {d22_gt}\n")
     # --- Sin-Cos, Normalization, Fourier Features ---
 
     if normalization:  # compute normalization map from training data and put into a dict
@@ -142,7 +143,6 @@ def main(
     else:
         modify_func = None
         X_train_columns = ['q1', 'q1_dot', 'q2', 'q2_dot']
-        Y_train_columns = ['q1', 'q1_dot', 'q2', 'q2_dot']
         X_feature_positions_map = {
             'q1': 0,
             'q1_dot': 1,
@@ -239,6 +239,13 @@ def main(
             'q2_dot_dot': 3
     }
 
+    if physical_params_ref:
+        print(f"\nUsing reference physical parameters for informed UDEs: {physical_params_ref}\n")
+        physical_params_ref = None
+
+    if physical_params_ref is None:
+        print("Abbiamo scofitto la mafia")
+
     if dynlayer == 'nn':
         dyn_layer = DynNN(
             input_dim=len(X_train_columns) + extra_features_len,
@@ -295,11 +302,11 @@ def main(
             input_dim=len(X_train_columns) + extra_features_len,
             output_dim=6,
 
-            d11_ref= physical_params_ref['d11_ref'],
-            d22_ref= physical_params_ref['d22_ref'],
+            d11_ref= 0.35,
+            d22_ref= 0.35,
 
-            fixed_d11 = d11_gt if fixed_physical_params['fixed_d11'] else None,
-            fixed_d22 = d22_gt if fixed_physical_params['fixed_d22'] else None,
+            fixed_d11 =  None,
+            fixed_d22 =  None,
 
             sin_cos_transform = sin_cos_transform,
             X_feature_positions_map = X_feature_positions_map,
@@ -315,6 +322,7 @@ def main(
         print("\tAvailable: \n\t -'nn' \n\t -'ude' \n\t -'informed_ude' \n\t -'ude_d_constant' \n")
         exit()
 
+
     # --- Integrator ---
 
     physical_state_positions_map = {
@@ -327,7 +335,7 @@ def main(
     # --- Training ---
 
     if training:
-
+        
         early_stopper = EarlyStopping(patience=patience)
 
         # Datasets
@@ -390,7 +398,7 @@ def main(
 
         # Load pre-trained model
         print("\nLoading model from path: ", model_path)
-        model, history_full = load_model(model = model, 
+        model, hist = load_model(model = dyn_layer, 
                                          model_path = model_path)
         
         model.to(my_device)
@@ -471,12 +479,22 @@ def main(
             'q2': 2,
             'q2_dot': 3
         }
-        
+    
+    X_test_feature_positions_map = {
+            'q1_sin': 0,
+            'q1_cos': 1,
+            'q1_dot': 2,
+            'q2_sin': 3,
+            'q2_cos': 4,
+            'q2_dot': 5,
+            'time_step': 6
+        }
+    
     if integrator == 'rk4':
         model = RK4Model(
             f = dyn_layer,
             sin_cos_transform = sin_cos_transform,
-            X_feature_positions_map = X_feature_positions_map,
+            X_feature_positions_map = X_test_feature_positions_map,
             Y_feature_position_map = Y_test_feature_position_map,
             Y_feature_DynLayer_positions_map = Y_feature_DynLayer_positions_map,
             physical_state_positions_map = physical_state_positions_map,
@@ -503,10 +521,17 @@ def main(
     model.to(my_device)
     model.eval()
 
+    X_test_evo, Y_test_evo =  pull_data_by_ids(data_path=test_path, 
+                                       data_splitter = 'id_pendulum',
+                                        xcols = X_test_columns,
+                                        ycols = Y_test_columns,
+                                        modify_func = modify_func)
+    
+    
     for i in range(10):  # evaluate on 3 different sequences
 
-        X_test_i_np = X_test[i:i+1,:,:]
-        Y_test_i_np = Y_test[i,:,:]   
+        X_test_i_np = X_test_evo[i:i+1,:,:]
+        Y_test_i_np = Y_test_evo[i,:,:]   
 
         X_test_i = torch.Tensor(X_test_i_np).to(my_device)
         Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
@@ -518,7 +543,8 @@ def main(
             true_states = Y_test_i_np,
             predicted_states = Y_pred_i,
             save_path = evolution_i_path,
-            show_plot = show_plots
+            show_plot = show_plots,
+            sin_cos_transform=sin_cos_transform
         )
 
 if __name__ == "__main__":
@@ -552,8 +578,8 @@ if __name__ == "__main__":
     parser.add_argument('--fixed_d11', action='store_true', default=None)
     parser.add_argument('--fixed_d22', action='store_true', default=None)
 
-    parser.add_argument('--d11_ref', type=float, default=0.5)
-    parser.add_argument('--d22_ref', type=float, default=0.5)
+    parser.add_argument('--d11_ref', type=float, default=5.0)
+    parser.add_argument('--d22_ref', type=float, default=5.0)
 
     parser.add_argument('--integrator', type=str, default='rk4')
     

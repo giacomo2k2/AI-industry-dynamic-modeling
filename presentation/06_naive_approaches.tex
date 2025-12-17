@@ -10,13 +10,13 @@
             
             % Colonna di sinistra: Equazione
             \begin{column}{0.45\textwidth}
-                \begin{equation}
+                \[
                     \mathbf{z} = 
                     \begin{bmatrix}
                         \mathbf{q} \\
                         \mathbf{p}
                     \end{bmatrix}
-                \end{equation}
+                \]
             \end{column}
 
             % Colonna di destra: Legenda
@@ -77,52 +77,19 @@
 
     \begin{figure}
         \centering
-        \includegraphics[width=0.1\textwidth]{stock.png}
+        \includegraphics[width=0.8\textwidth]{06_naive_approaches/v1000wnEntries/plots/evolution_comparison_1.png.png}
     \end{figure}
 
+\end{frame}
+
+\begin{frame}
+    \begin{figure}
+        \centering
+        \includegraphics[width=1.0\textwidth]{06_naive_approaches/v1000wnEntries/plots/mat_comp_1.png.png}
+    \end{figure}
 \end{frame}
 
 
 
 
-
-
-
-% \begin{frame}
-%     \frametitle{Assumptions for Matrices Entries Estimation}
-
-%     Assumptions
-%     \begin{itemize}
-%         \item the pendulum is always the same
-%         \item physical parameters don't change over time
-%     \end{itemize}
-
-%     Known
-%     \begin{itemize}
-%         \item dynamics of the system
-%         \item state at each time step 
-%         \item some matrices entries (optional)
-%     \end{itemize}
-    
-%     Goal
-%     \begin{itemize}
-%         \item estimate unknown matrices entries
-%     \end{itemize}
-
-% \end{frame}
-
-% \begin{frame}
-%     \frametitle{NN for Matrices Entries Estimation}
-
-%     The first approach we propose is to use a NN that simply learns the entries of the matrices.
-
-%     Requirements
-%     \begin{itemize}
-%         \item GT values for matrices in dataset
-%     \end{itemize}
-
-%     \begin{figure}
-%         \centering
-%         \includegraphics[width=0.4\textwidth]{images/entries_NN.png}
-%     \end{figure}
 

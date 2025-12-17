@@ -5562,3 +5562,202 @@ Traceback (most recent call last):
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
 KeyError: 'time_step'
 ==============================
+
+==============================
+TIMESTAMP: 2025-12-16 20:49:20.233178
+CONFIG: Layer=nn, Ver=v169NN, BS=1024, SinCos=True, Norm=False
+ERROR: index 2 is out of bounds for axis 1 with size 2
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 693, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\rnn.py", line 593, in main
+    plot_evolutions_comparison(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\plots.py", line 431, in plot_evolutions_comparison
+    axes[0, 2].plot(time_array, true_states[:, 2], label='True q1_dot', color='cyan')
+    ~~~~^^^^^^
+IndexError: index 2 is out of bounds for axis 1 with size 2
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 21:01:38.822752
+CONFIG: Ver=v1000wn, BS=32, SinCos=True, Norm=False
+ERROR: [Errno 2] No such file or directory: 'branch1/models\\entries\\v1000wn\\deep_nn.pth'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\ude.py", line 301, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\ude.py", line 192, in main
+    deepNN, hist = load_model(model=deepNN, model_path = model_path)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 958, in load_model
+    model.load_state_dict(torch.load(model_path))
+                          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\serialization.py", line 1425, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\serialization.py", line 751, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\serialization.py", line 732, in __init__
+    super().__init__(open(name, mode))
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'branch1/models\\entries\\v1000wn\\deep_nn.pth'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 21:02:56.921430
+CONFIG: Ver=v1000wnEntries, BS=32, SinCos=True, Norm=False
+ERROR: too many values to unpack (expected 2)
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\ude.py", line 301, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\ude.py", line 197, in main
+    test_loss, ypred_metrics, ytrue_metrics = evaluate_model(model=deepNN, ds_test=ds_test, loss_fn=loss_fn, device=my_device)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\training.py", line 740, in evaluate_model
+    for xb, yb in test_loader:
+        ^^^^^^
+ValueError: too many values to unpack (expected 2)
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 21:10:02.097615
+CONFIG: Layer=ude_d_constant, Ver=v_205_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: cannot access local variable 'model' where it is not associated with a value
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 393, in main
+    model, history_full = load_model(model = model,
+                                            ^^^^^
+UnboundLocalError: cannot access local variable 'model' where it is not associated with a value
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 21:11:02.156110
+CONFIG: Layer=ude_d_constant, Ver=v_205_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: cannot access local variable 'hist' where it is not associated with a value
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 403, in main
+    history = hist,
+             ^^^^
+UnboundLocalError: cannot access local variable 'hist' where it is not associated with a value
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 21:11:30.083030
+CONFIG: Layer=ude_d_constant, Ver=v_205_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: 'time_step'
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 582, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 512, in main
+    Y_pred_i = model(X_test_i).detach().cpu().numpy()[0,:,:]
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\architecture.py", line 1593, in forward
+    T_pos = self.X_feature_positions_map['time_step']
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'time_step'
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 21:22:55.902896
+CONFIG: Layer=ude_d_constant, Ver=v_210_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: cannot access local variable 'history_full' where it is not associated with a value
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 594, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 403, in main
+    history = history_full,
+             ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'history_full' where it is not associated with a value
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 21:26:04.155187
+CONFIG: Layer=ude_d_constant, Ver=v_210_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: Non ancora implementato per angoli diretti.
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 594, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 529, in main
+    plot_evolutions_comparison(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\plots.py", line 462, in plot_evolutions_comparison
+    raise NotImplementedError("Non ancora implementato per angoli diretti.")
+NotImplementedError: Non ancora implementato per angoli diretti.
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 21:27:07.494830
+CONFIG: Layer=ude_d_constant, Ver=v_210_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: index 4 is out of bounds for axis 1 with size 4
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 595, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 529, in main
+    plot_evolutions_comparison(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\plots.py", line 446, in plot_evolutions_comparison
+    axes[1, 1].plot(time_array, true_states[:, 4], label=r'cos(q_2)')
+                                ~~~~~~~~~~~^^^^^^
+IndexError: index 4 is out of bounds for axis 1 with size 4
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 21:29:51.043504
+CONFIG: Layer=ude_d_constant, Ver=v_210_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: index 4 is out of bounds for axis 1 with size 4
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 596, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 530, in main
+    plot_evolutions_comparison(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\utils\plots.py", line 446, in plot_evolutions_comparison
+    axes[1, 1].plot(time_array, true_states[:, 4], label=r'cos(q_2)')
+                                ~~~~~~~~~~~^^^^^^
+IndexError: index 4 is out of bounds for axis 1 with size 4
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 22:28:40.809978
+CONFIG: Layer=ude_d_constant, Ver=v_220_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: 'NoneType' object is not subscriptable
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 608, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 305, in main
+    d11_ref= physical_params_ref['d11_ref'],
+             ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+==============================
+
+==============================
+TIMESTAMP: 2025-12-16 22:30:12.466913
+CONFIG: Layer=ude_d_constant, Ver=v_220_Matlearn, BS=256, SinCos=True, Norm=False
+ERROR: 'NoneType' object is not subscriptable
+---------- TRACEBACK ----------
+Traceback (most recent call last):
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 608, in <module>
+    main(
+  File "C:\Users\cenni\Desktop\Automation_magistrale\4_Università\III_semestre\AI_I\project\AI-industry-dynamic-modeling\branch1\main\onestep.py", line 305, in main
+    d11_ref= physical_params_ref['d11_ref'],
+             ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+==============================

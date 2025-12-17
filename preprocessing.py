@@ -94,9 +94,9 @@ def kullback_leibler(p, q, eps=1e-10, lambda_val=1.0, threshold_penalty = 0):
     return np.sum(p * np.log(p / q)) + lambda_val * threshold_penalty**2
 
 def optimize_threshold(
-        df:pd.DataFrame,
-        save_path:str = None,
-        show_plot:bool = False
+        df: pd.DataFrame,
+        save_path: str = None,
+        show_plot: bool = False
     ) -> float:
     """
     Optimize the threshold based on Multivariate Kullback-Leibler divergence 
@@ -108,16 +108,12 @@ def optimize_threshold(
     
     # 1. Prepare global parameters
     max_time = df['time_step'].to_numpy()[-1]
-    thresholds_vec = np.linspace(0.0, max_time, num=50) # Reduced num for performance
+    thresholds_vec = np.linspace(0.0, max_time, num=50)
 
-    # 2. Define global bounds for the histogram to keep bins consistent across loops
-    # Angles are always -pi to pi
-    # Velocities: we take the max absolute value seen in the whole dataset
+    # 2. Define global bounds
     max_v1 = df['q1_dot'].abs().max()
     max_v2 = df['q2_dot'].abs().max()
     
-    # Define ranges for: [q1, q2, q1_dot, q2_dot]
-    # We add a small buffer (+0.1) to velocity bounds to ensure no data falls on the edge
     bounds = [
         [-np.pi, np.pi], 
         [-np.pi, np.pi], 
@@ -131,28 +127,22 @@ def optimize_threshold(
             kl_vector.append(np.nan)
             continue
         
-        # Cut dataset
+        # Cut dataset (assumo che questa funzione sia definita esternamente)
         df_temp = cut_dataset(df, threshold=threshold)
         
-        # Extract full state: q1, q2, q1_dot, q2_dot
+        # Extract full state
         states = df_temp[['q1', 'q2', 'q1_dot', 'q2_dot']].to_numpy()
         
         # 4. Compute N-Dimensional Histogram
-        # CRITICAL: bins must be small (e.g., 10 to 15) to avoid memory explosion in 4D
-        # bins=12 means 12^4 = 20,736 bins. 
         H, edges = np.histogramdd(states, bins=12, range=bounds, density=True)
         
-        # Normalize Histogram to get Q (Observed Distribution)
-        # We flatten the array to treat it as a single probability vector
         q = H.flatten()
-        q = q / (q.sum() + 1e-10) # Normalize sum to 1
+        q = q / (q.sum() + 1e-10) 
         
-        # 5. Define Target Distribution P (Uniform Reference)
-        # In a fully mixed ergodic system, we compare against a flat distribution
+        # 5. Define Target Distribution P
         p = np.ones_like(q) / q.size
         
-        # Calculate KL
-        # We calculate one single scalar KL for the whole 4D space
+        # Calculate KL (assumo che questa funzione sia definita esternamente)
         current_kl = kullback_leibler(
             q=q, 
             p=p, 
@@ -166,21 +156,35 @@ def optimize_threshold(
             best_kl_divergence = current_kl
             best_threshold = threshold
 
-
-
+    # --- INIZIO MODIFICHE PLOT ---
     fig = plt.figure(figsize=(10, 6))
-    plt.plot(thresholds_vec, kl_vector, label='KL Divergence')
-    plt.scatter(best_threshold, best_kl_divergence, linestyle='', marker='o', color='red', label='Optimal Threshold')
+    
+    # Plot della curva KL
+    plt.plot(thresholds_vec, kl_vector, label='KL Divergence', linewidth=2, color='blue')
+    
+    # 1. Linea verticale rossa tratteggiata
+    plt.axvline(x=best_threshold, color='red', linestyle='--', linewidth=2, label=f'Optimal Threshold: {best_threshold:.2f}')
+    
+    # 2. Velo "verdino" a sinistra (Keep Region)
+    # alpha=0.1 rende il colore molto trasparente
+    plt.axvspan(thresholds_vec[0], best_threshold, color='green', alpha=0.1, label='Keep Region')
+    
+    # 3. Velo "rossino" a destra (Discard Region)
+    plt.axvspan(best_threshold, thresholds_vec[-1], color='red', alpha=0.1, label='Discard Region')
+
     plt.title('Kullback-Leibler Divergence vs. Threshold')
-    plt.xlabel('Threshold')
+    plt.xlabel('Threshold (Time)')
     plt.ylabel('Kullback-Leibler Divergence')
-    plt.grid()
+    plt.grid(alpha=0.3) # Griglia leggera
+    plt.legend(loc='best') # Mostra la legenda
     plt.tight_layout()
+    
     if show_plot:
         plt.show()
     if save_path:
-        fig.savefig(save_path+'.png')
-        
+        fig.savefig(save_path + '.png')
+    
+    # --- FINE MODIFICHE PLOT ---
 
     return best_threshold
 
@@ -357,8 +361,8 @@ def main(
 if __name__ == '__main__':
 
     main(
-        raw_folder= './data/raw/double_pendulum_nofrict.csv',
-        processed_folder= './data/processed/double_pendulum_nofrict.csv',
+        raw_folder= 'branch1/data_enhanced/raw',
+        processed_folder= 'data/processed_NEWTHRESHOLD',
         energy_cut = True,
         white_noise=True,
         round_pi= False

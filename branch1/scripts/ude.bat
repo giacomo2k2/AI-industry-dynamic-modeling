@@ -21,11 +21,10 @@ python -m %SCRIPT_NAME% ^
     --epochs 2000 ^
     --lr 1e-3 ^
     --activation "softplus" ^
-    --version "v1000wn" ^
+    --version "v1000wnEntries" ^
     --sin_cos_transform ^
     --verbose ^
-    --show_plots ^
-    --training
+    --show_plots
 
 REM Controllo errori
 if %errorlevel% neq 0 (

@@ -1,10 +1,12 @@
 
 \begin{frame}{UDE – Uninformed}
-        \par\textbf{Premise}: \textbf{Universal Differential Equations}. 
+    \begin{block}{Can we plug in even more knowledge?}
+        \par\textbf{Universal Differential Equations}. 
         \par\textbf{Model Layers}: Can we exploit past Architecture?.
+    \end{block}
         \begin{figure}
             \centering
-            \includegraphics[width=0.7\textwidth]{07_uninformed_predictors/DynUDE.pdf}
+            \includegraphics[width=1.0\textwidth]{07_uninformed_predictors/DynUDE.pdf}
         \end{figure}
         
 \end{frame}
@@ -40,43 +42,42 @@
 
     \begin{figure}[T]
             \centering
-            \includegraphics[width=0.3\linewidth]{stock.png} \\
-            \vspace{-1em}
+            \includegraphics[width=0.8\linewidth]{07_uninformed_predictors/LNN.pdf} \\
+            
     \end{figure} 
 
 \end{frame}
 
 
-\begin{frame}{Lagrangian Neural Networks (LNN) - Results}
-    \begin{columns}[T]
-        \begin{column}{0.5\textwidth}
+\begin{frame}{Lagrangian Neural Networks (LNN) - Evolution}
+     
+    \begin{figure}[h]
             \centering
-            \textbf{Evolution testing}
-            \begin{figure}[h]
-                    \centering
-                    \includegraphics[width=0.4\linewidth]{stock.png} \\
-                    \vspace{-1em}
-            \end{figure}    
+            \includegraphics[width=0.8\linewidth]{07_uninformed_predictors/lnn_evo.png} \\
+            \vspace{-1em}
+    \end{figure}    
         
-        \end{column}
-
-        \begin{column}{0.5\textwidth}
-            \centering
-            \textbf{Energy drift LNN vs baseline}
-            \begin{figure}[T]
-                    \centering
-                    \includegraphics[width=0.4\linewidth]{stock.png} \\
-                    \vspace{-1em}
-            \end{figure} 
-            
-        \end{column}
-    \end{columns}
 \end{frame}
 
 
-\begin{frame}{Lagrangian Neural Networks (LNN) - Considerations}
+\begin{frame}{Lagrangian Neural Networks (LNN) - Considerations (1)}
     \begin{itemize}
         \item Almost perfect \textbf{Energy} conservation
+    \end{itemize}
+
+    \begin{figure}[T]
+            \centering
+            \includegraphics[width=0.9\linewidth]{07_uninformed_predictors/energy_drift.png}
+            \vspace{-1em}
+    \end{figure}    
+        
+\end{frame}
+
+
+
+\begin{frame}{Lagrangian Neural Networks (LNN) - Considerations (2)}
+    \begin{itemize}
+        
         \item positive definiteness of \textbf{Hessian} is not guaranteed being $\mathcal{L}$ black box, causing \textbf{instability}
         \item \textbf{Batch Size}: Very small $\rightarrow$ need for \textbf{noisy gradients} to escape shallow loss regions (as suggested in literature).
         \item \textbf{Speed Issues}: Hessian computation is expensive.
@@ -87,7 +88,7 @@
                 \centering
                 \begin{figure}[h]
                         \centering
-                        \includegraphics[width=0.4\linewidth]{stock.png} \\
+                        \includegraphics[width=1.1\linewidth]{07_uninformed_predictors/loss_physics_ok.png} \\
                         \vspace{-1em}
                         \caption{loss descent - correct physics}
                 \end{figure}    
@@ -98,7 +99,7 @@
                 \centering
                 \begin{figure}[T]
                         \centering
-                        \includegraphics[width=0.4\linewidth]{stock.png} \\
+                        \includegraphics[width=1.1\linewidth]{07_uninformed_predictors/loss_physics_broken.png} \\
                         \vspace{-1em}
                         \caption{loss descent - broken physics}
                 \end{figure} 

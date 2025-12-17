@@ -7,8 +7,8 @@
         \begin{column}{0.4\textwidth}
             \centering
             \begin{figure}
-                \includegraphics[width=0.7\linewidth]{double_pendulum.png} 
-                \caption{Double Pendulum Model.}
+                \includegraphics[width=0.7\linewidth]{02_model_dataset/double_pendulum.png} 
+                \caption{Double Pendulum Model}
                 \label{fig:double_pendulum}
             \end{figure}
         \end{column}
@@ -16,7 +16,7 @@
         \begin{column}{0.4\textwidth}
             \begin{block}{State Variables}
                 
-                \begin{equation}
+                \[
                     \mathbf{q} = 
                     \begin{bmatrix}
                             q_1 \\
@@ -32,7 +32,7 @@
                         \dot{\theta}_2 \\
                     \end{bmatrix}
                     \in \mathbb{R}^4
-                \end{equation}
+                \]
                 
                 Where:
                 \begin{itemize}
@@ -43,7 +43,7 @@
                     \end{bmatrix}
                     \in \mathbb{R}^2
                     \]   
-                    are the angular positions.
+                    are the angular positions
                     \item \[
                         \begin{bmatrix}
                                 \dot{q}_1 \\
@@ -51,7 +51,7 @@
                         \end{bmatrix}
                         \in \mathbb{R}^2
                     \]
-                    are the angular velocities.
+                    are the angular velocities
 
                 \end{itemize}
             \end{block}
@@ -65,16 +65,16 @@
     \begin{equation}
         \frac{d}{dt} \left( \frac{\partial \mathcal{L}}{\partial \dot{q}_i} \right) - \frac{\partial \mathcal{L}}{\partial q_i} + \frac{\partial \mathcal{R}}{\partial \dot{q}_i}= \tau_i, \quad i = 1, 2
     \end{equation}
-    where $\mathcal{L} = T - V$ is the Lagrangian. 
+    where $\mathcal{L} = T - V$ is the Lagrangian 
     \begin{itemize}
-        \item $T$ is the kinetic energy.
-        \item $V$ is the potential energy.
-        \item $R$ is the Rayleigh dissipation function.
-        \item $\tau_i$ are the generalized forces (torques) applied at the joints.
+        \item $T$ is the kinetic energy
+        \item $V$ is the potential energy
+        \item $R$ is the Rayleigh dissipation function
+        \item $\tau_i$ are the generalized forces (torques) applied at the joints
     \end{itemize}
 
     \vspace{10px}
-    The dynamic model of the double pendulum can be expressed in the following matrix form.\footnote{Explicit expression reported in the appendix A}
+    The dynamic model of the double pendulum can be expressed in the following matrix form\footnote{Explicit expression reported in the appendix A}
 
     \begin{block}{Dynamics in Matrix Form}
         \begin{equation}
@@ -89,6 +89,7 @@
 \begin{frame}{Data Generation}
 
     Integration:
+    \vspace{1ex} % Changed px to ex or pt (px is not always standard in LaTeX)
     \begin{itemize}
         \item \textbf{Forward Euler:}
         \begin{itemize}
@@ -105,28 +106,39 @@
 
     \end{itemize}
 
-    \vspace{1ex} % Changed px to ex or pt (px is not always standard in LaTeX)
-
-    \begin{block}{Simulation Setting}
+    \begin{block}{Generation}
+        
+        Setting:
         \begin{itemize}
-            \item Duration $T = 10 \text{ s}$
-            \item Step size $\Delta t = 0.01 \text{ s}$
+            \item Duration $T = 10 \text{ s}$ with step size $\Delta t = 0.01 \text{ s}$
             \item Initial state $q_0 \sim \mathcal{U}[-\pi, \pi], \dot{q_0} \sim \mathcal{U}[-2,2]$
             \item Physical parameters $m_1, m_2, l_1, l_2, g \text{(gravity)}, b_1, b_2 \text{(friction)}$
         \end{itemize}
-    \end{block}
-
-
-    \vspace{1ex}
-
-    \begin{block}{Generated datasets}
+        
+        Datsets:
         \begin{itemize}
             % \bullet is a math symbol, needs $ signs
-            \item[\textcolor{blue}{$\bullet$}] \textcolor{blue}{\textbf{No friction}}: $b_1 = b_2 = 0$
-        
-            \item[\textcolor{orange}{$\bullet$}] \textcolor{orange}{\textbf{Low friction}}: $b_1 = b_2 = 0.3$
+
+            % --- UPPER ROW (Left & Right) ---
+            \begin{columns}[T]
+                % Up Left
+                \begin{column}{0.45\textwidth}
+                    \item[\textcolor{blue}{$\bullet$}] \textcolor{blue}{\textbf{No friction}} $b_1 = b_2 = 0$
+                \end{column}
+                
+                % Up Right
+                \begin{column}{0.45\textwidth}
+                   \item[\textcolor{orange}{$\bullet$}] \textcolor{orange}{\textbf{Low friction}} $b_1 = b_2 = 0.3$
+                \end{column}
+            \end{columns}
             
-            \item[\textcolor{red}{$\bullet$}] \textcolor{red}{\textbf{High friction}}: $b_1 = b_2 \approx 3.0$ \quad \small \textit{\textcolor{red}{Excluded for rapid energy dissipation}}
+            \vspace{1em} % Space between upper and lower rows
+            % --- LOWER ROW (Centered) ---
+            \centering
+            \begin{minipage}{0.80\textwidth} 
+                \item[\textcolor{red}{$\bullet$}] \textcolor{red}{\textbf{High friction}} $b_1 = b_2 = 3.0$ \quad \small \textit{\textcolor{red}{Excluded for rapid energy dissipation}}
+            \end{minipage}
+            
         \end{itemize}
     \end{block}
 

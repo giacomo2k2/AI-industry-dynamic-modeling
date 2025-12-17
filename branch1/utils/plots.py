@@ -403,53 +403,65 @@ def plot_evolutions_comparison(true_states,
     
     """
     Confronta le traiettorie vere e predette (posizioni e velocità).
-    true_states: (N, 4) -> [q1, q1_dot, q2, q2_dot]
-    predicted_states: (N, 4) -> [q1, q1_dot, q2, q2_dot]
     """
-    if sin_cos_transform:
-        pass
-        
-    
     steps = len(true_states)
     time_array = np.arange(0, steps * dt, dt)
     
-    # Crea una griglia 2x2
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    fig.suptitle('Predicted vs True Trajectories', fontsize=16)
-    
-    # --- Grafico 1: Posizione q1 (Indice 0) ---
-    axes[0, 0].plot(time_array, true_states[:, 1], label='True cos(q1)', color='cyan')
-    axes[0, 0].plot(time_array, predicted_states[:, 1], label='Predicted cos(q1)', color='orange', linestyle='--')
-    axes[0, 0].set_ylabel('Angle q1 (rad)')
-    axes[0, 0].set_title(r'Posizione $q_1$')
-    axes[0, 0].legend()
-    axes[0, 0].grid(True, alpha=0.3)
 
-    # --- Grafico 2: Velocità q1_dot (Indice 1) ---
-    axes[0, 1].plot(time_array, true_states[:, 2], label='True q1_dot', color='cyan')
-    axes[0, 1].plot(time_array, predicted_states[:, 2], label='Predicted q1_dot',  color='orange', linestyle='--')
-    axes[0, 1].set_ylabel('Velocity q1_dot (rad/s)')
-    axes[0, 1].set_title(r'Velocità $\dot{q}_1$')
-    axes[0, 1].legend()
-    axes[0, 1].grid(True, alpha=0.3)
+    if sin_cos_transform:
 
-    # --- Grafico 3: Posizione q2 (Indice 2) ---
-    axes[1, 0].plot(time_array, true_states[:, 4], label='True cos(q2)', color='cyan')
-    axes[1, 0].plot(time_array, predicted_states[:, 4], label='Predicted cos(q2)', color='orange', linestyle='--')
-    axes[1, 0].set_ylabel('Angle q2 (rad)')
-    axes[1, 0].set_xlabel('Time (s)')
-    axes[1, 0].set_title(r'Posizione $q_2$')
-    axes[1, 0].legend()
-    axes[1, 0].grid(True, alpha=0.3)
+        fig, axes = plt.subplots(2, 3, figsize=(14, 10))
 
-    # --- Grafico 4: Velocità q2_dot (Indice 3) ---
-    axes[1, 1].plot(time_array, true_states[:, 5], label='True q2_dot', color='cyan')
-    axes[1, 1].plot(time_array, predicted_states[:, 5], label='Predicted q2_dot', color='orange', linestyle='--')
-    axes[1, 1].set_ylabel('Velocity q2_dot (rad/s)')
-    axes[1, 1].set_xlabel('Time (s)')
-    axes[1, 1].set_title(r'Velocità $\dot{q}_2$')
-    axes[1, 1].legend()
-    axes[1, 1].grid(True, alpha=0.3)
+        axes[0, 0].plot(time_array, true_states[:, 0], label=r'$\sin(q_1)$')
+        axes[0, 0].plot(time_array, predicted_states[:, 0], label=r'$\hat{\sin(q_1)}$', color='orange', linestyle='--')
+        axes[0, 0].set_ylabel('Angle sine')
+        axes[1, 1].set_xlabel('Time (s)')
+        axes[0, 0].legend()
+        axes[0, 0].grid(True, alpha=0.3)
+        
+        # --- Grafico 1: Posizione q1 (Indice 0) ---
+        axes[0, 1].plot(time_array, true_states[:, 1], label=r'$\cos(q_1)$')
+        axes[0, 1].plot(time_array, predicted_states[:, 1], label=r'$\hat{\cos(q_1)}$', color='orange', linestyle='--')
+        axes[0, 1].set_ylabel('Angle cosine')
+        axes[1, 1].set_xlabel('Time (s)')
+        axes[0, 1].legend()
+        axes[0, 1].grid(True, alpha=0.3)
+
+        # --- Grafico 2: Velocità q1_dot (Indice 1) ---
+        axes[0, 2].plot(time_array, true_states[:, 2], label=r'$\dot{q_1}$')
+        axes[0, 2].plot(time_array, predicted_states[:, 2], label=r'$\hat{\dot{q_1}}$',  color='orange', linestyle='--')
+        axes[0, 2].set_ylabel('Velocity (rad/s)')
+        axes[1, 1].set_xlabel('Time (s)')
+        axes[0, 2].legend()
+        axes[0, 2].grid(True, alpha=0.3)
+
+        axes[1, 0].plot(time_array, true_states[:, 3], label=r'$\sin(q_2)$')
+        axes[1, 0].plot(time_array, predicted_states[:, 3], label=r'$\hat{\sin(q_2)}$', color='orange', linestyle='--')
+        axes[1, 0].set_ylabel('Angle sine')
+        axes[1, 1].set_xlabel('Time (s)')
+        axes[1, 0].legend()
+        axes[1, 0].grid(True, alpha=0.3)
+
+        # --- Grafico 3: Posizione q2 (Indice 2) ---
+        axes[1, 1].plot(time_array, true_states[:, 4], label=r'$\cos(q_2)$')
+        axes[1, 1].plot(time_array, predicted_states[:, 4], label=r'$\hat{\cos(q_2)}$', color='orange', linestyle='--')
+        axes[1, 1].set_ylabel('Angle cosine')
+        axes[1, 1].set_xlabel('Time (s)')
+        axes[1, 1].legend()
+        axes[1, 1].grid(True, alpha=0.3)
+
+        # --- Grafico 4: Velocità q2_dot (Indice 3) ---
+        axes[1, 2].plot(time_array, true_states[:, 5], label=r'$\dot{q_1}$')
+        axes[1, 2].plot(time_array, predicted_states[:, 5], label=r'$\hat{\dot{q_2}}$', color='orange', linestyle='--')
+        axes[1, 2].set_ylabel('Velocity (rad/s)')
+        axes[1, 2].set_xlabel('Time (s)')
+        axes[1, 2].legend()
+        axes[1, 2].grid(True, alpha=0.3)
+        
+    else: 
+        raise NotImplementedError("Non ancora implementato per angoli diretti.")
+        pass
+        
 
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 

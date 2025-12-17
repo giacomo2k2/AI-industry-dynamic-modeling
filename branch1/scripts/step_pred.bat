@@ -18,13 +18,14 @@ python -m %SCRIPT_NAME% ^
     --optimizer_type "adam" ^
     --scheduler_type "onecycle" ^
     --loss_type "mse" ^
-    --epochs 2 ^
+    --epochs 500 ^
     --lr 1e-3 ^
     --integrator "rk4" ^
     --dynlayer "ude_d_constant" ^
     --activation "softplus" ^
-    --version "vprova" ^
+    --version "v_220_Matlearn" ^
     --sin_cos_transform ^
+    --sample_weights ^
     --training
 
 REM Controllo errori

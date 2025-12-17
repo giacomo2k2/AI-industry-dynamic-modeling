@@ -30,7 +30,7 @@ python -m %SCRIPT_NAME% ^
     --fixed_m1 ^
     --fixed_m2 ^
     --fixed_b1 ^
-    --version "v169NN" ^
+    --version "v169nn" ^
     --sin_cos_transform ^
     --sample_weights
 

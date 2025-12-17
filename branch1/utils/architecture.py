@@ -932,8 +932,8 @@ class UDE_D_constant(nn.Module):
             hidden_dim=256, 
             output_dim=6, 
             activation='softplus',
-            d11_ref: float = 0.5, fixed_d11: float = None,
-            d22_ref: float = 0.5, fixed_d22: float = None, 
+            d11_ref: float = 5, fixed_d11: float = None,
+            d22_ref: float = 5, fixed_d22: float = None, 
 
         ):
 
