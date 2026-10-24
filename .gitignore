@@ -1,1 +1,25 @@
-.venv
+.venv/
+__pycache__/
+*.pyc
+
+# Generated datasets and training outputs (regenerate with gen.py / training scripts)
+data/
+branch1/data_enhanced/
+branch1/models/
+branch2/runs/
+lightning_logs/
+*.pth
+*.pt
+*.ckpt
+
+# LaTeX build files
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.out
+*.toc
+*.nav
+*.snm
+*.vrb
